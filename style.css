@@ -4149,3 +4149,475 @@ fieldset:focus-within {
 		justify-content: center;
 	}
 }
+
+/* =============================================================================
+   TUTORIAL / ONBOARDING
+   ============================================================================= */
+
+.modal-content--tutorial {
+	max-width: 700px;
+	width: 95%;
+	max-height: 90vh;
+	display: flex;
+	flex-direction: column;
+	padding: 0;
+	overflow: hidden;
+}
+
+/* Slides Container */
+.tutorial-slides {
+	flex: 1;
+	overflow-y: auto;
+	position: relative;
+}
+
+.tutorial-slide {
+	display: none;
+	padding: 2rem;
+	animation: tutorialFadeIn 0.4s ease;
+}
+
+.tutorial-slide.active {
+	display: block;
+}
+
+@keyframes tutorialFadeIn {
+	from {
+		opacity: 0;
+		transform: translateX(20px);
+	}
+	to {
+		opacity: 1;
+		transform: translateX(0);
+	}
+}
+
+/* Slide Header */
+.tutorial-slide__icon {
+	text-align: center;
+	margin-bottom: 1.5rem;
+}
+
+.tutorial-slide__icon i {
+	font-size: 4rem;
+	background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	background-clip: text;
+}
+
+.tutorial-slide__icon--warning i {
+	background: linear-gradient(135deg, #f59e0b, #ef4444);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	background-clip: text;
+}
+
+.tutorial-logo {
+	width: 100px;
+	height: 100px;
+	filter: drop-shadow(0 4px 20px rgba(139, 92, 246, 0.4));
+}
+
+.tutorial-slide h2 {
+	text-align: center;
+	font-size: 1.5rem;
+	margin-bottom: 0.5rem;
+	background: linear-gradient(135deg, var(--color-text), var(--color-primary-light));
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	background-clip: text;
+}
+
+.tutorial-subtitle {
+	text-align: center;
+	color: var(--color-text-muted);
+	margin-bottom: 1.5rem;
+	font-size: 1rem;
+}
+
+/* Tutorial Content */
+.tutorial-content {
+	display: flex;
+	flex-direction: column;
+	gap: 1.25rem;
+}
+
+.tutorial-content p {
+	color: var(--color-text-secondary);
+	line-height: 1.7;
+	text-align: center;
+}
+
+/* Badge Terra Eletronica */
+.tutorial-badge {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.75rem;
+	padding: 1rem 1.5rem;
+	background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.1));
+	border: 1px solid rgba(139, 92, 246, 0.3);
+	border-radius: 12px;
+}
+
+.tutorial-badge i {
+	font-size: 1.5rem;
+	color: var(--color-primary);
+}
+
+.tutorial-badge span {
+	color: var(--color-text-secondary);
+}
+
+.tutorial-badge strong {
+	color: var(--color-primary-light);
+}
+
+/* Warning Box */
+.tutorial-warning {
+	display: flex;
+	gap: 1rem;
+	padding: 1rem 1.25rem;
+	background: rgba(245, 158, 11, 0.1);
+	border: 1px solid rgba(245, 158, 11, 0.3);
+	border-radius: 12px;
+	align-items: flex-start;
+}
+
+.tutorial-warning > i {
+	font-size: 1.5rem;
+	color: #f59e0b;
+	flex-shrink: 0;
+	margin-top: 0.25rem;
+}
+
+.tutorial-warning strong {
+	display: block;
+	color: #fbbf24;
+	margin-bottom: 0.25rem;
+}
+
+.tutorial-warning p {
+	margin: 0;
+	text-align: left;
+	font-size: 0.9rem;
+	color: var(--color-text-secondary);
+}
+
+/* Features Grid */
+.tutorial-features {
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+}
+
+.tutorial-feature {
+	display: flex;
+	gap: 1rem;
+	padding: 1rem 1.25rem;
+	background: rgba(30, 41, 59, 0.5);
+	border: 1px solid var(--color-border);
+	border-radius: 12px;
+	transition: all 0.2s ease;
+}
+
+.tutorial-feature:hover {
+	border-color: rgba(139, 92, 246, 0.4);
+	background: rgba(30, 41, 59, 0.8);
+}
+
+.tutorial-feature > i {
+	font-size: 1.5rem;
+	color: var(--color-primary);
+	flex-shrink: 0;
+	width: 40px;
+	text-align: center;
+}
+
+.tutorial-feature strong {
+	display: block;
+	color: var(--color-text);
+	margin-bottom: 0.25rem;
+}
+
+.tutorial-feature p {
+	margin: 0;
+	text-align: left;
+	font-size: 0.875rem;
+	color: var(--color-text-muted);
+}
+
+/* Terms Content */
+.tutorial-content--terms {
+	gap: 1rem;
+}
+
+.terms-box {
+	background: rgba(15, 23, 42, 0.6);
+	border: 1px solid var(--color-border);
+	border-radius: 12px;
+	padding: 1.5rem;
+}
+
+.terms-box h3 {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	font-size: 1.1rem;
+	margin-bottom: 1rem;
+	color: var(--color-text);
+}
+
+.terms-box h3 i {
+	color: var(--color-primary);
+}
+
+.terms-box > p {
+	text-align: left;
+	margin-bottom: 1rem;
+}
+
+.terms-list {
+	list-style: none;
+	padding: 0;
+	margin: 0 0 1.25rem;
+	display: flex;
+	flex-direction: column;
+	gap: 0.75rem;
+}
+
+.terms-list li {
+	display: flex;
+	align-items: flex-start;
+	gap: 0.75rem;
+	color: var(--color-text-secondary);
+	font-size: 0.9rem;
+}
+
+.terms-list li i {
+	color: #ef4444;
+	margin-top: 0.2rem;
+	flex-shrink: 0;
+}
+
+/* Disclaimer Box */
+.terms-disclaimer {
+	display: flex;
+	gap: 1rem;
+	padding: 1rem;
+	background: rgba(239, 68, 68, 0.1);
+	border: 1px solid rgba(239, 68, 68, 0.3);
+	border-radius: 8px;
+	margin-bottom: 1rem;
+}
+
+.terms-disclaimer > i {
+	font-size: 1.25rem;
+	color: #ef4444;
+	flex-shrink: 0;
+}
+
+.terms-disclaimer strong {
+	display: block;
+	color: #f87171;
+	margin-bottom: 0.25rem;
+	font-size: 0.9rem;
+}
+
+.terms-disclaimer p {
+	margin: 0;
+	font-size: 0.85rem;
+	text-align: left;
+	color: var(--color-text-muted);
+}
+
+/* Recommendation Box */
+.terms-recommendation {
+	display: flex;
+	gap: 1rem;
+	padding: 1rem;
+	background: rgba(16, 185, 129, 0.1);
+	border: 1px solid rgba(16, 185, 129, 0.3);
+	border-radius: 8px;
+}
+
+.terms-recommendation > i {
+	font-size: 1.25rem;
+	color: #10b981;
+	flex-shrink: 0;
+}
+
+.terms-recommendation strong {
+	display: block;
+	color: #34d399;
+	margin-bottom: 0.5rem;
+	font-size: 0.9rem;
+}
+
+.terms-recommendation ul {
+	margin: 0;
+	padding-left: 1.25rem;
+}
+
+.terms-recommendation li {
+	font-size: 0.85rem;
+	color: var(--color-text-muted);
+	margin-bottom: 0.25rem;
+}
+
+/* Terms Checkbox */
+.terms-checkbox {
+	display: flex;
+	gap: 0.75rem;
+	padding: 1rem;
+	background: rgba(139, 92, 246, 0.1);
+	border: 1px solid rgba(139, 92, 246, 0.3);
+	border-radius: 8px;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.terms-checkbox:hover {
+	background: rgba(139, 92, 246, 0.15);
+	border-color: rgba(139, 92, 246, 0.5);
+}
+
+.terms-checkbox input[type="checkbox"] {
+	width: 20px;
+	height: 20px;
+	flex-shrink: 0;
+	accent-color: var(--color-primary);
+	cursor: pointer;
+	margin-top: 0.1rem;
+}
+
+.terms-checkbox span {
+	font-size: 0.875rem;
+	color: var(--color-text-secondary);
+	line-height: 1.5;
+}
+
+/* Tutorial Navigation */
+.tutorial-nav {
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+	padding: 1.25rem 2rem;
+	background: rgba(15, 23, 42, 0.8);
+	border-top: 1px solid var(--color-border);
+}
+
+.tutorial-dots {
+	display: flex;
+	justify-content: center;
+	gap: 0.5rem;
+}
+
+.tutorial-dot {
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	border: none;
+	background: var(--color-border);
+	cursor: pointer;
+	padding: 0;
+	transition: all 0.2s ease;
+}
+
+.tutorial-dot:hover {
+	background: rgba(139, 92, 246, 0.5);
+}
+
+.tutorial-dot.active {
+	background: var(--color-primary);
+	transform: scale(1.2);
+}
+
+.tutorial-buttons {
+	display: flex;
+	gap: 1rem;
+	justify-content: center;
+}
+
+.tutorial-buttons button {
+	min-width: 140px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.5rem;
+}
+
+.tutorial-buttons button.hidden {
+	display: none;
+}
+
+.tutorial-buttons button:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+/* Responsive Tutorial */
+@media (max-width: 600px) {
+	.modal-content--tutorial {
+		max-height: 95vh;
+		width: 100%;
+		border-radius: 16px 16px 0 0;
+	}
+	
+	.tutorial-slide {
+		padding: 1.5rem;
+	}
+	
+	.tutorial-slide__icon i {
+		font-size: 3rem;
+	}
+	
+	.tutorial-logo {
+		width: 80px;
+		height: 80px;
+	}
+	
+	.tutorial-slide h2 {
+		font-size: 1.25rem;
+	}
+	
+	.tutorial-feature {
+		padding: 0.875rem 1rem;
+	}
+	
+	.tutorial-feature > i {
+		font-size: 1.25rem;
+		width: 32px;
+	}
+	
+	.tutorial-buttons {
+		flex-direction: column;
+	}
+	
+	.tutorial-buttons button {
+		width: 100%;
+	}
+	
+	.tutorial-nav {
+		padding: 1rem 1.5rem;
+	}
+	
+	.terms-box {
+		padding: 1rem;
+	}
+}
+
+/* Animação de shake para checkbox */
+@keyframes shake {
+	0%, 100% { transform: translateX(0); }
+	10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+	20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+/* Botão desabilitado */
+.tutorial-buttons button:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+	pointer-events: none;
+}

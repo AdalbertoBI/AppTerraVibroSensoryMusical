@@ -376,6 +376,12 @@ function cacheDom() {
 	ui.termsModal = document.getElementById('termsModal');
 	ui.acceptTerms = document.getElementById('acceptTerms');
 	ui.year = document.getElementById('year');
+	// Tutorial
+	ui.tutorialSlides = document.getElementById('tutorialSlides');
+	ui.tutorialDots = document.getElementById('tutorialDots');
+	ui.tutorialPrev = document.getElementById('tutorialPrev');
+	ui.tutorialNext = document.getElementById('tutorialNext');
+	ui.termsCheckbox = document.getElementById('termsCheckbox');
 	// Internet Archive
 	ui.archiveQuery = document.getElementById('archiveQuery');
 	ui.archiveCategory = document.getElementById('archiveCategory');
@@ -460,6 +466,11 @@ function attachListeners() {
 	window.addEventListener('beforeinstallprompt', captureInstallPrompt);
 	ui.installBtn.addEventListener('click', triggerInstallPrompt);
 	ui.acceptTerms.addEventListener('click', acceptTerms);
+	// Tutorial
+	ui.tutorialPrev.addEventListener('click', tutorialPrevSlide);
+	ui.tutorialNext.addEventListener('click', tutorialNextSlide);
+	ui.tutorialDots.addEventListener('click', handleTutorialDotClick);
+	ui.termsCheckbox.addEventListener('change', handleTermsCheckboxChange);
 	// Internet Archive
 	ui.archiveSearchBtn.addEventListener('click', searchInternetArchive);
 	ui.archiveQuery.addEventListener('keydown', (ev) => {
@@ -1485,16 +1496,101 @@ function setFooterYear() {
 	ui.year.textContent = new Date().getFullYear();
 }
 
+// =============================================================================
+// SISTEMA DE TUTORIAL / ONBOARDING
+// =============================================================================
+
+let currentTutorialSlide = 0;
+const TOTAL_TUTORIAL_SLIDES = 6;
+
 function checkTermsModal() {
 	const accepted = localStorage.getItem(TERMS_KEY);
 	if (accepted) {
 		ui.termsModal.classList.add('hidden');
 	} else {
 		ui.termsModal.classList.remove('hidden');
+		initTutorial();
+	}
+}
+
+function initTutorial() {
+	currentTutorialSlide = 0;
+	updateTutorialUI();
+}
+
+function updateTutorialUI() {
+	// Atualiza slides
+	const slides = ui.tutorialSlides.querySelectorAll('.tutorial-slide');
+	slides.forEach((slide, index) => {
+		slide.classList.toggle('active', index === currentTutorialSlide);
+	});
+	
+	// Atualiza dots
+	const dots = ui.tutorialDots.querySelectorAll('.tutorial-dot');
+	dots.forEach((dot, index) => {
+		dot.classList.toggle('active', index === currentTutorialSlide);
+	});
+	
+	// Atualiza botões de navegação
+	ui.tutorialPrev.disabled = currentTutorialSlide === 0;
+	
+	// No último slide, mostra botão de aceitar em vez de próximo
+	const isLastSlide = currentTutorialSlide === TOTAL_TUTORIAL_SLIDES - 1;
+	ui.tutorialNext.classList.toggle('hidden', isLastSlide);
+	ui.acceptTerms.classList.toggle('hidden', !isLastSlide);
+	
+	// Desabilita botão aceitar se checkbox não estiver marcado (apenas no último slide)
+	if (isLastSlide) {
+		ui.acceptTerms.disabled = !ui.termsCheckbox.checked;
+	}
+}
+
+function tutorialPrevSlide() {
+	if (currentTutorialSlide > 0) {
+		currentTutorialSlide--;
+		updateTutorialUI();
+	}
+}
+
+function tutorialNextSlide() {
+	if (currentTutorialSlide < TOTAL_TUTORIAL_SLIDES - 1) {
+		currentTutorialSlide++;
+		updateTutorialUI();
+	}
+}
+
+function handleTutorialDotClick(event) {
+	const dot = event.target.closest('.tutorial-dot');
+	if (!dot) return;
+	
+	const slideIndex = parseInt(dot.dataset.slide, 10);
+	if (!isNaN(slideIndex) && slideIndex >= 0 && slideIndex < TOTAL_TUTORIAL_SLIDES) {
+		currentTutorialSlide = slideIndex;
+		updateTutorialUI();
+	}
+}
+
+function handleTermsCheckboxChange() {
+	// Habilita/desabilita botão aceitar baseado no checkbox
+	if (currentTutorialSlide === TOTAL_TUTORIAL_SLIDES - 1) {
+		ui.acceptTerms.disabled = !ui.termsCheckbox.checked;
 	}
 }
 
 function acceptTerms() {
+	// Verifica se checkbox está marcado
+	if (!ui.termsCheckbox.checked) {
+		ui.termsCheckbox.focus();
+		// Efeito visual para chamar atenção
+		const label = ui.termsCheckbox.closest('.terms-checkbox');
+		if (label) {
+			label.style.animation = 'none';
+			label.offsetHeight; // Trigger reflow
+			label.style.animation = 'shake 0.5s ease';
+		}
+		return;
+	}
+	
 	localStorage.setItem(TERMS_KEY, 'true');
 	ui.termsModal.classList.add('hidden');
 }
