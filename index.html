@@ -1594,6 +1594,38 @@
 		</div>
 	</div>
 
+	<!-- Tutorial Guiado Interativo -->
+	<div id="guidedTutorial" class="guided-tutorial hidden">
+		<div class="guided-tutorial__overlay" id="tutorialOverlay"></div>
+		<div class="guided-tutorial__spotlight" id="tutorialSpotlight"></div>
+		<div class="guided-tutorial__tooltip" id="tutorialTooltip">
+			<div class="tooltip__header">
+				<span class="tooltip__step" id="tooltipStep">1/10</span>
+				<button type="button" class="tooltip__close" id="closeTutorialBtn" aria-label="Fechar tutorial">
+					<i class="fa-solid fa-times"></i>
+				</button>
+			</div>
+			<div class="tooltip__content">
+				<h3 class="tooltip__title" id="tooltipTitle">Título</h3>
+				<p class="tooltip__text" id="tooltipText">Descrição do elemento</p>
+			</div>
+			<div class="tooltip__arrow" id="tooltipArrow"></div>
+			<div class="tooltip__footer">
+				<button type="button" class="tooltip__btn tooltip__btn--skip" id="skipTutorialBtn">
+					Pular tutorial
+				</button>
+				<div class="tooltip__nav">
+					<button type="button" class="tooltip__btn tooltip__btn--prev" id="tutorialPrevBtn" disabled>
+						<i class="fa-solid fa-chevron-left"></i> Anterior
+					</button>
+					<button type="button" class="tooltip__btn tooltip__btn--next" id="tutorialNextBtn">
+						Próximo <i class="fa-solid fa-chevron-right"></i>
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.4/howler.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 	<script type="module" src="app.js"></script>

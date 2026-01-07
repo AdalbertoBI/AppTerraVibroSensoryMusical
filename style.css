@@ -4621,3 +4621,302 @@ fieldset:focus-within {
 	cursor: not-allowed;
 	pointer-events: none;
 }
+
+/* =============================================================================
+   TUTORIAL GUIADO INTERATIVO
+   ============================================================================= */
+
+.guided-tutorial {
+	position: fixed;
+	inset: 0;
+	z-index: 10000;
+	pointer-events: none;
+}
+
+.guided-tutorial.hidden {
+	display: none;
+}
+
+.guided-tutorial.active {
+	pointer-events: auto;
+}
+
+/* Overlay escuro */
+.guided-tutorial__overlay {
+	position: absolute;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.75);
+	pointer-events: auto;
+}
+
+/* Spotlight (buraco no overlay) */
+.guided-tutorial__spotlight {
+	position: absolute;
+	border-radius: 8px;
+	box-shadow: 
+		0 0 0 9999px rgba(0, 0, 0, 0.75),
+		0 0 20px rgba(139, 92, 246, 0.5),
+		inset 0 0 0 2px rgba(139, 92, 246, 0.8);
+	transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+	pointer-events: none;
+	z-index: 10001;
+}
+
+/* Animação de pulso no spotlight */
+.guided-tutorial__spotlight::after {
+	content: '';
+	position: absolute;
+	inset: -4px;
+	border: 2px solid rgba(139, 92, 246, 0.6);
+	border-radius: 12px;
+	animation: spotlightPulse 2s ease-in-out infinite;
+}
+
+@keyframes spotlightPulse {
+	0%, 100% { 
+		opacity: 1; 
+		transform: scale(1);
+	}
+	50% { 
+		opacity: 0.5; 
+		transform: scale(1.02);
+	}
+}
+
+/* Tooltip */
+.guided-tutorial__tooltip {
+	position: absolute;
+	width: 340px;
+	max-width: calc(100vw - 32px);
+	background: linear-gradient(145deg, rgba(30, 41, 59, 0.98), rgba(15, 23, 42, 0.98));
+	border: 1px solid rgba(139, 92, 246, 0.4);
+	border-radius: 16px;
+	box-shadow: 
+		0 20px 50px rgba(0, 0, 0, 0.5),
+		0 0 30px rgba(139, 92, 246, 0.2);
+	z-index: 10002;
+	pointer-events: auto;
+	transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+	overflow: hidden;
+}
+
+/* Header do Tooltip */
+.tooltip__header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 0.75rem 1rem;
+	background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(99, 102, 241, 0.1));
+	border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.tooltip__step {
+	font-size: 0.75rem;
+	font-weight: 600;
+	color: var(--color-primary-light);
+	background: rgba(139, 92, 246, 0.2);
+	padding: 0.25rem 0.75rem;
+	border-radius: 20px;
+}
+
+.tooltip__close {
+	width: 28px;
+	height: 28px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: rgba(255, 255, 255, 0.1);
+	border: none;
+	border-radius: 50%;
+	color: var(--color-text-muted);
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.tooltip__close:hover {
+	background: rgba(239, 68, 68, 0.2);
+	color: #ef4444;
+}
+
+/* Conteúdo do Tooltip */
+.tooltip__content {
+	padding: 1.25rem;
+}
+
+.tooltip__title {
+	font-size: 1.1rem;
+	font-weight: 600;
+	color: var(--color-text);
+	margin-bottom: 0.5rem;
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+.tooltip__title i {
+	color: var(--color-primary);
+}
+
+.tooltip__text {
+	font-size: 0.9rem;
+	color: var(--color-text-secondary);
+	line-height: 1.6;
+	margin: 0;
+}
+
+/* Seta do Tooltip */
+.tooltip__arrow {
+	position: absolute;
+	width: 16px;
+	height: 16px;
+	background: linear-gradient(145deg, rgba(30, 41, 59, 0.98), rgba(15, 23, 42, 0.98));
+	border: 1px solid rgba(139, 92, 246, 0.4);
+	transform: rotate(45deg);
+	z-index: -1;
+}
+
+/* Posições da seta */
+.tooltip__arrow[data-position="top"] {
+	bottom: -9px;
+	left: 50%;
+	margin-left: -8px;
+	border-top: none;
+	border-left: none;
+}
+
+.tooltip__arrow[data-position="bottom"] {
+	top: -9px;
+	left: 50%;
+	margin-left: -8px;
+	border-bottom: none;
+	border-right: none;
+}
+
+.tooltip__arrow[data-position="left"] {
+	right: -9px;
+	top: 50%;
+	margin-top: -8px;
+	border-bottom: none;
+	border-left: none;
+}
+
+.tooltip__arrow[data-position="right"] {
+	left: -9px;
+	top: 50%;
+	margin-top: -8px;
+	border-top: none;
+	border-right: none;
+}
+
+/* Footer do Tooltip */
+.tooltip__footer {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 0.75rem 1rem;
+	background: rgba(15, 23, 42, 0.5);
+	border-top: 1px solid rgba(139, 92, 246, 0.1);
+	gap: 0.5rem;
+}
+
+.tooltip__nav {
+	display: flex;
+	gap: 0.5rem;
+}
+
+.tooltip__btn {
+	padding: 0.5rem 1rem;
+	font-size: 0.8rem;
+	font-weight: 500;
+	border-radius: 8px;
+	border: none;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	display: flex;
+	align-items: center;
+	gap: 0.35rem;
+}
+
+.tooltip__btn--skip {
+	background: transparent;
+	color: var(--color-text-muted);
+}
+
+.tooltip__btn--skip:hover {
+	color: var(--color-text);
+	background: rgba(255, 255, 255, 0.05);
+}
+
+.tooltip__btn--prev {
+	background: rgba(255, 255, 255, 0.1);
+	color: var(--color-text-secondary);
+}
+
+.tooltip__btn--prev:hover:not(:disabled) {
+	background: rgba(255, 255, 255, 0.15);
+	color: var(--color-text);
+}
+
+.tooltip__btn--prev:disabled {
+	opacity: 0.4;
+	cursor: not-allowed;
+}
+
+.tooltip__btn--next {
+	background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+	color: white;
+}
+
+.tooltip__btn--next:hover {
+	transform: translateY(-1px);
+	box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+}
+
+/* Botão de Concluir (último step) */
+.tooltip__btn--finish {
+	background: linear-gradient(135deg, #10b981, #059669);
+	color: white;
+}
+
+.tooltip__btn--finish:hover {
+	transform: translateY(-1px);
+	box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+}
+
+/* Elemento destacado */
+.tutorial-highlight {
+	position: relative;
+	z-index: 10001 !important;
+	pointer-events: auto !important;
+}
+
+/* Responsivo */
+@media (max-width: 480px) {
+	.guided-tutorial__tooltip {
+		width: calc(100vw - 24px);
+		left: 12px !important;
+		right: 12px !important;
+	}
+	
+	.tooltip__footer {
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+	
+	.tooltip__btn--skip {
+		order: 2;
+		font-size: 0.75rem;
+	}
+	
+	.tooltip__nav {
+		width: 100%;
+		justify-content: space-between;
+	}
+	
+	.tooltip__btn--prev,
+	.tooltip__btn--next {
+		flex: 1;
+		justify-content: center;
+	}
+}
+

@@ -376,12 +376,24 @@ function cacheDom() {
 	ui.termsModal = document.getElementById('termsModal');
 	ui.acceptTerms = document.getElementById('acceptTerms');
 	ui.year = document.getElementById('year');
-	// Tutorial
+	// Tutorial Modal (Boas-vindas)
 	ui.tutorialSlides = document.getElementById('tutorialSlides');
 	ui.tutorialDots = document.getElementById('tutorialDots');
 	ui.tutorialPrev = document.getElementById('tutorialPrev');
 	ui.tutorialNext = document.getElementById('tutorialNext');
 	ui.termsCheckbox = document.getElementById('termsCheckbox');
+	// Tutorial Guiado Interativo
+	ui.guidedTutorial = document.getElementById('guidedTutorial');
+	ui.tutorialSpotlight = document.getElementById('tutorialSpotlight');
+	ui.tutorialTooltip = document.getElementById('tutorialTooltip');
+	ui.tooltipStep = document.getElementById('tooltipStep');
+	ui.tooltipTitle = document.getElementById('tooltipTitle');
+	ui.tooltipText = document.getElementById('tooltipText');
+	ui.tooltipArrow = document.getElementById('tooltipArrow');
+	ui.closeTutorialBtn = document.getElementById('closeTutorialBtn');
+	ui.skipTutorialBtn = document.getElementById('skipTutorialBtn');
+	ui.tutorialPrevBtn = document.getElementById('tutorialPrevBtn');
+	ui.tutorialNextBtn = document.getElementById('tutorialNextBtn');
 	// Internet Archive
 	ui.archiveQuery = document.getElementById('archiveQuery');
 	ui.archiveCategory = document.getElementById('archiveCategory');
@@ -466,11 +478,17 @@ function attachListeners() {
 	window.addEventListener('beforeinstallprompt', captureInstallPrompt);
 	ui.installBtn.addEventListener('click', triggerInstallPrompt);
 	ui.acceptTerms.addEventListener('click', acceptTerms);
-	// Tutorial
+	// Tutorial Modal (Boas-vindas)
 	ui.tutorialPrev.addEventListener('click', tutorialPrevSlide);
 	ui.tutorialNext.addEventListener('click', tutorialNextSlide);
 	ui.tutorialDots.addEventListener('click', handleTutorialDotClick);
 	ui.termsCheckbox.addEventListener('change', handleTermsCheckboxChange);
+	// Tutorial Guiado Interativo
+	ui.closeTutorialBtn.addEventListener('click', endGuidedTutorial);
+	ui.skipTutorialBtn.addEventListener('click', endGuidedTutorial);
+	ui.tutorialPrevBtn.addEventListener('click', guidedTutorialPrev);
+	ui.tutorialNextBtn.addEventListener('click', guidedTutorialNext);
+	window.addEventListener('resize', repositionTutorialTooltip);
 	// Internet Archive
 	ui.archiveSearchBtn.addEventListener('click', searchInternetArchive);
 	ui.archiveQuery.addEventListener('keydown', (ev) => {
@@ -1593,6 +1611,292 @@ function acceptTerms() {
 	
 	localStorage.setItem(TERMS_KEY, 'true');
 	ui.termsModal.classList.add('hidden');
+	
+	// Inicia o tutorial guiado após um pequeno delay
+	setTimeout(() => {
+		startGuidedTutorial();
+	}, 500);
+}
+
+// =============================================================================
+// TUTORIAL GUIADO INTERATIVO
+// =============================================================================
+
+const GUIDED_TUTORIAL_KEY = 'ts-guided-tutorial-completed';
+
+const TUTORIAL_STEPS = [
+	{
+		selector: '.patient-bar',
+		title: '👤 Barra de Pacientes',
+		text: 'Aqui você visualiza o paciente selecionado e pode cadastrar novos pacientes ou acessar a lista de pacientes já cadastrados.',
+		position: 'bottom'
+	},
+	{
+		selector: '#newPatientBtn',
+		title: '➕ Novo Paciente',
+		text: 'Clique aqui para cadastrar um novo paciente. Um formulário completo de anamnese será aberto para você preencher.',
+		position: 'bottom'
+	},
+	{
+		selector: '.control-group:has(#baseFreq)',
+		title: '🎵 Frequência Base',
+		text: 'Ajuste a frequência portadora (carrier) do tom binaural. Valores entre 100Hz e 500Hz são mais comuns na prática terapêutica.',
+		position: 'right'
+	},
+	{
+		selector: '.control-group:has(#binauralFreq)',
+		title: '🧠 Frequência Binaural',
+		text: 'Define a diferença de frequência entre os canais esquerdo e direito, criando o efeito binaural. Delta (0.5-4Hz), Theta (4-8Hz), Alpha (8-13Hz), Beta (13-30Hz), Gamma (30-40Hz).',
+		position: 'right'
+	},
+	{
+		selector: '.control-group:has(#volume)',
+		title: '🔊 Volume',
+		text: 'Controle o volume do tom binaural. Recomendamos manter em níveis confortáveis, sempre abaixo de 80dB.',
+		position: 'right'
+	},
+	{
+		selector: '.control-group:has(#therapeuticProtocol)',
+		title: '📋 Protocolos Terapêuticos',
+		text: 'Selecione protocolos pré-definidos baseados em evidências científicas para diferentes objetivos terapêuticos.',
+		position: 'left'
+	},
+	{
+		selector: '.control-group:has(#timer)',
+		title: '⏱️ Timer da Sessão',
+		text: 'Configure a duração da sessão. O sistema irá parar automaticamente quando o tempo acabar.',
+		position: 'left'
+	},
+	{
+		selector: '#playBtn',
+		title: '▶️ Controle de Reprodução',
+		text: 'Inicie ou pause a sessão de terapia. O tom binaural será reproduzido nos fones de ouvido.',
+		position: 'top'
+	},
+	{
+		selector: '.section:has(#presetList)',
+		title: '📁 Presets',
+		text: 'Salve suas configurações favoritas como presets para reutilizar em sessões futuras. Você também pode exportar e importar presets.',
+		position: 'top'
+	},
+	{
+		selector: '.section:has(#musicList)',
+		title: '🎶 Biblioteca de Músicas',
+		text: 'Importe músicas para combinar com as frequências binaurais. A música é mixada com o tom para uma experiência terapêutica mais agradável.',
+		position: 'top'
+	},
+	{
+		selector: '.section:has(#historyList)',
+		title: '📊 Histórico de Sessões',
+		text: 'Todas as sessões são registradas automaticamente. Visualize o histórico para acompanhar a evolução dos tratamentos.',
+		position: 'top'
+	}
+];
+
+let currentGuidedStep = 0;
+let previousHighlightedElement = null;
+
+function startGuidedTutorial() {
+	// Verifica se já completou o tutorial
+	const completed = localStorage.getItem(GUIDED_TUTORIAL_KEY);
+	if (completed) return;
+	
+	currentGuidedStep = 0;
+	ui.guidedTutorial.classList.remove('hidden');
+	ui.guidedTutorial.classList.add('active');
+	
+	// Scroll para o topo
+	window.scrollTo({ top: 0, behavior: 'smooth' });
+	
+	setTimeout(() => {
+		showGuidedStep(currentGuidedStep);
+	}, 300);
+}
+
+function showGuidedStep(stepIndex) {
+	const step = TUTORIAL_STEPS[stepIndex];
+	if (!step) return;
+	
+	const element = document.querySelector(step.selector);
+	if (!element) {
+		// Se elemento não encontrado, pula para o próximo
+		console.warn(`[Tutorial] Elemento não encontrado: ${step.selector}`);
+		if (stepIndex < TUTORIAL_STEPS.length - 1) {
+			currentGuidedStep++;
+			showGuidedStep(currentGuidedStep);
+		} else {
+			endGuidedTutorial();
+		}
+		return;
+	}
+	
+	// Remove destaque anterior
+	if (previousHighlightedElement) {
+		previousHighlightedElement.classList.remove('tutorial-highlight');
+	}
+	
+	// Adiciona destaque ao elemento atual
+	element.classList.add('tutorial-highlight');
+	previousHighlightedElement = element;
+	
+	// Scroll suave até o elemento se necessário
+	const rect = element.getBoundingClientRect();
+	const isInViewport = rect.top >= 0 && rect.bottom <= window.innerHeight;
+	
+	if (!isInViewport) {
+		element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+	}
+	
+	// Aguarda o scroll completar
+	setTimeout(() => {
+		positionSpotlight(element);
+		positionTooltip(element, step);
+		updateGuidedTutorialUI();
+	}, isInViewport ? 50 : 400);
+}
+
+function positionSpotlight(element) {
+	const rect = element.getBoundingClientRect();
+	const padding = 8;
+	
+	ui.tutorialSpotlight.style.top = `${rect.top - padding}px`;
+	ui.tutorialSpotlight.style.left = `${rect.left - padding}px`;
+	ui.tutorialSpotlight.style.width = `${rect.width + padding * 2}px`;
+	ui.tutorialSpotlight.style.height = `${rect.height + padding * 2}px`;
+}
+
+function positionTooltip(element, step) {
+	const rect = element.getBoundingClientRect();
+	const tooltip = ui.tutorialTooltip;
+	const tooltipRect = tooltip.getBoundingClientRect();
+	const gap = 16;
+	const viewportWidth = window.innerWidth;
+	const viewportHeight = window.innerHeight;
+	
+	let top, left;
+	let arrowPosition = step.position;
+	
+	// Atualiza conteúdo
+	ui.tooltipTitle.textContent = step.title;
+	ui.tooltipText.textContent = step.text;
+	
+	// Calcula posição baseada na preferência
+	switch (step.position) {
+		case 'top':
+			top = rect.top - tooltipRect.height - gap;
+			left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
+			break;
+		case 'bottom':
+			top = rect.bottom + gap;
+			left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
+			break;
+		case 'left':
+			top = rect.top + (rect.height / 2) - (tooltipRect.height / 2);
+			left = rect.left - tooltipRect.width - gap;
+			break;
+		case 'right':
+			top = rect.top + (rect.height / 2) - (tooltipRect.height / 2);
+			left = rect.right + gap;
+			break;
+		default:
+			top = rect.bottom + gap;
+			left = rect.left;
+	}
+	
+	// Ajusta se sair da tela
+	if (left < 16) left = 16;
+	if (left + tooltipRect.width > viewportWidth - 16) {
+		left = viewportWidth - tooltipRect.width - 16;
+	}
+	if (top < 16) {
+		top = rect.bottom + gap;
+		arrowPosition = 'bottom';
+	}
+	if (top + tooltipRect.height > viewportHeight - 16) {
+		top = rect.top - tooltipRect.height - gap;
+		arrowPosition = 'top';
+	}
+	
+	tooltip.style.top = `${top}px`;
+	tooltip.style.left = `${left}px`;
+	
+	// Posiciona a seta
+	ui.tooltipArrow.setAttribute('data-position', arrowPosition);
+	
+	// Ajusta posição horizontal da seta para apontar para o elemento
+	if (arrowPosition === 'top' || arrowPosition === 'bottom') {
+		const elementCenter = rect.left + rect.width / 2;
+		const tooltipLeft = left;
+		const arrowOffset = Math.max(20, Math.min(tooltipRect.width - 20, elementCenter - tooltipLeft));
+		ui.tooltipArrow.style.left = `${arrowOffset}px`;
+		ui.tooltipArrow.style.marginLeft = '-8px';
+		ui.tooltipArrow.style.top = '';
+		ui.tooltipArrow.style.marginTop = '';
+	} else {
+		ui.tooltipArrow.style.left = '';
+		ui.tooltipArrow.style.marginLeft = '';
+	}
+}
+
+function repositionTutorialTooltip() {
+	if (!ui.guidedTutorial.classList.contains('active')) return;
+	
+	const step = TUTORIAL_STEPS[currentGuidedStep];
+	if (!step) return;
+	
+	const element = document.querySelector(step.selector);
+	if (!element) return;
+	
+	positionSpotlight(element);
+	positionTooltip(element, step);
+}
+
+function updateGuidedTutorialUI() {
+	const total = TUTORIAL_STEPS.length;
+	const current = currentGuidedStep + 1;
+	
+	ui.tooltipStep.textContent = `${current}/${total}`;
+	ui.tutorialPrevBtn.disabled = currentGuidedStep === 0;
+	
+	// Último passo - muda botão para "Concluir"
+	if (currentGuidedStep === total - 1) {
+		ui.tutorialNextBtn.innerHTML = '<i class="fa-solid fa-check"></i> Concluir';
+		ui.tutorialNextBtn.classList.add('tooltip__btn--finish');
+	} else {
+		ui.tutorialNextBtn.innerHTML = 'Próximo <i class="fa-solid fa-chevron-right"></i>';
+		ui.tutorialNextBtn.classList.remove('tooltip__btn--finish');
+	}
+}
+
+function guidedTutorialPrev() {
+	if (currentGuidedStep > 0) {
+		currentGuidedStep--;
+		showGuidedStep(currentGuidedStep);
+	}
+}
+
+function guidedTutorialNext() {
+	if (currentGuidedStep < TUTORIAL_STEPS.length - 1) {
+		currentGuidedStep++;
+		showGuidedStep(currentGuidedStep);
+	} else {
+		endGuidedTutorial();
+	}
+}
+
+function endGuidedTutorial() {
+	// Remove destaque
+	if (previousHighlightedElement) {
+		previousHighlightedElement.classList.remove('tutorial-highlight');
+		previousHighlightedElement = null;
+	}
+	
+	// Esconde o tutorial
+	ui.guidedTutorial.classList.remove('active');
+	ui.guidedTutorial.classList.add('hidden');
+	
+	// Marca como concluído
+	localStorage.setItem(GUIDED_TUTORIAL_KEY, 'true');
 }
 
 async function verifyHeadphones() {
