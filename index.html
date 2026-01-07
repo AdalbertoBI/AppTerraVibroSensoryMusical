@@ -1,0 +1,1384 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+	<meta name="theme-color" content="#0f172a" />
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+	<meta name="apple-mobile-web-app-title" content="Terra Sensory" />
+	<meta name="mobile-web-app-capable" content="yes" />
+	<meta name="format-detection" content="telephone=no" />
+	<title>Terra Sensory Musical | Vibroacústica & Binaurais</title>
+	<meta name="description" content="PWA terapêutica para vibroacústica e musicoterapia com frequências binaurais e player offline." />
+	<link rel="manifest" href="manifest.json" />
+	<link rel="apple-touch-icon" href="icons/terra-sensory.svg" />
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+	<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css" integrity="sha384-t1nt8BQoYMLFN5p42tRAtuAAFQaCQODekUVeKKZrEnEyp4H2R0RHFz0KWpmj7i8g" crossorigin="anonymous" referrerpolicy="no-referrer" />
+	<link rel="stylesheet" href="style.css" />
+	<link rel="icon" type="image/svg+xml" href="icons/terra-sensory.svg" />
+</head>
+
+<body class="dark">
+	<div id="app" class="app-shell">
+		<header class="app-header">
+			<div class="identity">
+				<img src="icons/terra-sensory.svg" alt="Ícone Terra Sensory" class="brand-icon" />
+				<div>
+					<h1>Terra Sensory Musical</h1>
+				</div>
+			</div>
+			<div class="header-controls">
+				<button id="installPwaBtn" class="ghost" type="button" disabled>
+					<i class="fa-solid fa-download"></i>
+					Instalar
+				</button>
+				<div class="status-pill" id="headphoneStatus" aria-live="polite">
+					<i class="fa-solid fa-headphones"></i>
+					Testando fones
+				</div>
+			</div>
+		</header>
+
+		<section id="connectivity" class="connectivity" aria-live="polite">
+			<span id="onlineStatus"><i class="fa-solid fa-wifi"></i> Online</span>
+			<span id="offlineStatus" class="hidden"><i class="fa-solid fa-wifi-slash"></i> Modo offline ativo</span>
+		</section>
+
+		<!-- Seção de Pacientes -->
+		<section class="patient-bar" id="patientBar">
+			<div class="patient-bar__info">
+				<div class="patient-bar__current" id="currentPatientDisplay">
+					<i class="fa-solid fa-user-circle"></i>
+					<span class="patient-bar__name">Nenhum paciente selecionado</span>
+				</div>
+			</div>
+			<div class="patient-bar__actions">
+				<button type="button" id="openPatientListBtn" class="secondary">
+					<i class="fa-solid fa-users"></i> Pacientes
+				</button>
+				<button type="button" id="newPatientBtn" class="primary">
+					<i class="fa-solid fa-user-plus"></i> Novo Paciente
+				</button>
+			</div>
+		</section>
+
+		<main class="grid">
+			<section class="panel" id="presetsPanel">
+				<div class="panel-header">
+					<h2><i class="fa-solid fa-bookmark"></i> Presets terapêuticos</h2>
+					<button id="loadDefaultPresets" class="ghost" type="button"><i class="fa-solid fa-seedling"></i> Recarregar científicos</button>
+				</div>
+				<ul id="presetList" class="list"></ul>
+			</section>
+
+			<section class="panel wide" id="sessionBuilder">
+				<div class="panel-header">
+					<h2><i class="fa-solid fa-wand-magic-sparkles"></i> Nova sessão guiada</h2>
+					<p class="subtitle">Configure frequências binaurais, mixer e playlist. Sugestões automáticas baseadas em análise espectral.</p>
+				</div>
+				<form id="sessionForm">
+					<div class="form-group">
+						<label for="presetName">Nome do preset</label>
+						<input type="text" id="presetName" name="presetName" placeholder="Ex: Alfa relax profundo" required />
+					</div>
+
+					<!-- Seletor de Protocolo Terapêutico -->
+					<div class="form-group">
+						<label for="therapeuticProtocol">
+							<i class="fa-solid fa-stethoscope"></i> Protocolo terapêutico (opcional)
+						</label>
+						<select id="therapeuticProtocol">
+							<option value="">Configuração manual</option>
+							<optgroup label="Dor e Tensão (Skille 1991)">
+								<option value="pain-lumbar">Dor lombar - 52Hz + Delta 2Hz</option>
+								<option value="pain-muscle">Espasmos musculares - 40Hz + Teta 6Hz</option>
+								<option value="pain-fibro">Fibromialgia - 40Hz + Alfa 10Hz</option>
+								<option value="tension-neck">Tensão cervical - 60Hz + Alfa 10Hz</option>
+							</optgroup>
+							<optgroup label="Relaxamento (Wigram 1995)">
+								<option value="relax-anxiety">Ansiedade - 68Hz + Alfa 10Hz</option>
+								<option value="relax-deep">Relaxamento profundo - 52Hz + Teta 6Hz</option>
+								<option value="relax-stress">Redução de estresse - 60Hz + SMR 14Hz</option>
+							</optgroup>
+							<optgroup label="Sono (Oster 1973)">
+								<option value="sleep-induction">Indução ao sono - 40Hz + Delta 2Hz</option>
+								<option value="sleep-deep">Sono reparador - 52Hz + Delta 1Hz</option>
+								<option value="sleep-insomnia">Insônia crônica - 40Hz + Delta 3Hz</option>
+							</optgroup>
+							<optgroup label="Cognição e Foco">
+								<option value="focus-attention">Atenção sustentada - 80Hz + Beta 18Hz</option>
+								<option value="focus-creativity">Criatividade - 68Hz + Teta 7Hz</option>
+								<option value="focus-memory">Memória - 80Hz + Gama 40Hz</option>
+							</optgroup>
+							<optgroup label="Respiratório (Skille)">
+								<option value="resp-expansion">Expansão pulmonar - 68Hz + Alfa 8Hz</option>
+								<option value="resp-asthma">Suporte asmático - 50Hz + Teta 5Hz</option>
+							</optgroup>
+						</select>
+					</div>
+
+					<!-- Legenda de bandas cerebrais -->
+					<div class="brain-bands-legend">
+						<span class="band-chip delta">Delta 0.5-4Hz</span>
+						<span class="band-chip teta">Teta 4-8Hz</span>
+						<span class="band-chip alfa">Alfa 8-13Hz</span>
+						<span class="band-chip sigma">SMR 12-15Hz</span>
+						<span class="band-chip beta">Beta 13-30Hz</span>
+						<span class="band-chip gama">Gama 30-40Hz</span>
+					</div>
+
+					<div class="form-grid">
+						<div class="form-group">
+							<label for="baseFreq">
+								Frequência base vibroacústica (30-120Hz)
+								<small class="helper">Skille: 40Hz espasmos, 52Hz lombar, 68Hz pulmonar</small>
+							</label>
+							<input type="range" id="baseFreq" name="baseFreq" min="30" max="120" value="52" />
+							<output id="baseFreqValue">52 Hz</output>
+						</div>
+						<div class="form-group">
+							<label for="diffFreq">
+								Diferença binaural (0.5-40Hz)
+								<small class="helper">Entrainment EEG - Oster 1973</small>
+							</label>
+							<input type="range" id="diffFreq" name="diffFreq" min="0.5" max="40" step="0.5" value="10" />
+							<output id="diffFreqValue">10 Hz • Alfa</output>
+						</div>
+						<div class="form-group">
+							<label for="duration">
+								Duração (min)
+								<small class="helper">Mínimo recomendado: 20min (Wigram)</small>
+							</label>
+							<input type="range" id="duration" name="duration" min="5" max="60" value="25" />
+							<output id="durationValue">25 min</output>
+						</div>
+						<div class="form-group">
+							<label for="binauralVolume">
+								Intensidade vibroacústica (%)
+								<small class="helper">Seguro: 50-75% | Máximo terapêutico: 80%</small>
+							</label>
+							<input type="range" id="binauralVolume" name="binauralVolume" min="20" max="85" value="65" />
+							<output id="binauralVolumeValue">65% (Terapêutico)</output>
+						</div>
+						<div class="form-group">
+							<label for="lowPass">
+								Filtro passa-baixas (30-120Hz)
+								<small class="helper">Limita harmônicos - apenas graves terapêuticos</small>
+							</label>
+							<input type="range" id="lowPass" name="lowPass" min="30" max="120" value="80" />
+							<output id="lowPassValue">80 Hz</output>
+						</div>
+					</div>
+
+					<fieldset class="form-group">
+						<legend>Playlist terapêutica</legend>
+						<p class="helper">Selecione músicas carregadas ou utilize as texturas nativas sugeridas automaticamente.</p>
+						
+						<!-- Internet Archive Search -->
+						<details class="archive-search-panel" id="archivePanel">
+							<summary><i class="fa-solid fa-globe"></i> Buscar no Internet Archive (Gratuito)</summary>
+							<div class="archive-search-content">
+								<p class="helper">Pesquise sons ambientes e músicas de domínio público. Os arquivos são baixados para sua biblioteca local (offline).</p>
+								<div class="archive-search-row">
+									<input type="text" id="archiveQuery" placeholder="Ex: ambient meditation, nature sounds, drone..." />
+									<select id="archiveCategory">
+										<option value="">Todas categorias</option>
+										<option value="ambient">Ambient</option>
+										<option value="meditation">Meditação</option>
+										<option value="relaxation">Relaxamento</option>
+										<option value="nature">Natureza</option>
+										<option value="drone">Drone</option>
+										<option value="binaural">Binaural</option>
+										<option value="sleep">Sono</option>
+										<option value="classical">Clássica</option>
+									</select>
+									<button type="button" id="archiveSearchBtn" class="secondary"><i class="fa-solid fa-search"></i> Buscar</button>
+								</div>
+								<div id="archiveResults" class="archive-results" aria-live="polite"></div>
+								<div id="archiveStatus" class="archive-status" aria-live="polite"></div>
+							</div>
+						</details>
+
+						<select id="playlistSelect" multiple aria-label="Playlist de músicas"></select>
+						<div id="musicSuggestions" class="suggestions" aria-live="polite"></div>
+					</fieldset>
+
+					<div class="form-actions">
+						<button type="submit" class="primary"><i class="fa-solid fa-plus"></i> Salvar preset</button>
+						<button type="button" id="startSessionBtn" class="secondary"><i class="fa-solid fa-play"></i> Iniciar sessão agora</button>
+					</div>
+				</form>
+			</section>
+
+			<section class="panel wide" id="musicLibrary">
+				<div class="panel-header">
+					<h2>Biblioteca de Áudio</h2>
+					<p class="subtitle">Seus arquivos MP3/WAV ou músicas do Internet Archive.</p>
+				</div>
+				<p class="helper"><i class="fa-solid fa-lightbulb"></i> Dica: você pode tocar a frequência binaural aqui e ouvir música em outro app simultaneamente.</p>
+				<div class="upload-zone" id="dropZone">
+					<i class="fa-solid fa-cloud-arrow-up"></i>
+					<p>Arraste ou selecione arquivos</p>
+					<label for="audioUpload" class="sr-only">Selecione arquivos de áudio</label>
+					<input type="file" id="audioUpload" accept="audio/*" multiple />
+				</div>
+				<ul id="musicList" class="list music-list"></ul>
+			</section>
+
+			<section class="panel wide" id="playerSection">
+				<div class="panel-header">
+					<h2><i class="fa-solid fa-spa"></i> Centro de Controle Terapêutico</h2>
+					<div class="session-status" id="sessionStatus">
+						<span class="status-indicator"></span>
+						<span class="status-text">Aguardando sessão</span>
+					</div>
+				</div>
+				
+				<!-- Ticker de Dicas Científicas -->
+				<div class="scientific-tips-ticker" id="scientificTipsTicker" aria-live="polite" aria-label="Dicas terapêuticas baseadas em evidências científicas">
+					<div class="ticker-icon">
+						<i class="fa-solid fa-flask"></i>
+					</div>
+					<div class="ticker-content">
+						<span class="ticker-label">Evidência:</span>
+						<span class="ticker-text" id="tickerText"></span>
+					</div>
+					<div class="ticker-controls">
+						<button type="button" id="tickerPrev" class="ticker-btn" aria-label="Dica anterior" title="Dica anterior">
+							<i class="fa-solid fa-chevron-left"></i>
+						</button>
+						<button type="button" id="tickerPause" class="ticker-btn" aria-label="Pausar rotação" title="Pausar/Continuar">
+							<i class="fa-solid fa-pause" id="tickerPauseIcon"></i>
+						</button>
+						<button type="button" id="tickerNext" class="ticker-btn" aria-label="Próxima dica" title="Próxima dica">
+							<i class="fa-solid fa-chevron-right"></i>
+						</button>
+					</div>
+				</div>
+				
+				<!-- Visualizador de Sessão Ativa -->
+				<div class="session-visualizer" id="sessionVisualizer">
+					<div class="wave-container">
+						<div class="wave-pulse" id="wavePulse"></div>
+						<div class="frequency-display" id="frequencyDisplay">
+							<span class="freq-value">--</span>
+							<span class="freq-label">Hz binaural</span>
+						</div>
+					</div>
+					
+					<!-- Timer Circular -->
+					<div class="circular-timer" id="circularTimer">
+						<svg class="timer-ring" viewBox="0 0 100 100">
+							<circle class="timer-ring-bg" cx="50" cy="50" r="45"></circle>
+							<circle class="timer-ring-progress" id="timerProgress" cx="50" cy="50" r="45"></circle>
+						</svg>
+						<div class="timer-content">
+							<span id="timerDisplay" class="timer-value">00:00</span>
+							<span class="timer-label">restantes</span>
+						</div>
+					</div>
+					
+					<!-- Guia de Respiração -->
+					<div class="breathing-guide" id="breathingGuide">
+						<div class="breath-circle" id="breathCircle">
+							<span class="breath-text" id="breathText">Inspire</span>
+						</div>
+						<div class="breath-info">
+							<small>Sincronizado com a frequência</small>
+						</div>
+					</div>
+				</div>
+
+				<div class="player-controls">
+					<!-- Controles Principais -->
+					<div class="main-controls">
+						<div class="buttons">
+							<button id="playBtn" class="control-btn primary" type="button" aria-label="Reproduzir sessão">
+								<i class="fa-solid fa-play"></i>
+							</button>
+							<button id="pauseBtn" class="control-btn secondary" type="button" aria-label="Pausar sessão">
+								<i class="fa-solid fa-pause"></i>
+							</button>
+							<button id="stopBtn" class="control-btn ghost" type="button" aria-label="Parar sessão">
+								<i class="fa-solid fa-stop"></i>
+							</button>
+						</div>
+						<button id="zenModeBtn" class="ghost" type="button" aria-label="Modo Zen">
+							<i class="fa-solid fa-moon"></i> Modo Zen
+						</button>
+					</div>
+					
+					<!-- Volume Master -->
+					<div class="volume-master">
+						<label for="masterVolume">
+							<i class="fa-solid fa-volume-high"></i> Volume geral
+						</label>
+						<div class="volume-slider-wrapper">
+							<input type="range" id="masterVolume" min="0" max="100" value="70" />
+							<div class="volume-zones">
+								<span class="zone safe">Seguro</span>
+								<span class="zone caution">Atenção</span>
+								<span class="zone danger">Risco</span>
+							</div>
+						</div>
+						<output id="masterVolumeValue">70% <i class="fa-solid fa-shield-check"></i></output>
+					</div>
+
+					<!-- Mixer Binaural/Música -->
+					<div class="mixer">
+						<label for="mixSlider">
+							<i class="fa-solid fa-sliders"></i> Balanço binaural / música
+						</label>
+						<input type="range" id="mixSlider" min="0" max="100" value="70" class="mix-slider" />
+						<div class="mix-labels">
+							<span>🎵 Música</span>
+							<output id="mixValue">70% binaural</output>
+							<span>🧠 Binaural</span>
+						</div>
+					</div>
+					
+					<!-- Pan Estéreo -->
+					<div class="pan-control">
+						<label for="panSlider">
+							<i class="fa-solid fa-headphones"></i> Pan estéreo
+						</label>
+						<input type="range" id="panSlider" min="-1" max="1" step="0.1" value="0" />
+						<output id="panValue">Centralizado</output>
+					</div>
+				</div>
+			</section>
+
+			<!-- Seção de Referências Científicas Expandida -->
+			<section class="panel wide" id="references">
+				<div class="panel-header">
+					<h2><i class="fa-solid fa-flask"></i> Referências Científicas & Evidências Clínicas</h2>
+					<p class="subtitle">Fundamentação baseada em mais de 50 anos de pesquisa em terapia vibroacústica e sincronização de ondas cerebrais.</p>
+				</div>
+
+				<!-- Sobre o Desenvolvimento -->
+				<article class="dev-credits">
+					<div class="dev-header">
+						<i class="fa-solid fa-microchip"></i>
+						<div>
+							<h3>Sobre o Desenvolvimento</h3>
+							<p>Esta aplicação foi desenvolvida com auxílio de uma <strong>equipe de desenvolvedores com décadas de experiência</strong> em tecnologias web, áudio digital e aplicações terapêuticas, utilizando ferramentas de última geração de inteligência artificial <strong>"GitHub Copilot"</strong> para garantir código otimizado, acessível e baseado em evidências científicas.</p>
+						</div>
+					</div>
+				</article>
+
+				<!-- Terapia Vibroacústica -->
+				<article class="references-text">
+					<h3><i class="fa-solid fa-wave-square"></i> Terapia Vibroacústica (VAT)</h3>
+					<p><strong>Fundamentos (Skille, 1982-1991)</strong>: O Dr. Olav Skille, pioneiro norueguês, desenvolveu a terapia vibroacústica utilizando ondas sinusoidais de <strong>30-120 Hz</strong> transmitidas através de superfícies vibrantes. Com mais de <strong>40 anos de prática clínica</strong> e pesquisa, acumulou experiência com milhares de pacientes em centros terapêuticos na Noruega e Finlândia, demonstrando que frequências específicas promovem massagem interna profunda, relaxamento muscular e vasodilatação.</p>
+					
+					<div class="evidence-card highlight-card">
+						<h4><i class="fa-solid fa-star"></i> Estudo em Fibromialgia (Naghdi et al., 2015)</h4>
+						<p>Um estudo clínico detalhado (<strong>Pain Research & Management</strong>, PMC4325896) com resultados notáveis:</p>
+						<ul>
+							<li><strong>Amostra</strong>: 19 pacientes com fibromialgia (média 5.76 anos com a condição)</li>
+							<li><strong>Protocolo</strong>: 10 sessões de <strong>23 minutos cada a 40 Hz</strong> (2x/semana por 5 semanas)</li>
+							<li><strong>Total de horas</strong>: ~3.8 horas de tratamento por paciente (~72 horas totais do estudo)</li>
+							<li><strong>Melhora na Dor (FIQ)</strong>: <strong>81%</strong> de redução (de 88.8 para 16.8, P<0.0001)</li>
+							<li><strong>Melhora no Sono (JSS)</strong>: <strong>90%</strong> de melhora (de 20 para 2, P<0.0001)</li>
+							<li><strong>Redução de Medicação</strong>: 73.68% reduziram dose; <strong>26.32% pararam totalmente</strong></li>
+							<li><strong>Mobilidade</strong>: Tempo sentado sem dor aumentou de 10 para 30 min (P<0.0001)</li>
+						</ul>
+					</div>
+
+					<div class="evidence-card">
+						<h4><i class="fa-solid fa-clipboard-check"></i> Revisão de Escopo em Dor (Kantor et al., 2022)</h4>
+						<p>Uma <strong>revisão de escopo</strong> (BMJ Open) analisou 20 estudos sobre VAT em adultos com dor:</p>
+						<ul>
+							<li><strong>Frequência predominante</strong>: 40 Hz foi a mais utilizada nos estudos</li>
+							<li><strong>Duração das sessões</strong>: 20-45 minutos por sessão</li>
+							<li><strong>Frequência de tratamento</strong>: Diária para dor aguda; 1-7x/semana para dor crônica</li>
+							<li><strong>Desfechos</strong>: Redução da dor percebida, diminuição do uso de medicamentos analgésicos</li>
+						</ul>
+					</div>
+
+					<div class="evidence-card">
+						<h4><i class="fa-solid fa-lungs"></i> Aplicações Pulmonares</h4>
+						<p>Estudos recentes (Konkayev & Bekniyazova, 2023 - Front Med) demonstraram eficácia da VAT pulmonar em pacientes com COVID-19 e insuficiência respiratória:</p>
+						<ul>
+							<li><strong>Amostra</strong>: Ensaio clínico randomizado controlado</li>
+							<li><strong>Protocolo</strong>: Vibrações torácicas de baixa frequência</li>
+							<li><strong>Resultados</strong>: Melhora na perfusão e drenagem pulmonar sem necessidade de procedimentos invasivos</li>
+						</ul>
+					</div>
+				</article>
+
+				<!-- Batimentos Binaurais -->
+				<article class="references-text">
+					<h3><i class="fa-solid fa-brain"></i> Batimentos Binaurais & Sincronização Cerebral</h3>
+					<p><strong>Descoberta (Oster, 1973)</strong>: Gerald Oster publicou no Scientific American a caracterização dos batimentos binaurais - fenômeno auditivo onde duas frequências ligeiramente diferentes apresentadas separadamente aos ouvidos criam uma percepção de pulsação na frequência da diferença.</p>
+					
+					<div class="evidence-card">
+						<h4><i class="fa-solid fa-chart-line"></i> Revisão Sistemática (2023)</h4>
+						<p>Uma <strong>revisão sistemática</strong> (Ingendoh et al., 2023 - PLoS ONE) analisou os efeitos dos batimentos binaurais na atividade oscilatória cerebral:</p>
+						<ul>
+							<li><strong>Hipótese de entrainment</strong>: Estimulação externa em frequência específica pode sincronizar a atividade eletrocortical na mesma frequência</li>
+							<li><strong>Bandas cerebrais estudadas</strong>: Delta (1-4 Hz), Teta (4-8 Hz), Alfa (8-12 Hz), Beta (12-30 Hz)</li>
+							<li><strong>Aplicações</strong>: Relaxamento, redução de ansiedade, melhora cognitiva, indução de estados meditativos</li>
+						</ul>
+					</div>
+
+					<div class="evidence-card">
+						<h4><i class="fa-solid fa-syringe"></i> Aplicação em Anestesia Pediátrica</h4>
+						<p>Um <strong>ensaio clínico randomizado controlado</strong> (Schmid et al., 2020 - British Journal of Anaesthesia):</p>
+						<ul>
+							<li><strong>Objetivo</strong>: Reduzir doses de sedativos em cirurgia pediátrica usando entrainment cerebral</li>
+							<li><strong>Método</strong>: Batimentos binaurais antes e durante procedimentos</li>
+							<li><strong>Resultado</strong>: Efeitos sedativos demonstrados com potencial para redução de doses medicamentosas</li>
+						</ul>
+					</div>
+
+					<div class="evidence-card">
+						<h4><i class="fa-solid fa-ear-listen"></i> Tratamento de Zumbido (Tinnitus)</h4>
+						<p>Estudos recentes (Prakash & Konadath, 2024-2025 - Auris Nasus Larynx; J Otol):</p>
+						<ul>
+							<li><strong>População</strong>: Indivíduos com zumbido e audição normal</li>
+							<li><strong>Intervenção</strong>: Estimulação com batimentos binaurais para entrainment cerebral</li>
+							<li><strong>Resultados</strong>: Redução de emoções negativas e handicap relacionado ao zumbido</li>
+						</ul>
+					</div>
+				</article>
+
+				<!-- Tabela de Estudos Clínicos -->
+				<div class="table-wrapper">
+					<h3><i class="fa-solid fa-table"></i> Síntese de Estudos Clínicos</h3>
+					<table>
+						<thead>
+							<tr>
+								<th>Estudo</th>
+								<th>Amostra</th>
+								<th>Protocolo</th>
+								<th>Frequência (Hz)</th>
+								<th>Desfecho Principal</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td><strong>Naghdi et al., 2015</strong> (Fibromialgia)</td>
+								<td>n=19 pacientes</td>
+								<td>10 sessões × 23 min = <strong>3.8h/paciente</strong></td>
+								<td>40 Hz</td>
+								<td><strong>81% redução dor</strong>, 90% melhora sono</td>
+							</tr>
+							<tr>
+								<td>Kantor et al., 2022 (Revisão)</td>
+								<td>20 estudos revisados</td>
+								<td>20-45 min/sessão, 1-7x/semana</td>
+								<td>40 Hz (predominante)</td>
+								<td>Redução de dor crônica e aguda</td>
+							</tr>
+							<tr>
+								<td>Schmid et al., 2020 (RCT)</td>
+								<td>Crianças em cirurgia</td>
+								<td>Pré/intra-operatório</td>
+								<td>Binaurais variados</td>
+								<td>Redução de sedativos necessários</td>
+							</tr>
+							<tr>
+								<td>Zheng et al., 2009</td>
+								<td>Idosos frágeis</td>
+								<td>Programa terapêutico prolongado</td>
+								<td>Baixa frequência</td>
+								<td>Melhora capacidade funcional e circulação</td>
+							</tr>
+							<tr>
+								<td>Konkayev et al., 2023 (RCT)</td>
+								<td>COVID-19 grave</td>
+								<td>Múltiplas sessões</td>
+								<td>Baixa frequência</td>
+								<td>Melhora função pulmonar</td>
+							</tr>
+							<tr>
+								<td>Prakash & Konadath, 2024</td>
+								<td>Pacientes com Tinnitus</td>
+								<td>Tratamento prolongado</td>
+								<td>Binaurais personalizados</td>
+								<td>Redução handicap do zumbido</td>
+							</tr>
+							<tr>
+								<td>Ingendoh et al., 2023 (Sistemática)</td>
+								<td>Múltiplos estudos</td>
+								<td>Variada</td>
+								<td>Delta a Beta</td>
+								<td>Entrainment cerebral confirmado</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+
+				<!-- Tabela de Presets -->
+				<div class="table-wrapper">
+					<h3><i class="fa-solid fa-sliders"></i> Configurações de Presets & Evidências</h3>
+					<table>
+						<thead>
+							<tr>
+								<th>Preset</th>
+								<th>Diferença (Hz)</th>
+								<th>Banda Cerebral</th>
+								<th>Efeito Esperado</th>
+								<th>Referência</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td>Delta Profundo</td>
+								<td>2 Hz</td>
+								<td>Delta (0.5-4 Hz)</td>
+								<td>Sono reparador, analgesia, regeneração</td>
+								<td>Skille 1991; Wigram 1995</td>
+							</tr>
+							<tr>
+								<td>Teta Introspectiva</td>
+								<td>6 Hz</td>
+								<td>Teta (4-8 Hz)</td>
+								<td>Meditação profunda, criatividade, insight</td>
+								<td>Oster 1973; Ingendoh 2023</td>
+							</tr>
+							<tr>
+								<td>Alfa Relax</td>
+								<td>10 Hz</td>
+								<td>Alfa (8-12 Hz)</td>
+								<td>Relaxamento ansiolítico, redução de estresse</td>
+								<td>Oster 1973; Spintge</td>
+							</tr>
+							<tr>
+								<td>Sigma Regenerativo</td>
+								<td>14 Hz</td>
+								<td>Sigma/Beta baixo</td>
+								<td>Estabilização autonômica, fusos do sono</td>
+								<td>Skille 1991</td>
+							</tr>
+							<tr>
+								<td>Beta Focal</td>
+								<td>18 Hz</td>
+								<td>Beta (12-30 Hz)</td>
+								<td>Alerta suave, concentração, foco</td>
+								<td>Wigram 1995</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+
+				<!-- Bibliografia Completa -->
+				<article class="bibliography">
+					<h3><i class="fa-solid fa-book"></i> Referências Bibliográficas Completas</h3>
+					<ol class="reference-list">
+						<li class="highlight-ref">
+							<strong>Naghdi, L., Ahonen, H., Macario, P., & Bartel, L.</strong> (2015). The effect of low-frequency sound stimulation on patients with fibromyalgia: A clinical study. <em>Pain Research & Management</em>, 20(1), e21-e27. <strong>n=19, 10 sessões × 23 min a 40 Hz, 81% redução dor.</strong>
+							<span class="doi">DOI: 10.1155/2015/375174 | PMCID: PMC4325896</span>
+						</li>
+						<li>
+							<strong>Skille, O.</strong> (1989). VibroAcoustic Therapy. <em>Music Therapy</em>, 8(1), 61-77.
+							<span class="doi">DOI: 10.1093/mt/8.1.61</span>
+						</li>
+						<li>
+							<strong>Skille, O.</strong> (1991). Manual of vibroacoustic therapy. <em>ISVA Publications</em>, Levanger, Norway.
+						</li>
+						<li>
+							<strong>Oster, G.</strong> (1973). Auditory beats in the brain. <em>Scientific American</em>, 229(4), 94-102.
+							<span class="doi">DOI: 10.1038/scientificamerican1073-94</span>
+						</li>
+						<li>
+							<strong>Wigram, T.</strong> (1995). <em>The effects of vibroacoustic therapy on clinical and non-clinical populations</em>. PhD Thesis, London University.
+						</li>
+						<li>
+							<strong>Kantor, J., Campbell, E.A., Kantorová, L., et al.</strong> (2022). Exploring vibroacoustic therapy in adults experiencing pain: a scoping review. <em>BMJ Open</em>, 12(4), e046591.
+							<span class="doi">DOI: 10.1136/bmjopen-2020-046591</span>
+						</li>
+						<li>
+							<strong>Boyd-Brewer, C., & McCaffrey, R.</strong> (2004). Vibroacoustic sound therapy improves pain management and more. <em>Holistic Nursing Practice</em>, 18(3), 111-118.
+							<span class="doi">DOI: 10.1097/00004650-200405000-00002</span>
+						</li>
+						<li>
+							<strong>Zheng, A., Sakari, R., Cheng, S.M., et al.</strong> (2009). Effects of a low-frequency sound wave therapy programme on functional capacity, blood circulation and bone metabolism in frail old men and women. <em>Clinical Rehabilitation</em>, 23(10), 897-908.
+							<span class="doi">DOI: 10.1177/0269215509337273</span>
+						</li>
+						<li>
+							<strong>Ingendoh, R.M., Posny, E.S., & Heine, A.</strong> (2023). Binaural beats to entrain the brain? A systematic review of the effects of binaural beat stimulation on brain oscillatory activity. <em>PLoS ONE</em>, 18(5), e0286023.
+							<span class="doi">DOI: 10.1371/journal.pone.0286023</span>
+						</li>
+						<li>
+							<strong>Schmid, W., Marhofer, P., Opfermann, P., et al.</strong> (2020). Brainwave entrainment to minimise sedative drug doses in paediatric surgery: a randomised controlled trial. <em>British Journal of Anaesthesia</em>, 125(3), 330-335.
+							<span class="doi">DOI: 10.1016/j.bja.2020.05.050</span>
+						</li>
+						<li>
+							<strong>Konkayev, A., & Bekniyazova, A.</strong> (2023). Vibroacoustic therapy in the treatment of patients with COVID-19 complicated by respiratory failure: a pilot randomized controlled trial. <em>Frontiers in Medicine</em>, 10, 1225384.
+							<span class="doi">DOI: 10.3389/fmed.2023.1225384</span>
+						</li>
+						<li>
+							<strong>Prakash, P., & Konadath, S.</strong> (2024). Brainwave entrainment using binaural beats stimulation: Exploring the treatment efficacy in individuals with tinnitus. <em>Auris Nasus Larynx</em>, 52(1), 1-11.
+							<span class="doi">DOI: 10.1016/j.anl.2024.11.001</span>
+						</li>
+						<li>
+							<strong>Cidral-Filho, F.J., Porter, P., & Donatello, N.N.</strong> (2025). An Integrative Review of Brainwave Entrainment Benefits for Human Health. <em>Applied Psychophysiology and Biofeedback</em>, 50(1), 3-9.
+							<span class="doi">DOI: 10.1007/s10484-024-09682-x</span>
+						</li>
+						<li>
+							<strong>Punkanen, M., & Ala-Ruona, E.</strong> (2012). Contemporary vibroacoustic therapy: perspectives on clinical practice, research, and training. <em>Music and Medicine</em>, 4(3), 128-135.
+							<span class="doi">DOI: 10.1177/1943862112445324</span>
+						</li>
+						<li>
+							<strong>Spintge, R.</strong> (Various). Music Medicine research on anxiolytic music therapy (50-70 BPM protocols). <em>International Society for Music in Medicine</em>.
+						</li>
+					</ol>
+				</article>
+
+				<!-- Aviso de Pesquisa -->
+				<article class="research-notice">
+					<div class="notice-content">
+						<i class="fa-solid fa-triangle-exclamation"></i>
+						<div>
+							<h4>Nota Importante sobre Evidências</h4>
+							<p>Embora existam evidências promissoras para terapia vibroacústica e batimentos binaurais, a revisão de Kantor et al. (2022) observa que a pesquisa ainda é esparsa para identificar propriedades ideais de VAT. <strong>Ensaios clínicos randomizados adicionais são necessários</strong> para estabelecer prova científica confiável tanto para dor aguda quanto crônica. Esta aplicação é uma <strong>ferramenta educacional</strong> e não substitui orientação médica profissional.</p>
+						</div>
+					</div>
+				</article>
+			</section>
+		</main>
+
+		<footer>
+			<p>© <span id="year"></span> Terra Sensory Musical — ferramenta auxiliar para profissionais qualificados clientes da Terra Eletrônica.</p>
+		</footer>
+	</div>
+
+	<div id="termsModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="termsTitle">
+		<div class="modal-content">
+			<h2 id="termsTitle">Termos de uso & responsabilidade</h2>
+			<p>AVISO LEGAL: Este app é uma ferramenta educacional/experimental para terapeutas qualificados em vibroacústica e musicoterapia. Baseado em Skille (1982-1991) e Wigram (PhD 1995), mas NÃO substitui diagnóstico ou prescrição médica.</p>
+			<ul>
+				<li>Desenvolvedor/equipe NÃO se responsabiliza por uso inadequado, automedicação ou efeitos adversos.</li>
+				<li>Contraindicado para epilepsia, trombose, gestantes de alto risco ou hipersensibilidade vibratória.</li>
+				<li>Use apenas com fones de qualidade, volume moderado (&lt;80dB) e supervisão profissional.</li>
+			</ul>
+			<p class="terms-notice">Ao clicar em "Aceitar e continuar", você concorda com os termos acima e isenta a equipe de responsabilidade.</p>
+			<div class="modal-actions">
+				<button id="acceptTerms" class="primary" type="button">Aceitar e continuar</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Modal de Lista de Pacientes -->
+	<div id="patientListModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="patientListTitle">
+		<div class="modal-content modal-content--large">
+			<div class="modal-header">
+				<h2 id="patientListTitle"><i class="fa-solid fa-users"></i> Pacientes Cadastrados</h2>
+				<button type="button" class="modal-close" id="closePatientListModal" aria-label="Fechar">
+					<i class="fa-solid fa-times"></i>
+				</button>
+			</div>
+			<div class="patient-list-controls">
+				<input type="text" id="patientSearchInput" placeholder="Buscar por nome, telefone ou email..." />
+				<button type="button" id="newPatientFromListBtn" class="primary">
+					<i class="fa-solid fa-user-plus"></i> Novo
+				</button>
+			</div>
+			<div class="patient-list-container" id="patientListContainer">
+				<p class="empty-state" id="noPatients">
+					<i class="fa-solid fa-user-slash"></i>
+					Nenhum paciente cadastrado ainda.
+				</p>
+				<ul class="patient-list" id="patientList"></ul>
+			</div>
+		</div>
+	</div>
+
+	<!-- Modal de Cadastro/Anamnese do Paciente -->
+	<div id="patientFormModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="patientFormTitle">
+		<div class="modal-content modal-content--fullscreen">
+			<div class="modal-header">
+				<h2 id="patientFormTitle"><i class="fa-solid fa-user-pen"></i> Cadastro e Anamnese</h2>
+				<button type="button" class="modal-close" id="closePatientFormModal" aria-label="Fechar">
+					<i class="fa-solid fa-times"></i>
+				</button>
+			</div>
+
+			<!-- Navegação por Steps -->
+			<nav class="anamnesis-steps" id="anamnesisSteps">
+				<button type="button" class="step active" data-step="0">
+					<span class="step-number">1</span>
+					<span class="step-label">Identificação</span>
+				</button>
+				<button type="button" class="step" data-step="1">
+					<span class="step-number">2</span>
+					<span class="step-label">Queixa</span>
+				</button>
+				<button type="button" class="step" data-step="2">
+					<span class="step-number">3</span>
+					<span class="step-label">Histórico</span>
+				</button>
+				<button type="button" class="step" data-step="3">
+					<span class="step-number">4</span>
+					<span class="step-label">Saúde</span>
+				</button>
+				<button type="button" class="step" data-step="4">
+					<span class="step-number">5</span>
+					<span class="step-label">Estilo de Vida</span>
+				</button>
+				<button type="button" class="step" data-step="5">
+					<span class="step-number">6</span>
+					<span class="step-label">Emocional</span>
+				</button>
+				<button type="button" class="step" data-step="6">
+					<span class="step-number">7</span>
+					<span class="step-label">Musicoterapia</span>
+				</button>
+				<button type="button" class="step" data-step="7">
+					<span class="step-number">8</span>
+					<span class="step-label">Avaliação</span>
+				</button>
+				<button type="button" class="step" data-step="8">
+					<span class="step-number">9</span>
+					<span class="step-label">Plano</span>
+				</button>
+			</nav>
+
+			<form id="patientForm" class="anamnesis-form">
+				<!-- STEP 0: Identificação -->
+				<fieldset class="anamnesis-step active" data-step="0">
+					<legend><i class="fa-solid fa-id-card"></i> Identificação e Dados Básicos</legend>
+					
+					<div class="form-row">
+						<div class="form-group form-group--large">
+							<label for="pt_fullName">Nome completo *</label>
+							<input type="text" id="pt_fullName" name="identification.fullName" required />
+						</div>
+						<div class="form-group">
+							<label for="pt_preferredName">Nome social / como prefere ser chamado(a)</label>
+							<input type="text" id="pt_preferredName" name="identification.preferredName" />
+						</div>
+					</div>
+
+					<div class="form-row">
+						<div class="form-group">
+							<label for="pt_birthDate">Data de nascimento *</label>
+							<input type="date" id="pt_birthDate" name="identification.birthDate" required />
+						</div>
+						<div class="form-group">
+							<label for="pt_gender">Gênero</label>
+							<select id="pt_gender" name="identification.gender">
+								<option value="">Selecione...</option>
+								<option value="Masculino">Masculino</option>
+								<option value="Feminino">Feminino</option>
+								<option value="Não-binário">Não-binário</option>
+								<option value="Prefiro não informar">Prefiro não informar</option>
+								<option value="Outro">Outro</option>
+							</select>
+						</div>
+						<div class="form-group">
+							<label for="pt_maritalStatus">Estado civil</label>
+							<select id="pt_maritalStatus" name="identification.maritalStatus">
+								<option value="">Selecione...</option>
+								<option value="Solteiro(a)">Solteiro(a)</option>
+								<option value="Casado(a)">Casado(a)</option>
+								<option value="União estável">União estável</option>
+								<option value="Divorciado(a)">Divorciado(a)</option>
+								<option value="Viúvo(a)">Viúvo(a)</option>
+							</select>
+						</div>
+					</div>
+
+					<div class="form-row">
+						<div class="form-group">
+							<label for="pt_cpf">CPF</label>
+							<input type="text" id="pt_cpf" name="identification.cpf" placeholder="000.000.000-00" />
+						</div>
+						<div class="form-group">
+							<label for="pt_phone">Telefone principal *</label>
+							<input type="tel" id="pt_phone" name="identification.phone" placeholder="(00) 00000-0000" required />
+						</div>
+						<div class="form-group">
+							<label for="pt_email">Email</label>
+							<input type="email" id="pt_email" name="identification.email" />
+						</div>
+					</div>
+
+					<div class="form-row">
+						<div class="form-group form-group--large">
+							<label for="pt_occupation">Profissão / Ocupação</label>
+							<input type="text" id="pt_occupation" name="identification.occupation" />
+						</div>
+						<div class="form-group">
+							<label for="pt_referralSource">Como conheceu o serviço?</label>
+							<input type="text" id="pt_referralSource" name="identification.referralSource" placeholder="Indicação, internet, etc." />
+						</div>
+					</div>
+
+					<div class="form-row">
+						<div class="form-group form-group--large">
+							<label for="pt_address">Endereço</label>
+							<input type="text" id="pt_address" name="identification.address" />
+						</div>
+						<div class="form-group">
+							<label for="pt_city">Cidade</label>
+							<input type="text" id="pt_city" name="identification.city" />
+						</div>
+						<div class="form-group form-group--small">
+							<label for="pt_state">UF</label>
+							<input type="text" id="pt_state" name="identification.state" maxlength="2" />
+						</div>
+					</div>
+
+					<div class="form-row">
+						<div class="form-group">
+							<label for="pt_emergencyContact">Contato de emergência</label>
+							<input type="text" id="pt_emergencyContact" name="identification.emergencyContact" placeholder="Nome e parentesco" />
+						</div>
+						<div class="form-group">
+							<label for="pt_emergencyPhone">Telefone emergência</label>
+							<input type="tel" id="pt_emergencyPhone" name="identification.emergencyPhone" />
+						</div>
+					</div>
+				</fieldset>
+
+				<!-- STEP 1: Queixa Principal -->
+				<fieldset class="anamnesis-step" data-step="1">
+					<legend><i class="fa-solid fa-comment-medical"></i> Queixa Principal</legend>
+					<p class="step-intro">Registre a queixa principal nas palavras do próprio paciente.</p>
+
+					<div class="form-group">
+						<label for="pt_mainComplaint">O que trouxe você aqui hoje? *</label>
+						<textarea id="pt_mainComplaint" name="chiefComplaint.mainComplaint" rows="4" placeholder="Descreva nas palavras do paciente..." required></textarea>
+					</div>
+
+					<div class="form-row">
+						<div class="form-group">
+							<label for="pt_complaintDuration">Há quanto tempo sente isso?</label>
+							<input type="text" id="pt_complaintDuration" name="chiefComplaint.complaintDuration" placeholder="Ex: 3 meses, 2 anos..." />
+						</div>
+						<div class="form-group">
+							<label for="pt_painIntensity">Intensidade da dor (0-10)</label>
+							<input type="range" id="pt_painIntensity" name="chiefComplaint.painIntensity" min="0" max="10" value="5" />
+							<output id="pt_painIntensityValue">5</output>
+						</div>
+					</div>
+
+					<div class="form-group">
+						<label>Tipo de dor/desconforto (selecione todos que aplicam)</label>
+						<div class="checkbox-group" id="pt_painType">
+							<label><input type="checkbox" name="chiefComplaint.painType" value="Pontada" /> Pontada</label>
+							<label><input type="checkbox" name="chiefComplaint.painType" value="Queimação" /> Queimação</label>
+							<label><input type="checkbox" name="chiefComplaint.painType" value="Latejante" /> Latejante</label>
+							<label><input type="checkbox" name="chiefComplaint.painType" value="Contínua" /> Contínua</label>
+							<label><input type="checkbox" name="chiefComplaint.painType" value="Pressão" /> Pressão</label>
+							<label><input type="checkbox" name="chiefComplaint.painType" value="Formigamento" /> Formigamento</label>
+							<label><input type="checkbox" name="chiefComplaint.painType" value="Irradiada" /> Irradiada</label>
+							<label><input type="checkbox" name="chiefComplaint.painType" value="Cólica" /> Cólica</label>
+						</div>
+					</div>
+
+					<div class="form-group">
+						<label>Localização (selecione todas que aplicam)</label>
+						<div class="checkbox-group" id="pt_painLocation">
+							<label><input type="checkbox" name="chiefComplaint.painLocation" value="Cabeça" /> Cabeça</label>
+							<label><input type="checkbox" name="chiefComplaint.painLocation" value="Pescoço" /> Pescoço</label>
+							<label><input type="checkbox" name="chiefComplaint.painLocation" value="Ombros" /> Ombros</label>
+							<label><input type="checkbox" name="chiefComplaint.painLocation" value="Coluna cervical" /> Coluna cervical</label>
+							<label><input type="checkbox" name="chiefComplaint.painLocation" value="Coluna torácica" /> Coluna torácica</label>
+							<label><input type="checkbox" name="chiefComplaint.painLocation" value="Coluna lombar" /> Coluna lombar</label>
+							<label><input type="checkbox" name="chiefComplaint.painLocation" value="Membros superiores" /> Membros superiores</label>
+							<label><input type="checkbox" name="chiefComplaint.painLocation" value="Membros inferiores" /> Membros inferiores</label>
+							<label><input type="checkbox" name="chiefComplaint.painLocation" value="Articulações" /> Articulações</label>
+							<label><input type="checkbox" name="chiefComplaint.painLocation" value="Generalizada" /> Generalizada</label>
+						</div>
+					</div>
+
+					<div class="form-group">
+						<label for="pt_functionalImpact">Como isso afeta o seu dia a dia?</label>
+						<textarea id="pt_functionalImpact" name="chiefComplaint.functionalImpact" rows="3" placeholder="Trabalho, sono, atividades, relacionamentos..."></textarea>
+					</div>
+				</fieldset>
+
+				<!-- STEP 2: História da Doença Atual -->
+				<fieldset class="anamnesis-step" data-step="2">
+					<legend><i class="fa-solid fa-clock-rotate-left"></i> História da Doença Atual</legend>
+					<p class="step-intro">Evolução dos sintomas e fatores relacionados.</p>
+
+					<div class="form-group">
+						<label for="pt_symptomEvolution">Como os sintomas evoluíram desde o início?</label>
+						<textarea id="pt_symptomEvolution" name="currentIllnessHistory.symptomEvolution" rows="3"></textarea>
+					</div>
+
+					<div class="form-row">
+						<div class="form-group">
+							<label for="pt_aggravatingFactors">O que piora os sintomas?</label>
+							<textarea id="pt_aggravatingFactors" name="currentIllnessHistory.aggravatingFactors" rows="2" placeholder="Movimentos, estresse, clima..."></textarea>
+						</div>
+						<div class="form-group">
+							<label for="pt_relievingFactors">O que alivia os sintomas?</label>
+							<textarea id="pt_relievingFactors" name="currentIllnessHistory.relievingFactors" rows="2" placeholder="Repouso, calor, medicação..."></textarea>
+						</div>
+					</div>
+
+					<div class="form-group">
+						<label for="pt_previousTreatments">Tratamentos já tentados</label>
+						<textarea id="pt_previousTreatments" name="currentIllnessHistory.previousTreatments" rows="2" placeholder="Fisioterapia, medicamentos, cirurgias..."></textarea>
+					</div>
+
+					<div class="form-group">
+						<label for="pt_treatmentResults">Resultados dos tratamentos anteriores</label>
+						<textarea id="pt_treatmentResults" name="currentIllnessHistory.treatmentResults" rows="2"></textarea>
+					</div>
+
+					<div class="form-row">
+						<div class="form-group">
+							<label for="pt_sleepImpact">Impacto no sono</label>
+							<textarea id="pt_sleepImpact" name="currentIllnessHistory.sleepImpact" rows="2" placeholder="Dificuldade para dormir, acordar com dor..."></textarea>
+						</div>
+						<div class="form-group">
+							<label for="pt_moodImpact">Impacto no humor</label>
+							<textarea id="pt_moodImpact" name="currentIllnessHistory.moodImpact" rows="2" placeholder="Irritabilidade, tristeza, ansiedade..."></textarea>
+						</div>
+					</div>
+				</fieldset>
+
+				<!-- STEP 3: Histórico Médico e Contraindicações -->
+				<fieldset class="anamnesis-step" data-step="3">
+					<legend><i class="fa-solid fa-notes-medical"></i> Histórico Médico e Contraindicações</legend>
+					<p class="step-intro">Doenças, cirurgias, medicamentos e alergias.</p>
+
+					<div class="form-group">
+						<label for="pt_previousDiseases">Doenças anteriores ou atuais</label>
+						<textarea id="pt_previousDiseases" name="medicalHistory.previousDiseases" rows="2" placeholder="Diabetes, hipertensão, artrite..."></textarea>
+					</div>
+
+					<div class="form-group">
+						<label for="pt_surgeries">Cirurgias realizadas (ano aproximado)</label>
+						<textarea id="pt_surgeries" name="medicalHistory.surgeries" rows="2" placeholder="Coluna 2018, joelho 2020..."></textarea>
+					</div>
+
+					<div class="form-group">
+						<label for="pt_currentMedications">Medicamentos em uso atual</label>
+						<textarea id="pt_currentMedications" name="medicalHistory.currentMedications" rows="2" placeholder="Nome, dose, frequência..."></textarea>
+					</div>
+
+					<div class="form-group">
+						<label for="pt_allergies">Alergias conhecidas</label>
+						<input type="text" id="pt_allergies" name="medicalHistory.allergies" placeholder="Medicamentos, alimentos, substâncias..." />
+					</div>
+
+					<div class="form-group">
+						<label class="label-warning"><i class="fa-solid fa-triangle-exclamation"></i> Contraindicações para Terapia Vibroacústica</label>
+						<div class="checkbox-group checkbox-group--warnings">
+							<label><input type="checkbox" name="medicalHistory.contraindications.epilepsy" /> Epilepsia ou convulsões</label>
+							<label><input type="checkbox" name="medicalHistory.contraindications.pacemaker" /> Marca-passo ou dispositivo cardíaco</label>
+							<label><input type="checkbox" name="medicalHistory.contraindications.pregnancy" /> Gestante</label>
+							<label><input type="checkbox" name="medicalHistory.contraindications.pregnancyHighRisk" /> Gestação de alto risco</label>
+							<label><input type="checkbox" name="medicalHistory.contraindications.thrombosis" /> Trombose ou risco de trombose</label>
+							<label><input type="checkbox" name="medicalHistory.contraindications.recentSurgery" /> Cirurgia recente (&lt;6 semanas)</label>
+							<label><input type="checkbox" name="medicalHistory.contraindications.vibrationHypersensitivity" /> Hipersensibilidade a vibrações</label>
+							<label><input type="checkbox" name="medicalHistory.contraindications.severeHearingLoss" /> Perda auditiva severa</label>
+							<label><input type="checkbox" name="medicalHistory.contraindications.psychoticDisorders" /> Transtornos psicóticos ativos</label>
+						</div>
+					</div>
+
+					<div class="form-group">
+						<label>História familiar relevante</label>
+						<div class="checkbox-group">
+							<label><input type="checkbox" name="familyHistory.cardiovascular" /> Doenças cardíacas</label>
+							<label><input type="checkbox" name="familyHistory.psychiatric" /> Transtornos psiquiátricos</label>
+							<label><input type="checkbox" name="familyHistory.neurological" /> Doenças neurológicas</label>
+							<label><input type="checkbox" name="familyHistory.chronicPain" /> Dor crônica</label>
+							<label><input type="checkbox" name="familyHistory.diabetes" /> Diabetes</label>
+							<label><input type="checkbox" name="familyHistory.hypertension" /> Hipertensão</label>
+						</div>
+					</div>
+				</fieldset>
+
+				<!-- STEP 4: Estilo de Vida -->
+				<fieldset class="anamnesis-step" data-step="4">
+					<legend><i class="fa-solid fa-heart-pulse"></i> Hábitos e Estilo de Vida</legend>
+					
+					<div class="form-row">
+						<div class="form-group">
+							<label for="pt_sleepQuality">Qualidade do sono</label>
+							<select id="pt_sleepQuality" name="lifestyle.sleepQuality">
+								<option value="">Selecione...</option>
+								<option value="Boa">Boa</option>
+								<option value="Regular">Regular</option>
+								<option value="Ruim">Ruim</option>
+								<option value="Muito ruim">Muito ruim</option>
+							</select>
+						</div>
+						<div class="form-group">
+							<label for="pt_sleepHours">Horas de sono por noite</label>
+							<input type="number" id="pt_sleepHours" name="lifestyle.sleepHours" min="1" max="16" placeholder="Ex: 7" />
+						</div>
+						<div class="form-group">
+							<label for="pt_sleepDifficulties">Dificuldades com sono</label>
+							<input type="text" id="pt_sleepDifficulties" name="lifestyle.sleepDifficulties" placeholder="Insônia, acordar frequente..." />
+						</div>
+					</div>
+
+					<div class="form-row">
+						<div class="form-group">
+							<label for="pt_physicalActivity">Atividade física</label>
+							<select id="pt_physicalActivity" name="lifestyle.physicalActivity">
+								<option value="">Selecione...</option>
+								<option value="Sedentário">Sedentário</option>
+								<option value="Leve">Leve (1-2x/semana)</option>
+								<option value="Moderado">Moderado (3-4x/semana)</option>
+								<option value="Intenso">Intenso (5+x/semana)</option>
+							</select>
+						</div>
+						<div class="form-group">
+							<label for="pt_stressLevel">Nível de estresse</label>
+							<select id="pt_stressLevel" name="lifestyle.stressLevel">
+								<option value="">Selecione...</option>
+								<option value="Baixo">Baixo</option>
+								<option value="Moderado">Moderado</option>
+								<option value="Alto">Alto</option>
+								<option value="Muito alto">Muito alto</option>
+							</select>
+						</div>
+					</div>
+
+					<div class="form-row">
+						<div class="form-group">
+							<label for="pt_smokingStatus">Tabagismo</label>
+							<select id="pt_smokingStatus" name="lifestyle.smokingStatus">
+								<option value="">Selecione...</option>
+								<option value="Nunca fumou">Nunca fumou</option>
+								<option value="Ex-fumante">Ex-fumante</option>
+								<option value="Fumante">Fumante</option>
+							</select>
+						</div>
+						<div class="form-group">
+							<label for="pt_alcoholUse">Consumo de álcool</label>
+							<select id="pt_alcoholUse" name="lifestyle.alcoholUse">
+								<option value="">Selecione...</option>
+								<option value="Nunca">Nunca</option>
+								<option value="Ocasional">Ocasional</option>
+								<option value="Regular">Regular</option>
+								<option value="Frequente">Frequente</option>
+							</select>
+						</div>
+						<div class="form-group">
+							<label for="pt_caffeineUse">Cafeína diária</label>
+							<input type="text" id="pt_caffeineUse" name="lifestyle.caffeineUse" placeholder="Ex: 3 xícaras de café" />
+						</div>
+					</div>
+
+					<div class="form-group">
+						<label for="pt_workRoutine">Rotina de trabalho</label>
+						<input type="text" id="pt_workRoutine" name="lifestyle.workRoutine" placeholder="Horas, tipo de trabalho, ergonomia..." />
+					</div>
+
+					<div class="form-group">
+						<label for="pt_leisureActivities">Atividades de lazer</label>
+						<input type="text" id="pt_leisureActivities" name="lifestyle.leisureActivities" placeholder="Hobbies, atividades relaxantes..." />
+					</div>
+				</fieldset>
+
+				<!-- STEP 5: Aspectos Psicossociais -->
+				<fieldset class="anamnesis-step" data-step="5">
+					<legend><i class="fa-solid fa-brain"></i> Aspectos Psicossociais e Emocionais</legend>
+
+					<div class="form-row">
+						<div class="form-group">
+							<label for="pt_currentMood">Como você descreve seu humor atualmente?</label>
+							<input type="text" id="pt_currentMood" name="psychosocial.currentMood" placeholder="Tranquilo, ansioso, triste..." />
+						</div>
+						<div class="form-group">
+							<label for="pt_anxietyLevel">Nível de ansiedade</label>
+							<select id="pt_anxietyLevel" name="psychosocial.anxietyLevel">
+								<option value="">Selecione...</option>
+								<option value="Nenhuma">Nenhuma</option>
+								<option value="Leve">Leve</option>
+								<option value="Moderada">Moderada</option>
+								<option value="Severa">Severa</option>
+							</select>
+						</div>
+					</div>
+
+					<div class="form-group">
+						<label><input type="checkbox" name="psychosocial.depressionSymptoms" id="pt_depressionSymptoms" /> Apresenta sintomas de depressão (tristeza persistente, falta de interesse, etc.)</label>
+					</div>
+
+					<div class="form-group">
+						<label for="pt_recentLifeEvents">Eventos de vida significativos recentes</label>
+						<textarea id="pt_recentLifeEvents" name="psychosocial.recentLifeEvents" rows="2" placeholder="Perdas, mudanças, estressores..."></textarea>
+					</div>
+
+					<div class="form-group">
+						<label for="pt_copingStrategies">Como você costuma lidar com o estresse?</label>
+						<input type="text" id="pt_copingStrategies" name="psychosocial.copingStrategies" placeholder="Exercício, conversa, isolamento..." />
+					</div>
+
+					<div class="form-group">
+						<label for="pt_treatmentExpectations">O que você espera deste tratamento?</label>
+						<textarea id="pt_treatmentExpectations" name="psychosocial.treatmentExpectations" rows="2" placeholder="Objetivos, expectativas, preocupações..."></textarea>
+					</div>
+
+					<div class="form-row">
+						<div class="form-group">
+							<label for="pt_motivationLevel">Motivação para o tratamento</label>
+							<select id="pt_motivationLevel" name="psychosocial.motivationLevel">
+								<option value="">Selecione...</option>
+								<option value="Baixa">Baixa</option>
+								<option value="Moderada">Moderada</option>
+								<option value="Alta">Alta</option>
+							</select>
+						</div>
+						<div class="form-group">
+							<label for="pt_supportNetwork">Rede de apoio</label>
+							<input type="text" id="pt_supportNetwork" name="psychosocial.supportNetwork" placeholder="Família, amigos, grupos..." />
+						</div>
+					</div>
+
+					<div class="form-row">
+						<div class="form-group">
+							<label><input type="checkbox" name="psychosocial.previousPsychotherapy" id="pt_previousPsychotherapy" /> Já fez psicoterapia anteriormente</label>
+						</div>
+						<div class="form-group">
+							<label><input type="checkbox" name="psychosocial.currentPsychotherapy" id="pt_currentPsychotherapy" /> Faz psicoterapia atualmente</label>
+						</div>
+					</div>
+				</fieldset>
+
+				<!-- STEP 6: Perfil Musicoterapêutico -->
+				<fieldset class="anamnesis-step" data-step="6">
+					<legend><i class="fa-solid fa-music"></i> Perfil Musicoterapêutico e Vibroacústico</legend>
+					<p class="step-intro">Avaliação específica para terapia sonora.</p>
+
+					<h4 class="subsection-title"><i class="fa-solid fa-guitar"></i> Histórico Musical</h4>
+					<div class="form-group">
+						<label for="pt_musicalBackground">Experiência com música</label>
+						<textarea id="pt_musicalBackground" name="musicTherapyProfile.musicalBackground" rows="2" placeholder="Estudou música, canta, toca instrumento..."></textarea>
+					</div>
+					<div class="form-row">
+						<div class="form-group">
+							<label><input type="checkbox" name="musicTherapyProfile.playsInstrument" id="pt_playsInstrument" /> Toca algum instrumento</label>
+						</div>
+						<div class="form-group">
+							<label for="pt_instruments">Quais instrumentos?</label>
+							<input type="text" id="pt_instruments" name="musicTherapyProfile.instruments" placeholder="Piano, violão, bateria..." />
+						</div>
+					</div>
+
+					<h4 class="subsection-title"><i class="fa-solid fa-headphones"></i> Preferências Musicais</h4>
+					<div class="form-group">
+						<label>Gêneros musicais preferidos</label>
+						<div class="checkbox-group" id="pt_preferredGenres">
+							<label><input type="checkbox" name="musicTherapyProfile.preferredGenres" value="Clássica" /> Clássica</label>
+							<label><input type="checkbox" name="musicTherapyProfile.preferredGenres" value="Instrumental" /> Instrumental</label>
+							<label><input type="checkbox" name="musicTherapyProfile.preferredGenres" value="Ambiente/New Age" /> Ambiente/New Age</label>
+							<label><input type="checkbox" name="musicTherapyProfile.preferredGenres" value="Jazz" /> Jazz</label>
+							<label><input type="checkbox" name="musicTherapyProfile.preferredGenres" value="MPB" /> MPB</label>
+							<label><input type="checkbox" name="musicTherapyProfile.preferredGenres" value="Pop" /> Pop</label>
+							<label><input type="checkbox" name="musicTherapyProfile.preferredGenres" value="Rock" /> Rock</label>
+							<label><input type="checkbox" name="musicTherapyProfile.preferredGenres" value="Eletrônica" /> Eletrônica</label>
+							<label><input type="checkbox" name="musicTherapyProfile.preferredGenres" value="Natureza" /> Sons da natureza</label>
+							<label><input type="checkbox" name="musicTherapyProfile.preferredGenres" value="Meditativa" /> Mantras/Meditativa</label>
+						</div>
+					</div>
+
+					<div class="form-group">
+						<label for="pt_preferredArtists">Artistas ou músicas favoritas para relaxamento</label>
+						<input type="text" id="pt_preferredArtists" name="musicTherapyProfile.preferredArtists" placeholder="Artistas, álbuns, playlists..." />
+					</div>
+
+					<h4 class="subsection-title"><i class="fa-solid fa-ear-listen"></i> Sensibilidade Sonora</h4>
+					<div class="form-row">
+						<div class="form-group">
+							<label for="pt_soundSensitivity">Sensibilidade a sons</label>
+							<select id="pt_soundSensitivity" name="musicTherapyProfile.soundSensitivity">
+								<option value="">Selecione...</option>
+								<option value="Normal">Normal</option>
+								<option value="Aumentada">Aumentada (hipersensibilidade)</option>
+								<option value="Diminuída">Diminuída</option>
+							</select>
+						</div>
+						<div class="form-group">
+							<label for="pt_frequencyPreference">Preferência de frequência</label>
+							<select id="pt_frequencyPreference" name="musicTherapyProfile.frequencyPreference">
+								<option value="">Selecione...</option>
+								<option value="Graves">Graves (relaxantes)</option>
+								<option value="Médios">Médios (equilibrados)</option>
+								<option value="Agudos">Agudos (estimulantes)</option>
+								<option value="Sem preferência">Sem preferência</option>
+							</select>
+						</div>
+					</div>
+
+					<div class="form-row">
+						<div class="form-group">
+							<label for="pt_vibrationTolerance">Tolerância a vibrações</label>
+							<select id="pt_vibrationTolerance" name="musicTherapyProfile.vibrationTolerance">
+								<option value="">Selecione...</option>
+								<option value="Boa">Boa (aceita bem)</option>
+								<option value="Moderada">Moderada</option>
+								<option value="Baixa">Baixa (desconforto)</option>
+							</select>
+						</div>
+						<div class="form-group">
+							<label><input type="checkbox" name="musicTherapyProfile.tinnitus" id="pt_tinnitus" /> Apresenta zumbido (tinnitus)</label>
+						</div>
+					</div>
+
+					<div class="form-group">
+						<label for="pt_tinnitusDetails">Detalhes sobre zumbido</label>
+						<input type="text" id="pt_tinnitusDetails" name="musicTherapyProfile.tinnitusDetails" placeholder="Tipo, intensidade, ouvido afetado..." />
+					</div>
+
+					<div class="form-group">
+						<label>Sons que causam desconforto ou aversão</label>
+						<div class="checkbox-group" id="pt_soundAversions">
+							<label><input type="checkbox" name="musicTherapyProfile.soundAversions" value="Sons agudos" /> Sons agudos</label>
+							<label><input type="checkbox" name="musicTherapyProfile.soundAversions" value="Sons graves intensos" /> Sons graves intensos</label>
+							<label><input type="checkbox" name="musicTherapyProfile.soundAversions" value="Música alta" /> Música alta</label>
+							<label><input type="checkbox" name="musicTherapyProfile.soundAversions" value="Ruídos repentinos" /> Ruídos repentinos</label>
+							<label><input type="checkbox" name="musicTherapyProfile.soundAversions" value="Vozes" /> Vozes</label>
+							<label><input type="checkbox" name="musicTherapyProfile.soundAversions" value="Percussão intensa" /> Percussão intensa</label>
+						</div>
+					</div>
+
+					<h4 class="subsection-title"><i class="fa-solid fa-bullseye"></i> Objetivos Terapêuticos com Música</h4>
+					<div class="form-group">
+						<label>O que busca com a terapia sonora?</label>
+						<div class="checkbox-group" id="pt_therapeuticGoals">
+							<label><input type="checkbox" name="musicTherapyProfile.therapeuticGoals" value="Redução de dor" /> Redução de dor</label>
+							<label><input type="checkbox" name="musicTherapyProfile.therapeuticGoals" value="Relaxamento muscular" /> Relaxamento muscular</label>
+							<label><input type="checkbox" name="musicTherapyProfile.therapeuticGoals" value="Melhora do sono" /> Melhora do sono</label>
+							<label><input type="checkbox" name="musicTherapyProfile.therapeuticGoals" value="Redução de ansiedade" /> Redução de ansiedade</label>
+							<label><input type="checkbox" name="musicTherapyProfile.therapeuticGoals" value="Redução de estresse" /> Redução de estresse</label>
+							<label><input type="checkbox" name="musicTherapyProfile.therapeuticGoals" value="Melhora do humor" /> Melhora do humor</label>
+							<label><input type="checkbox" name="musicTherapyProfile.therapeuticGoals" value="Foco/concentração" /> Foco/concentração</label>
+							<label><input type="checkbox" name="musicTherapyProfile.therapeuticGoals" value="Meditação" /> Meditação</label>
+							<label><input type="checkbox" name="musicTherapyProfile.therapeuticGoals" value="Alívio de zumbido" /> Alívio de zumbido</label>
+							<label><input type="checkbox" name="musicTherapyProfile.therapeuticGoals" value="Bem-estar geral" /> Bem-estar geral</label>
+						</div>
+					</div>
+				</fieldset>
+
+				<!-- STEP 7: Avaliação Física -->
+				<fieldset class="anamnesis-step" data-step="7">
+					<legend><i class="fa-solid fa-stethoscope"></i> Avaliação Física (Opcional)</legend>
+					<p class="step-intro">Dados objetivos quando disponíveis.</p>
+
+					<div class="form-row">
+						<div class="form-group">
+							<label for="pt_bloodPressure">Pressão arterial</label>
+							<input type="text" id="pt_bloodPressure" name="physicalAssessment.bloodPressure" placeholder="120/80 mmHg" />
+						</div>
+						<div class="form-group">
+							<label for="pt_heartRate">Frequência cardíaca</label>
+							<input type="number" id="pt_heartRate" name="physicalAssessment.heartRate" placeholder="bpm" />
+						</div>
+						<div class="form-group">
+							<label for="pt_oxygenSaturation">Saturação O₂</label>
+							<input type="number" id="pt_oxygenSaturation" name="physicalAssessment.oxygenSaturation" min="70" max="100" placeholder="%" />
+						</div>
+					</div>
+
+					<div class="form-row">
+						<div class="form-group">
+							<label for="pt_weight">Peso (kg)</label>
+							<input type="number" id="pt_weight" name="physicalAssessment.weight" step="0.1" placeholder="kg" />
+						</div>
+						<div class="form-group">
+							<label for="pt_height">Altura (cm)</label>
+							<input type="number" id="pt_height" name="physicalAssessment.height" placeholder="cm" />
+						</div>
+					</div>
+
+					<div class="form-group">
+						<label for="pt_posturalObservations">Observações posturais</label>
+						<textarea id="pt_posturalObservations" name="physicalAssessment.posturalObservations" rows="2" placeholder="Desvios, compensações, assimetrias..."></textarea>
+					</div>
+
+					<div class="form-group">
+						<label for="pt_muscularTensionAreas">Áreas de tensão muscular</label>
+						<textarea id="pt_muscularTensionAreas" name="physicalAssessment.muscularTensionAreas" rows="2" placeholder="Trapézio, lombar, cervical..."></textarea>
+					</div>
+				</fieldset>
+
+				<!-- STEP 8: Plano Terapêutico -->
+				<fieldset class="anamnesis-step" data-step="8">
+					<legend><i class="fa-solid fa-clipboard-list"></i> Síntese e Plano Terapêutico</legend>
+					<p class="step-intro">Conclusões e planejamento do tratamento.</p>
+
+					<div class="form-group">
+						<label for="pt_clinicalSummary">Síntese clínica do caso</label>
+						<textarea id="pt_clinicalSummary" name="therapeuticPlan.clinicalSummary" rows="4" placeholder="Resumo dos achados principais, conexões entre sintomas, padrões identificados..."></textarea>
+					</div>
+
+					<div class="form-group">
+						<label for="pt_mainHypothesis">Hipóteses / Impressão clínica</label>
+						<textarea id="pt_mainHypothesis" name="therapeuticPlan.mainHypothesis" rows="2" placeholder="Hipóteses sobre as causas ou fatores contribuintes..."></textarea>
+					</div>
+
+					<div class="form-group">
+						<label for="pt_therapeuticObjectives">Objetivos do tratamento</label>
+						<textarea id="pt_therapeuticObjectives" name="therapeuticPlan.therapeuticObjectives" rows="2" placeholder="Metas de curto, médio e longo prazo..."></textarea>
+					</div>
+
+					<div class="form-group">
+						<label for="pt_recommendedProtocols">Protocolos recomendados</label>
+						<textarea id="pt_recommendedProtocols" name="therapeuticPlan.recommendedProtocols" rows="2" placeholder="Frequências, durações, tipos de sessão..."></textarea>
+					</div>
+
+					<div class="form-row">
+						<div class="form-group">
+							<label for="pt_sessionFrequency">Frequência das sessões</label>
+							<input type="text" id="pt_sessionFrequency" name="therapeuticPlan.sessionFrequency" placeholder="Ex: 2x por semana" />
+						</div>
+						<div class="form-group">
+							<label for="pt_estimatedDuration">Duração estimada do tratamento</label>
+							<input type="text" id="pt_estimatedDuration" name="therapeuticPlan.estimatedDuration" placeholder="Ex: 8 semanas" />
+						</div>
+					</div>
+
+					<div class="form-group">
+						<label for="pt_precautions">Precauções específicas</label>
+						<textarea id="pt_precautions" name="therapeuticPlan.precautions" rows="2" placeholder="Cuidados especiais, limitações..."></textarea>
+					</div>
+
+					<div class="form-group">
+						<label for="pt_observations">Observações adicionais</label>
+						<textarea id="pt_observations" name="therapeuticPlan.observations" rows="2"></textarea>
+					</div>
+
+					<div class="form-group consent-group">
+						<label class="consent-label">
+							<input type="checkbox" name="therapeuticPlan.consentObtained" id="pt_consentObtained" />
+							<span>Termo de consentimento informado obtido</span>
+						</label>
+						<div class="form-group form-group--small">
+							<label for="pt_consentDate">Data do consentimento</label>
+							<input type="date" id="pt_consentDate" name="therapeuticPlan.consentDate" />
+						</div>
+					</div>
+				</fieldset>
+
+				<!-- Navegação do formulário -->
+				<div class="anamnesis-nav">
+					<button type="button" id="prevStepBtn" class="secondary" disabled>
+						<i class="fa-solid fa-arrow-left"></i> Anterior
+					</button>
+					<span class="step-indicator" id="stepIndicator">1 de 9</span>
+					<button type="button" id="nextStepBtn" class="secondary">
+						Próximo <i class="fa-solid fa-arrow-right"></i>
+					</button>
+					<button type="submit" id="savePatientBtn" class="primary hidden">
+						<i class="fa-solid fa-save"></i> Salvar Paciente
+					</button>
+				</div>
+			</form>
+		</div>
+	</div>
+
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.4/howler.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+	<script type="module" src="app.js"></script>
+</body>
+
+</html>

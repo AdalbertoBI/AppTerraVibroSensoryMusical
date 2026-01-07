@@ -1,0 +1,52 @@
+{
+	"name": "Terra Sensory Musical - Vibroacústica & Binaurais",
+	"short_name": "Terra Sensory",
+	"description": "PWA terapêutica de vibroacústica, binaurais e playlists locais para musicoterapeutas.",
+	"start_url": "./index.html",
+	"display": "standalone",
+	"display_override": ["standalone", "minimal-ui"],
+	"background_color": "#020617",
+	"theme_color": "#0f172a",
+	"orientation": "any",
+	"categories": ["health", "music", "education", "medical"],
+	"lang": "pt-BR",
+	"dir": "ltr",
+	"scope": "./",
+	"id": "terra-sensory-musical",
+	"prefer_related_applications": false,
+	"icons": [
+		{
+			"src": "icons/terra-sensory.svg",
+			"type": "image/svg+xml",
+			"sizes": "any",
+			"purpose": "any"
+		},
+		{
+			"src": "icons/terra-sensory.svg",
+			"type": "image/svg+xml",
+			"sizes": "512x512",
+			"purpose": "maskable"
+		}
+	],
+	"screenshots": [],
+	"shortcuts": [
+		{
+			"name": "Nova Sessão",
+			"short_name": "Sessão",
+			"description": "Criar nova sessão terapêutica",
+			"url": "./index.html#sessionBuilder",
+			"icons": [{"src": "icons/terra-sensory.svg", "sizes": "96x96"}]
+		},
+		{
+			"name": "Player",
+			"short_name": "Player",
+			"description": "Abrir centro de controle",
+			"url": "./index.html#playerSection",
+			"icons": [{"src": "icons/terra-sensory.svg", "sizes": "96x96"}]
+		}
+	],
+	"handle_links": "preferred",
+	"launch_handler": {
+		"client_mode": "focus-existing"
+	}
+}

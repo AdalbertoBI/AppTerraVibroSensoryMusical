@@ -1,0 +1,98 @@
+[
+	{
+		"id": "preset-delta-sono",
+		"name": "Delta Sono Profundo",
+		"baseHz": 40,
+		"diffHz": 2,
+		"duration": 45,
+		"binauralVolume": 55,
+		"lowPass": 60,
+		"playlist": [],
+		"notes": "Sono reparador - Oster 1973. Frequência base 40Hz promove relaxamento muscular.",
+		"reference": "Oster, G. (1973). Auditory beats in the brain."
+	},
+	{
+		"id": "preset-delta-dor",
+		"name": "Delta Analgésico Lombar",
+		"baseHz": 52,
+		"diffHz": 2,
+		"duration": 30,
+		"binauralVolume": 70,
+		"lowPass": 70,
+		"playlist": [],
+		"notes": "Dor lombar crônica - Skille 1991. 52Hz específico para região lombar.",
+		"reference": "Skille, O. (1991). Vibroacoustic therapy."
+	},
+	{
+		"id": "preset-teta-meditacao",
+		"name": "Teta Meditação Profunda",
+		"baseHz": 52,
+		"diffHz": 6,
+		"duration": 30,
+		"binauralVolume": 60,
+		"lowPass": 70,
+		"playlist": [],
+		"notes": "Meditação e introspecção - Wigram 1995. Acesso a estados meditativos.",
+		"reference": "Wigram, A. L. (1995). The effects of vibroacoustic therapy."
+	},
+	{
+		"id": "preset-alfa-relaxamento",
+		"name": "Alfa Relaxamento Ansiolítico",
+		"baseHz": 68,
+		"diffHz": 10,
+		"duration": 25,
+		"binauralVolume": 60,
+		"lowPass": 90,
+		"playlist": [],
+		"notes": "Redução de ansiedade - Oster 1973, Spintge. Ideal com música 50-70 BPM.",
+		"reference": "Oster, G. (1973); Spintge, R. Música ansiolítica."
+	},
+	{
+		"id": "preset-smr-calma",
+		"name": "SMR Calma Focada",
+		"baseHz": 60,
+		"diffHz": 14,
+		"duration": 20,
+		"binauralVolume": 55,
+		"lowPass": 80,
+		"playlist": [],
+		"notes": "Ritmo sensório-motor 12-15Hz. Útil para TDAH e controle motor.",
+		"reference": "Sterman, M.B. SMR training research."
+	},
+	{
+		"id": "preset-espasmo-muscular",
+		"name": "Alívio Espasmos Musculares",
+		"baseHz": 40,
+		"diffHz": 6,
+		"duration": 25,
+		"binauralVolume": 65,
+		"lowPass": 60,
+		"playlist": [],
+		"notes": "Espasmos e tensão muscular - Skille 1991. 40Hz para relaxamento muscular.",
+		"reference": "Skille, O. (1991). Vibroacoustic therapy."
+	},
+	{
+		"id": "preset-respiratorio",
+		"name": "Expansão Pulmonar",
+		"baseHz": 68,
+		"diffHz": 8,
+		"duration": 20,
+		"binauralVolume": 60,
+		"lowPass": 90,
+		"playlist": [],
+		"notes": "Suporte respiratório - Skille. 68Hz favorece expansão torácica.",
+		"reference": "Skille, O. (1991). Vibroacoustic therapy."
+	},
+	{
+		"id": "preset-beta-foco",
+		"name": "Beta Concentração Suave",
+		"baseHz": 80,
+		"diffHz": 18,
+		"duration": 20,
+		"binauralVolume": 50,
+		"lowPass": 100,
+		"playlist": [],
+		"notes": "Atenção sustentada sem hiperativação. Bom para estudo e trabalho.",
+		"reference": "Research on beta wave entrainment."
+	}
+]
