@@ -4498,6 +4498,34 @@ fieldset:focus-within {
 	line-height: 1.5;
 }
 
+/* Nota de Aceite (sem checkbox) */
+.terms-acceptance-note {
+	display: flex;
+	gap: 0.75rem;
+	padding: 1rem 1.25rem;
+	background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(99, 102, 241, 0.05));
+	border: 1px solid rgba(139, 92, 246, 0.25);
+	border-radius: 12px;
+	align-items: flex-start;
+}
+
+.terms-acceptance-note > i {
+	font-size: 1.1rem;
+	color: var(--color-primary);
+	flex-shrink: 0;
+	margin-top: 0.15rem;
+}
+
+.terms-acceptance-note span {
+	font-size: 0.85rem;
+	color: var(--color-text-secondary);
+	line-height: 1.6;
+}
+
+.terms-acceptance-note strong {
+	color: var(--color-primary-light);
+}
+
 /* Tutorial Navigation */
 .tutorial-nav {
 	display: flex;

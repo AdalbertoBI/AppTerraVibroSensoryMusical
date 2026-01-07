@@ -1557,9 +1557,9 @@ function updateTutorialUI() {
 	ui.tutorialNext.classList.toggle('hidden', isLastSlide);
 	ui.acceptTerms.classList.toggle('hidden', !isLastSlide);
 	
-	// Desabilita botão aceitar se checkbox não estiver marcado (apenas no último slide)
+	// Botão aceitar sempre habilitado (checkbox é opcional)
 	if (isLastSlide) {
-		ui.acceptTerms.disabled = !ui.termsCheckbox.checked;
+		ui.acceptTerms.disabled = false;
 	}
 }
 
@@ -1589,26 +1589,11 @@ function handleTutorialDotClick(event) {
 }
 
 function handleTermsCheckboxChange() {
-	// Habilita/desabilita botão aceitar baseado no checkbox
-	if (currentTutorialSlide === TOTAL_TUTORIAL_SLIDES - 1) {
-		ui.acceptTerms.disabled = !ui.termsCheckbox.checked;
-	}
+	// Checkbox é opcional - não precisa fazer nada
 }
 
 function acceptTerms() {
-	// Verifica se checkbox está marcado
-	if (!ui.termsCheckbox.checked) {
-		ui.termsCheckbox.focus();
-		// Efeito visual para chamar atenção
-		const label = ui.termsCheckbox.closest('.terms-checkbox');
-		if (label) {
-			label.style.animation = 'none';
-			label.offsetHeight; // Trigger reflow
-			label.style.animation = 'shake 0.5s ease';
-		}
-		return;
-	}
-	
+	// Aceita os termos diretamente (checkbox opcional)
 	localStorage.setItem(TERMS_KEY, 'true');
 	ui.termsModal.classList.add('hidden');
 	
