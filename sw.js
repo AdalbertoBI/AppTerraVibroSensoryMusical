@@ -15,7 +15,7 @@ importScripts('https://storage.googleapis.com/workbox-cdn/releases/6.5.4/workbox
  * IMPORTANTE: Incremente APP_VERSION a cada deploy!
  */
 
-const APP_VERSION = '1.0.0.1.9';
+const APP_VERSION = '1.0.0.2.0';
 const CACHE_PREFIX = 'terra-sensory';
 const CACHE_NAME = `${CACHE_PREFIX}-v${APP_VERSION}`;
 
@@ -37,7 +37,7 @@ if (workbox) {
 		{ url: './app.js', revision: APP_VERSION },
 		{ url: './manifest.json', revision: APP_VERSION },
 		{ url: './presets.json', revision: APP_VERSION },
-		{ url: './icons/terra-sensory.svg', revision: APP_VERSION },
+		{ url: './icons/baselogo_app.png', revision: APP_VERSION },
 		// Novos arquivos CSS
 		{ url: './css/modules.css', revision: APP_VERSION },
 		// Módulos JavaScript

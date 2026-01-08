@@ -16,14 +16,14 @@
 	"prefer_related_applications": false,
 	"icons": [
 		{
-			"src": "icons/terra-sensory.svg",
-			"type": "image/svg+xml",
-			"sizes": "any",
+			"src": "icons/baselogo_app.png",
+			"type": "image/png",
+			"sizes": "512x512",
 			"purpose": "any"
 		},
 		{
-			"src": "icons/terra-sensory.svg",
-			"type": "image/svg+xml",
+			"src": "icons/baselogo_app.png",
+			"type": "image/png",
 			"sizes": "512x512",
 			"purpose": "maskable"
 		}
@@ -35,14 +35,14 @@
 			"short_name": "Sessão",
 			"description": "Criar nova sessão terapêutica",
 			"url": "./index.html#sessionBuilder",
-			"icons": [{"src": "icons/terra-sensory.svg", "sizes": "96x96"}]
+			"icons": [{"src": "icons/baselogo_app.png", "sizes": "96x96"}]
 		},
 		{
 			"name": "Player",
 			"short_name": "Player",
 			"description": "Abrir centro de controle",
 			"url": "./index.html#playerSection",
-			"icons": [{"src": "icons/terra-sensory.svg", "sizes": "96x96"}]
+			"icons": [{"src": "icons/baselogo_app.png", "sizes": "96x96"}]
 		}
 	],
 	"handle_links": "preferred",

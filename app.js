@@ -1989,7 +1989,7 @@ function setupMediaSession(preset) {
 		artist: 'Terra Vibro Sensory Musical',
 		album: `${preset.diffHz}Hz ${describeDiffBand(preset.diffHz).label}`,
 		artwork: [
-			{ src: 'icons/terra-sensory.svg', sizes: '512x512', type: 'image/svg+xml' }
+			{ src: 'icons/baselogo_app.png', sizes: '512x512', type: 'image/png' }
 		]
 	});
 	
