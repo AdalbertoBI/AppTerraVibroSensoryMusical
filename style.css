@@ -306,14 +306,15 @@ body.dark .brain-bands-legend {
 		gap: 1.5rem;
 	}
 	
-	/* Presets ocupa 4 colunas (sidebar) */
+	/* Presets ocupa 4 colunas (sidebar) - REMOVIDO: agora está no drawer */
 	#presetsPanel {
 		grid-column: span 4;
+		display: none; /* Presets agora no menu drawer */
 	}
 	
-	/* Session builder ocupa 8 colunas (área principal) */
+	/* Session builder ocupa toda a largura (12 colunas) */
 	#sessionBuilder {
-		grid-column: span 8;
+		grid-column: span 12;
 	}
 	
 	/* Biblioteca full width */
