@@ -146,33 +146,6 @@
 						<span class="status-text">Aguardando</span>
 					</div>
 				</div>
-				
-				<!-- CONTROLES DE REPRODUÇÃO (sempre visíveis no topo) -->
-				<div class="unified-player-bar" id="playerBar">
-					<div class="player-main-controls">
-						<button id="playBtn" class="control-btn primary" type="button" aria-label="Reproduzir">
-							<i class="fa-solid fa-play"></i>
-						</button>
-						<button id="pauseBtn" class="control-btn" type="button" aria-label="Pausar">
-							<i class="fa-solid fa-pause"></i>
-						</button>
-						<button id="stopBtn" class="control-btn" type="button" aria-label="Parar">
-							<i class="fa-solid fa-stop"></i>
-						</button>
-					</div>
-					
-					<div class="player-timer" id="playerTimer">
-						<span id="timerDisplay" class="timer-value">00:00</span>
-						<span class="timer-separator">/</span>
-						<span id="timerTotal" class="timer-total">--:--</span>
-					</div>
-					
-					<div class="player-volume">
-						<i class="fa-solid fa-volume-high"></i>
-						<input type="range" id="masterVolume" min="0" max="100" value="70" title="Volume geral" />
-						<output id="masterVolumeValue">70%</output>
-					</div>
-				</div>
 
 				<!-- CONTEÚDO UNIFICADO -->
 				<div class="unified-content">
@@ -300,26 +273,19 @@
 										<button type="submit" class="secondary"><i class="fa-solid fa-plus"></i> Salvar preset</button>
 									</div>
 								</div>
-								
-								<!-- Botão Principal -->
-								<div class="form-actions-unified">
-									<button type="button" id="startSessionBtn" class="primary large">
-										<i class="fa-solid fa-play"></i> Iniciar Sessão
-									</button>
-								</div>
 							</form>
 						</div>
 					</div>
 					
 					<!-- SEÇÃO 2: Biblioteca de Áudio -->
-					<details class="unified-section collapsible" id="sectionLibrary" open>
-						<summary class="section-header">
+					<div class="unified-section" id="sectionLibrary">
+						<div class="section-header">
 							<div class="section-title">
 								<i class="fa-solid fa-music"></i>
 								<h3>Biblioteca de Áudio</h3>
 							</div>
 							<span class="section-hint">Upload e busca de músicas</span>
-						</summary>
+						</div>
 						
 						<div class="section-body">
 							<p class="helper"><i class="fa-solid fa-lightbulb"></i> Você pode tocar binaural aqui e música em outro app simultaneamente.</p>
@@ -364,17 +330,17 @@
 								<div id="musicSuggestions" class="suggestions"></div>
 							</div>
 						</div>
-					</details>
+					</div>
 					
 					<!-- SEÇÃO 3: Efeitos de Áudio -->
-					<details class="unified-section collapsible" id="sectionEffects" open>
-						<summary class="section-header">
+					<div class="unified-section" id="sectionEffects">
+						<div class="section-header">
 							<div class="section-title">
 								<i class="fa-solid fa-waveform-lines"></i>
 								<h3>Efeitos de Áudio</h3>
 							</div>
 							<span class="section-hint">8D espacial e equalização</span>
-						</summary>
+						</div>
 						
 						<div class="section-body">
 							<div class="effects-grid">
@@ -468,7 +434,46 @@
 								</div>
 							</div>
 						</div>
-					</details>
+					</div>
+					
+					<!-- CONTROLES DE REPRODUÇÃO -->
+					<div class="unified-section" id="sectionPlayer">
+						<div class="section-header">
+							<div class="section-title">
+								<i class="fa-solid fa-play-circle"></i>
+								<h3>Controles de Reprodução</h3>
+							</div>
+							<span class="section-hint">Play, pause, volume</span>
+						</div>
+						
+						<div class="section-body">
+							<div class="unified-player-bar" id="playerBar">
+								<div class="player-main-controls">
+									<button id="playBtn" class="control-btn primary" type="button" aria-label="Reproduzir">
+										<i class="fa-solid fa-play"></i>
+									</button>
+									<button id="pauseBtn" class="control-btn" type="button" aria-label="Pausar">
+										<i class="fa-solid fa-pause"></i>
+									</button>
+									<button id="stopBtn" class="control-btn" type="button" aria-label="Parar">
+										<i class="fa-solid fa-stop"></i>
+									</button>
+								</div>
+								
+								<div class="player-timer" id="playerTimer">
+									<span id="timerDisplay" class="timer-value">00:00</span>
+									<span class="timer-separator">/</span>
+									<span id="timerTotal" class="timer-total">--:--</span>
+								</div>
+								
+								<div class="player-volume">
+									<i class="fa-solid fa-volume-high"></i>
+									<input type="range" id="masterVolume" min="0" max="100" value="70" title="Volume geral" />
+									<output id="masterVolumeValue">70%</output>
+								</div>
+							</div>
+						</div>
+					</div>
 					
 					<!-- SEÇÃO 4: Visualização e Monitor (Durante sessão) -->
 					<div class="unified-section session-visualizer-section" id="sectionVisualizer">
@@ -626,38 +631,90 @@
 
 		<footer class="site-footer">
 			<div class="footer-content">
-				<!-- Grid compacto do footer -->
-				<div class="footer-grid">
-					<div class="footer-legal">
-						<div class="footer-legal__badges">
-							<span class="legal-badge"><i class="fa-solid fa-shield-halved"></i> LGPD</span>
-							<span class="legal-badge"><i class="fa-solid fa-user-shield"></i> GDPR</span>
-							<span class="legal-badge"><i class="fa-solid fa-lock"></i> Local</span>
+				<!-- Seção Principal do Footer -->
+				<div class="footer-main">
+					<!-- Branding -->
+					<div class="footer-brand">
+						<div class="footer-logo">
+							<img src="./icons/terra-sensory.svg" alt="Terra Sensory" width="32" height="32" />
+							<span class="footer-logo__text">Terra Sensory Musical</span>
 						</div>
-						<p class="footer-legal__text">Dados armazenados <strong>exclusivamente no dispositivo</strong>.</p>
+						<p class="footer-tagline">Terapia vibroacústica baseada em evidências científicas</p>
 					</div>
-
+					
+					<!-- Conformidade e Privacidade -->
+					<div class="footer-compliance">
+						<h4 class="footer-section__title">Privacidade & Conformidade</h4>
+						<div class="compliance-badges">
+							<div class="compliance-badge">
+								<i class="fa-solid fa-shield-halved"></i>
+								<div class="compliance-badge__info">
+									<span class="compliance-badge__label">LGPD</span>
+									<span class="compliance-badge__desc">Brasil</span>
+								</div>
+							</div>
+							<div class="compliance-badge">
+								<i class="fa-solid fa-user-shield"></i>
+								<div class="compliance-badge__info">
+									<span class="compliance-badge__label">GDPR</span>
+									<span class="compliance-badge__desc">Europa</span>
+								</div>
+							</div>
+							<div class="compliance-badge">
+								<i class="fa-solid fa-database"></i>
+								<div class="compliance-badge__info">
+									<span class="compliance-badge__label">Local</span>
+									<span class="compliance-badge__desc">Seu dispositivo</span>
+								</div>
+							</div>
+						</div>
+						<p class="footer-privacy-notice">
+							<i class="fa-solid fa-lock"></i>
+							Seus dados ficam <strong>exclusivamente no seu dispositivo</strong>. Não coletamos informações pessoais.
+						</p>
+					</div>
+					
+					<!-- Contato -->
 					<div class="footer-contact">
-						<a href="mailto:terra@terraeletronica.com.br" class="contact-link" title="E-mail">
-							<i class="fa-solid fa-envelope"></i> terra@terraeletronica.com.br
-						</a>
-						<a href="https://wa.me/5512991653176" class="contact-link contact-link--whatsapp" target="_blank" rel="noopener" title="WhatsApp">
-							<i class="fa-brands fa-whatsapp"></i> (12) 99165-3176
-						</a>
+						<h4 class="footer-section__title">Contato</h4>
+						<div class="contact-links">
+							<a href="mailto:terra@terraeletronica.com.br" class="contact-link" title="Enviar e-mail">
+								<i class="fa-solid fa-envelope"></i>
+								<span>terra@terraeletronica.com.br</span>
+							</a>
+							<a href="https://wa.me/5512991653176" class="contact-link contact-link--whatsapp" target="_blank" rel="noopener" title="WhatsApp">
+								<i class="fa-brands fa-whatsapp"></i>
+								<span>(12) 99165-3176</span>
+							</a>
+						</div>
 					</div>
-
+					
+					<!-- Ações Rápidas -->
 					<div class="footer-actions">
-						<button type="button" id="repeatTutorialBtn" class="footer-btn" title="Tutorial">
-							<i class="fa-solid fa-graduation-cap"></i>
-						</button>
-						<button type="button" id="showTermsBtn" class="footer-btn" title="Termos">
-							<i class="fa-solid fa-file-contract"></i>
-						</button>
+						<h4 class="footer-section__title">Ajuda</h4>
+						<div class="footer-action-buttons">
+							<button type="button" id="repeatTutorialBtn" class="footer-action-btn" title="Ver tutorial novamente">
+								<i class="fa-solid fa-graduation-cap"></i>
+								<span>Tutorial</span>
+							</button>
+							<button type="button" id="showTermsBtn" class="footer-action-btn" title="Termos de uso e privacidade">
+								<i class="fa-solid fa-file-contract"></i>
+								<span>Termos</span>
+							</button>
+						</div>
 					</div>
 				</div>
-
-				<div class="footer-copyright">
-					<p>© <span id="year"></span> Terra Sensory Musical — Terra Eletrônica</p>
+				
+				<!-- Barra de Copyright -->
+				<div class="footer-bottom">
+					<div class="footer-copyright">
+						<p>© <span id="year"></span> <strong>Terra Sensory Musical</strong> — Terra Eletrônica</p>
+					</div>
+					<div class="footer-version">
+						<span class="version-tag">v1.0</span>
+						<span class="footer-separator">•</span>
+						<span class="made-with">Feito com <i class="fa-solid fa-heart"></i> no Brasil</span>
+					</div>
 				</div>
 			</div>
 		</footer>
@@ -927,6 +984,32 @@
 					<i class="fa-solid fa-times"></i>
 				</button>
 			</div>
+			
+			<!-- Configuração de Pasta de Dados -->
+			<div class="patient-storage-config">
+				<div class="storage-info">
+					<div class="storage-status" id="storageStatus">
+						<i class="fa-solid fa-database"></i>
+						<div class="storage-details">
+							<span class="storage-label">Armazenamento atual:</span>
+							<span class="storage-path" id="storagePath">IndexedDB (Navegador)</span>
+						</div>
+					</div>
+					<div class="storage-actions">
+						<button type="button" id="selectStorageFolderBtn" class="secondary small" title="Selecionar pasta local para salvar dados">
+							<i class="fa-solid fa-folder-open"></i> Selecionar Pasta
+						</button>
+						<button type="button" id="exportPatientsBtn" class="secondary small" title="Exportar todos os pacientes">
+							<i class="fa-solid fa-file-export"></i> Exportar
+						</button>
+						<button type="button" id="importPatientsBtn" class="secondary small" title="Importar pacientes de arquivo">
+							<i class="fa-solid fa-file-import"></i> Importar
+						</button>
+					</div>
+				</div>
+				<input type="file" id="importPatientsInput" accept=".json" class="hidden" />
+			</div>
+			
 			<div class="patient-list-controls">
 				<input type="text" id="patientSearchInput" placeholder="Buscar por nome, telefone ou email..." />
 				<button type="button" id="newPatientFromListBtn" class="primary">

@@ -8,6 +8,7 @@
  * - Anamnese completa
  * - Histórico de sessões
  * - Conformidade LGPD/GDPR
+ * - Armazenamento local em pasta selecionável (File System Access API)
  */
 
 import { state, STORAGE_KEYS } from '../core/state.js';
@@ -15,6 +16,294 @@ import { stores, uuid } from '../utils/storage.js';
 
 // Referências de UI
 let ui = {};
+
+// ============================================================================
+// FILE SYSTEM ACCESS API - ARMAZENAMENTO LOCAL
+// ============================================================================
+
+// Handle da pasta selecionada para armazenamento
+let folderHandle = null;
+
+// Chave para armazenar o handle da pasta
+const FOLDER_HANDLE_KEY = 'patientFolderHandle';
+
+/**
+ * Verifica se o navegador suporta File System Access API
+ */
+export function isFileSystemSupported() {
+	return 'showDirectoryPicker' in window;
+}
+
+/**
+ * Seleciona pasta para armazenamento de dados de pacientes
+ */
+export async function selectPatientFolder() {
+	if (!isFileSystemSupported()) {
+		alert('Seu navegador não suporta a seleção de pastas locais. Use o Chrome, Edge ou Opera para esta funcionalidade.');
+		return null;
+	}
+
+	try {
+		// Abre diálogo de seleção de pasta
+		folderHandle = await window.showDirectoryPicker({
+			mode: 'readwrite',
+			startIn: 'documents'
+		});
+
+		// Salva o handle para uso futuro
+		await saveFolderHandle(folderHandle);
+
+		// Atualiza a UI
+		updateFolderUI();
+
+		console.log(`Pacientes: Pasta selecionada: ${folderHandle.name}`);
+		
+		// Sincroniza dados existentes com a nova pasta
+		await syncToFolder();
+
+		return folderHandle;
+
+	} catch (error) {
+		if (error.name === 'AbortError') {
+			console.log('Pacientes: Seleção de pasta cancelada');
+		} else {
+			console.error('Pacientes: Erro ao selecionar pasta:', error);
+			alert('Erro ao selecionar pasta. Verifique as permissões.');
+		}
+		return null;
+	}
+}
+
+/**
+ * Salva o handle da pasta no IndexedDB
+ */
+async function saveFolderHandle(handle) {
+	try {
+		await stores.data.setItem(FOLDER_HANDLE_KEY, handle);
+	} catch (error) {
+		console.warn('Pacientes: Não foi possível persistir o handle da pasta:', error);
+	}
+}
+
+/**
+ * Recupera o handle da pasta salvo
+ */
+export async function restoreFolderHandle() {
+	try {
+		const savedHandle = await stores.data.getItem(FOLDER_HANDLE_KEY);
+		
+		if (savedHandle) {
+			// Verifica se ainda temos permissão
+			const permission = await savedHandle.queryPermission({ mode: 'readwrite' });
+			
+			if (permission === 'granted') {
+				folderHandle = savedHandle;
+				updateFolderUI();
+				console.log(`Pacientes: Pasta restaurada: ${folderHandle.name}`);
+				return folderHandle;
+			} else if (permission === 'prompt') {
+				// Solicita permissão novamente
+				const newPermission = await savedHandle.requestPermission({ mode: 'readwrite' });
+				if (newPermission === 'granted') {
+					folderHandle = savedHandle;
+					updateFolderUI();
+					console.log(`Pacientes: Permissão concedida para: ${folderHandle.name}`);
+					return folderHandle;
+				}
+			}
+		}
+	} catch (error) {
+		console.warn('Pacientes: Erro ao restaurar pasta:', error);
+	}
+	
+	return null;
+}
+
+/**
+ * Atualiza UI com informações da pasta
+ */
+function updateFolderUI() {
+	const pathEl = document.getElementById('storagePath');
+	const statusEl = document.getElementById('storageStatus');
+	
+	if (pathEl) {
+		pathEl.textContent = folderHandle 
+			? `📁 ${folderHandle.name}` 
+			: 'IndexedDB (Navegador)';
+	}
+	
+	if (statusEl) {
+		if (folderHandle) {
+			statusEl.classList.add('synced');
+		} else {
+			statusEl.classList.remove('synced');
+		}
+	}
+}
+
+/**
+ * Sincroniza todos os pacientes com a pasta selecionada
+ */
+export async function syncToFolder() {
+	if (!folderHandle) return;
+	
+	const pathEl = document.getElementById('storagePath');
+	
+	try {
+		if (pathEl) {
+			const originalText = pathEl.textContent;
+			pathEl.innerHTML = `<i class="fa-solid fa-sync fa-spin"></i> Sincronizando...`;
+		}
+
+		// Cria subpasta para pacientes se não existir
+		const patientsFolder = await folderHandle.getDirectoryHandle('pacientes', { create: true });
+		
+		// Salva cada paciente como arquivo JSON
+		for (const patient of state.patients) {
+			await savePatientToFile(patientsFolder, patient);
+		}
+		
+		// Cria arquivo de índice
+		await saveIndexFile(folderHandle);
+
+		if (pathEl) {
+			pathEl.innerHTML = `<i class="fa-solid fa-check-circle"></i> 📁 ${folderHandle.name}`;
+		}
+
+		console.log(`Pacientes: ${state.patients.length} pacientes sincronizados com a pasta`);
+		
+	} catch (error) {
+		console.error('Pacientes: Erro ao sincronizar:', error);
+		if (pathEl) {
+			pathEl.innerHTML = `<i class="fa-solid fa-exclamation-triangle"></i> Erro na sincronização`;
+		}
+	}
+}
+
+/**
+ * Salva um paciente como arquivo JSON na pasta
+ */
+async function savePatientToFile(patientsFolder, patient) {
+	try {
+		const filename = `${sanitizeFilename(patient.nome)}_${patient.id}.json`;
+		const fileHandle = await patientsFolder.getFileHandle(filename, { create: true });
+		const writable = await fileHandle.createWritable();
+		
+		const data = {
+			...patient,
+			exportedAt: new Date().toISOString(),
+			app: 'Terra Sensory Musical'
+		};
+		
+		await writable.write(JSON.stringify(data, null, 2));
+		await writable.close();
+		
+	} catch (error) {
+		console.warn(`Pacientes: Erro ao salvar ${patient.nome}:`, error);
+	}
+}
+
+/**
+ * Salva arquivo de índice com resumo dos pacientes
+ */
+async function saveIndexFile(rootFolder) {
+	try {
+		const fileHandle = await rootFolder.getFileHandle('_index.json', { create: true });
+		const writable = await fileHandle.createWritable();
+		
+		const index = {
+			updatedAt: new Date().toISOString(),
+			app: 'Terra Sensory Musical',
+			version: '1.0',
+			patientsCount: state.patients.length,
+			patients: state.patients.map(p => ({
+				id: p.id,
+				nome: p.nome,
+				sessionsCount: p.sessions?.length || 0,
+				createdAt: p.createdAt,
+				updatedAt: p.updatedAt
+			}))
+		};
+		
+		await writable.write(JSON.stringify(index, null, 2));
+		await writable.close();
+		
+	} catch (error) {
+		console.warn('Pacientes: Erro ao salvar índice:', error);
+	}
+}
+
+/**
+ * Carrega pacientes da pasta selecionada
+ */
+export async function loadFromFolder() {
+	if (!folderHandle) return [];
+	
+	try {
+		const patientsFolder = await folderHandle.getDirectoryHandle('pacientes', { create: false });
+		const patients = [];
+		
+		for await (const entry of patientsFolder.values()) {
+			if (entry.kind === 'file' && entry.name.endsWith('.json')) {
+				try {
+					const file = await entry.getFile();
+					const content = await file.text();
+					const patient = JSON.parse(content);
+					
+					if (patient.id && patient.nome) {
+						patients.push(patient);
+					}
+				} catch (err) {
+					console.warn(`Pacientes: Erro ao ler ${entry.name}:`, err);
+				}
+			}
+		}
+		
+		return patients;
+		
+	} catch (error) {
+		// Pasta não existe ainda
+		if (error.name === 'NotFoundError') {
+			return [];
+		}
+		console.error('Pacientes: Erro ao carregar da pasta:', error);
+		return [];
+	}
+}
+
+/**
+ * Remove arquivo de paciente da pasta
+ */
+async function removePatientFile(patient) {
+	if (!folderHandle) return;
+	
+	try {
+		const patientsFolder = await folderHandle.getDirectoryHandle('pacientes', { create: false });
+		const filename = `${sanitizeFilename(patient.nome)}_${patient.id}.json`;
+		await patientsFolder.removeEntry(filename);
+	} catch (error) {
+		// Arquivo pode não existir
+		console.warn('Pacientes: Arquivo não encontrado para remoção:', error);
+	}
+}
+
+/**
+ * Sanitiza nome para uso em arquivo
+ */
+function sanitizeFilename(name) {
+	return (name || 'paciente')
+		.normalize('NFD')
+		.replace(/[\u0300-\u036f]/g, '') // Remove acentos
+		.replace(/[^a-zA-Z0-9]/g, '_') // Substitui caracteres especiais
+		.substring(0, 50);
+}
+
+/**
+ * Retorna o caminho da pasta atual
+ */
+export function getCurrentFolderPath() {
+	return folderHandle ? folderHandle.name : null;
+}
 
 /**
  * Injeta referências de UI
@@ -32,6 +321,9 @@ export function injectUIReferences(uiRefs) {
  */
 export async function loadPatients() {
 	try {
+		// Tenta restaurar pasta de armazenamento local
+		await restoreFolderHandle();
+		
 		const keys = await stores.patients.keys();
 		state.patients = [];
 		
@@ -53,6 +345,8 @@ export async function loadPatients() {
 		
 		console.log(`Pacientes: ${state.patients.length} carregados`);
 		updatePatientsList();
+		updateFolderUI();
+		
 		return state.patients;
 		
 	} catch (error) {
@@ -86,6 +380,9 @@ export async function savePatient(data) {
 		updatePatientsList();
 		console.log(`Pacientes: "${patient.nome}" salvo`);
 		
+		// Sincroniza com pasta local se configurada
+		await syncToFolder();
+		
 		return patient;
 		
 	} catch (error) {
@@ -118,6 +415,9 @@ export async function updatePatient(id, data) {
 		updatePatientsList();
 		console.log(`Pacientes: "${patient.nome}" atualizado`);
 		
+		// Sincroniza com pasta local se configurada
+		await syncToFolder();
+		
 		return patient;
 		
 	} catch (error) {
@@ -141,6 +441,14 @@ export async function deletePatient(id) {
 		if (state.selectedPatient?.id === id) {
 			state.selectedPatient = null;
 		}
+		
+		// Remove arquivo da pasta local
+		if (patient) {
+			await removePatientFile(patient);
+		}
+		
+		// Atualiza índice na pasta
+		await syncToFolder();
 		
 		updatePatientsList();
 		console.log(`Pacientes: "${patient?.nome || id}" removido`);
@@ -633,5 +941,11 @@ export default {
 	exportPatient: exportPatientData,
 	exportAll: exportAllData,
 	ANAMNESIS_FIELDS,
-	validateAnamnesis
+	validateAnamnesis,
+	// File System Access API
+	selectFolder: selectPatientFolder,
+	syncToFolder,
+	loadFromFolder,
+	getCurrentFolderPath,
+	isFileSystemSupported
 };

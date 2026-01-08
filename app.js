@@ -436,7 +436,6 @@ function cacheDom() {
 	ui.playlistSelect = document.getElementById('playlistSelect');
 	ui.playlistCount = document.getElementById('playlistCount');
 	ui.musicSuggestions = document.getElementById('musicSuggestions');
-	ui.startSessionBtn = document.getElementById('startSessionBtn');
 	ui.audioUpload = document.getElementById('audioUpload');
 	ui.dropZone = document.getElementById('dropZone');
 	ui.playBtn = document.getElementById('playBtn');
@@ -519,6 +518,10 @@ function cacheDom() {
 	ui.patientsList = document.getElementById('patientList');
 	ui.noPatientsMessage = document.getElementById('noPatients');
 	ui.newPatientFromListBtn = document.getElementById('newPatientFromListBtn');
+	ui.selectPatientFolderBtn = document.getElementById('selectStorageFolderBtn');
+	ui.exportPatientsBtn = document.getElementById('exportPatientsBtn');
+	ui.importPatientsBtn = document.getElementById('importPatientsBtn');
+	ui.importPatientsInput = document.getElementById('importPatientsInput');
 	
 	// Footer Actions
 	ui.repeatTutorialBtn = document.getElementById('repeatTutorialBtn');
@@ -593,7 +596,6 @@ function attachListeners() {
 	
 	ui.form.addEventListener('submit', handlePresetSave);
 	ui.loadDefaultPresets.addEventListener('click', reloadScientificPresets);
-	ui.startSessionBtn.addEventListener('click', () => startSessionFromForm(false));
 	ui.baseFreq.addEventListener('input', () => {
 		updateRangeOutputs();
 		updateBinauralFrequenciesRealtime();
@@ -714,6 +716,29 @@ function attachListeners() {
 			closePatientsListModal();
 			setTimeout(() => openPatientModal(), 100);
 		});
+	}
+	// Botão de seleção de pasta local para pacientes
+	if (ui.selectPatientFolderBtn) {
+		ui.selectPatientFolderBtn.addEventListener('click', async () => {
+			const { selectPatientFolder } = await import('./js/patients/patientManager.js');
+			await selectPatientFolder();
+		});
+	}
+	// Exportar todos os pacientes
+	if (ui.exportPatientsBtn) {
+		ui.exportPatientsBtn.addEventListener('click', async () => {
+			const { exportAllData } = await import('./js/patients/patientManager.js');
+			await exportAllData();
+		});
+	}
+	// Importar pacientes
+	if (ui.importPatientsBtn) {
+		ui.importPatientsBtn.addEventListener('click', () => {
+			ui.importPatientsInput?.click();
+		});
+	}
+	if (ui.importPatientsInput) {
+		ui.importPatientsInput.addEventListener('change', handleImportPatients);
 	}
 	// Fechar modais clicando fora
 	if (ui.patientModal) {
@@ -4187,6 +4212,50 @@ async function deletePatient(patientId) {
 	
 	renderPatientsList(state.patients);
 	console.log('Paciente excluído:', name);
+}
+
+/**
+ * Importa pacientes de arquivo JSON
+ */
+async function handleImportPatients(e) {
+	const file = e.target.files?.[0];
+	if (!file) return;
+	
+	try {
+		const text = await file.text();
+		const data = JSON.parse(text);
+		
+		let imported = 0;
+		
+		// Suporta backup completo ou paciente único
+		const patients = data.patients || (data.id ? [data] : []);
+		
+		for (const patient of patients) {
+			if (patient.id && (patient.nome || patient.identification?.fullName)) {
+				// Verifica se já existe
+				const exists = state.patients.some(p => p.id === patient.id);
+				if (!exists) {
+					state.patients.push(patient);
+					imported++;
+				}
+			}
+		}
+		
+		if (imported > 0) {
+			await persistPatients();
+			renderPatientsList(state.patients);
+			alert(`${imported} paciente(s) importado(s) com sucesso!`);
+		} else {
+			alert('Nenhum paciente novo encontrado para importar.');
+		}
+		
+	} catch (error) {
+		console.error('Erro ao importar pacientes:', error);
+		alert('Erro ao importar arquivo. Verifique se é um arquivo JSON válido.');
+	}
+	
+	// Limpa input para permitir reimportação
+	e.target.value = '';
 }
 
 /**
