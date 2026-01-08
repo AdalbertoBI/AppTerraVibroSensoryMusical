@@ -141,442 +141,391 @@
 			<section class="panel wide unified-session" id="sessionBuilder">
 				<div class="panel-header">
 					<h2><i class="fa-solid fa-wand-magic-sparkles"></i> Sessão Terapêutica</h2>
-					<p class="subtitle">Configure, processe e controle sua sessão vibroacústica em um único lugar.</p>
-				</div>
-				
-				<!-- Navegação por Abas -->
-				<nav class="session-tabs" role="tablist">
-					<button class="session-tab active" data-tab="config" role="tab" aria-selected="true" type="button">
-						<i class="fa-solid fa-sliders"></i>
-						<span>Configuração</span>
-					</button>
-					<button class="session-tab" data-tab="library" role="tab" aria-selected="false" type="button">
-						<i class="fa-solid fa-music"></i>
-						<span>Biblioteca</span>
-					</button>
-					<button class="session-tab" data-tab="processing" role="tab" aria-selected="false" type="button">
-						<i class="fa-solid fa-waveform-lines"></i>
-						<span>Efeitos</span>
-					</button>
-					<button class="session-tab" data-tab="control" role="tab" aria-selected="false" type="button">
-						<i class="fa-solid fa-spa"></i>
-						<span>Controle</span>
-					</button>
-				</nav>
-				
-				<!-- TAB 1: Configuração da Sessão -->
-				<div class="session-tab-content active" id="tabConfig" data-tab-content="config" role="tabpanel">
-					<form id="sessionForm">
-						<div class="form-group">
-							<label for="presetName">Nome do preset</label>
-							<input type="text" id="presetName" name="presetName" placeholder="Ex: Alfa relax profundo" required />
-					</div>
-
-					<!-- Seletor de Protocolo Terapêutico -->
-					<div class="form-group">
-						<label for="therapeuticProtocol">
-							<i class="fa-solid fa-stethoscope"></i> Protocolo terapêutico (opcional)
-						</label>
-						<select id="therapeuticProtocol">
-							<option value="">Configuração manual</option>
-							<optgroup label="Dor e Tensão (Skille 1991)">
-								<option value="pain-lumbar">Dor lombar - 52Hz + Delta 2Hz</option>
-								<option value="pain-muscle">Espasmos musculares - 40Hz + Teta 6Hz</option>
-								<option value="pain-fibro">Fibromialgia - 40Hz + Alfa 10Hz</option>
-								<option value="tension-neck">Tensão cervical - 60Hz + Alfa 10Hz</option>
-							</optgroup>
-							<optgroup label="Relaxamento (Wigram 1995)">
-								<option value="relax-anxiety">Ansiedade - 68Hz + Alfa 10Hz</option>
-								<option value="relax-deep">Relaxamento profundo - 52Hz + Teta 6Hz</option>
-								<option value="relax-stress">Redução de estresse - 60Hz + SMR 14Hz</option>
-							</optgroup>
-							<optgroup label="Sono (Oster 1973)">
-								<option value="sleep-induction">Indução ao sono - 40Hz + Delta 2Hz</option>
-								<option value="sleep-deep">Sono reparador - 52Hz + Delta 1Hz</option>
-								<option value="sleep-insomnia">Insônia crônica - 40Hz + Delta 3Hz</option>
-							</optgroup>
-							<optgroup label="Cognição e Foco">
-								<option value="focus-attention">Atenção sustentada - 80Hz + Beta 18Hz</option>
-								<option value="focus-creativity">Criatividade - 68Hz + Teta 7Hz</option>
-								<option value="focus-memory">Memória - 80Hz + Gama 40Hz</option>
-							</optgroup>
-							<optgroup label="Respiratório (Skille)">
-								<option value="resp-expansion">Expansão pulmonar - 68Hz + Alfa 8Hz</option>
-								<option value="resp-asthma">Suporte asmático - 50Hz + Teta 5Hz</option>
-							</optgroup>
-						</select>
-					</div>
-
-					<!-- Legenda de bandas cerebrais -->
-					<div class="brain-bands-legend">
-						<span class="band-chip delta">Delta 0.5-4Hz</span>
-						<span class="band-chip teta">Teta 4-8Hz</span>
-						<span class="band-chip alfa">Alfa 8-13Hz</span>
-						<span class="band-chip sigma">SMR 12-15Hz</span>
-						<span class="band-chip beta">Beta 13-30Hz</span>
-						<span class="band-chip gama">Gama 30-40Hz</span>
-					</div>
-
-					<div class="form-grid">
-						<div class="form-group">
-							<label for="baseFreq">
-								Frequência base vibroacústica (30-120Hz)
-								<small class="helper">Skille: 40Hz espasmos, 52Hz lombar, 68Hz pulmonar</small>
-							</label>
-							<input type="range" id="baseFreq" name="baseFreq" min="30" max="120" value="52" />
-							<output id="baseFreqValue">52 Hz</output>
-						</div>
-						<div class="form-group">
-							<label for="diffFreq">
-								Diferença binaural (0.5-40Hz)
-								<small class="helper">Entrainment EEG - Oster 1973</small>
-							</label>
-							<input type="range" id="diffFreq" name="diffFreq" min="0.5" max="40" step="0.5" value="10" />
-							<output id="diffFreqValue">10 Hz • Alfa</output>
-						</div>
-						<div class="form-group">
-							<label for="duration">
-								Duração (min)
-								<small class="helper">Mínimo recomendado: 20min (Wigram)</small>
-							</label>
-							<input type="range" id="duration" name="duration" min="5" max="60" value="25" />
-							<output id="durationValue">25 min</output>
-						</div>
-						<div class="form-group">
-							<label for="binauralVolume">
-								Intensidade vibroacústica (%)
-								<small class="helper">Seguro: 50-75% | Máximo terapêutico: 80%</small>
-							</label>
-							<input type="range" id="binauralVolume" name="binauralVolume" min="20" max="85" value="65" />
-							<output id="binauralVolumeValue">65% (Terapêutico)</output>
-						</div>
-						<div class="form-group">
-							<label for="lowPass">
-								Filtro passa-baixas (30-120Hz)
-								<small class="helper">Limita harmônicos - apenas graves terapêuticos</small>
-							</label>
-							<input type="range" id="lowPass" name="lowPass" min="30" max="120" value="80" />
-							<output id="lowPassValue">80 Hz</output>
-						</div>
-					</div>
-
-					<fieldset class="form-group">
-						<legend>Playlist terapêutica</legend>
-						<p class="helper">Selecione músicas carregadas ou utilize as texturas nativas sugeridas automaticamente.</p>
-						
-						<!-- Internet Archive Search -->
-						<details class="archive-search-panel" id="archivePanel">
-							<summary><i class="fa-solid fa-globe"></i> Buscar no Internet Archive (Gratuito)</summary>
-							<div class="archive-search-content">
-								<p class="helper">Pesquise sons ambientes e músicas de domínio público. Os arquivos são baixados para sua biblioteca local (offline).</p>
-								<div class="archive-search-row">
-									<input type="text" id="archiveQuery" placeholder="Ex: ambient meditation, nature sounds, drone..." />
-									<select id="archiveCategory">
-										<option value="">Todas categorias</option>
-										<option value="ambient">Ambient</option>
-										<option value="meditation">Meditação</option>
-										<option value="relaxation">Relaxamento</option>
-										<option value="nature">Natureza</option>
-										<option value="drone">Drone</option>
-										<option value="binaural">Binaural</option>
-										<option value="sleep">Sono</option>
-										<option value="classical">Clássica</option>
-									</select>
-									<button type="button" id="archiveSearchBtn" class="secondary"><i class="fa-solid fa-search"></i> Buscar</button>
-								</div>
-								<div id="archiveResults" class="archive-results" aria-live="polite"></div>
-								<div id="archiveStatus" class="archive-status" aria-live="polite"></div>
-							</div>
-						</details>
-
-						<select id="playlistSelect" multiple aria-label="Playlist de músicas"></select>
-						<div id="musicSuggestions" class="suggestions" aria-live="polite"></div>
-					</fieldset>
-
-					<div class="form-actions">
-						<button type="submit" class="primary"><i class="fa-solid fa-plus"></i> Salvar preset</button>
-						<button type="button" id="startSessionBtn" class="secondary"><i class="fa-solid fa-play"></i> Iniciar sessão agora</button>
-					</div>
-				</form>
-			</div>
-			
-			<!-- TAB 2: Biblioteca de Áudio -->
-			<div class="session-tab-content" id="tabLibrary" data-tab-content="library" role="tabpanel">
-				<div class="tab-section-header">
-					<h3><i class="fa-solid fa-music"></i> Biblioteca de Áudio</h3>
-					<p class="helper">Seus arquivos MP3/WAV ou músicas do Internet Archive.</p>
-				</div>
-				<p class="helper"><i class="fa-solid fa-lightbulb"></i> Dica: você pode tocar a frequência binaural aqui e ouvir música em outro app simultaneamente.</p>
-				<div class="upload-zone" id="dropZone">
-					<i class="fa-solid fa-cloud-arrow-up"></i>
-					<p>Arraste ou selecione arquivos</p>
-					<label for="audioUpload" class="sr-only">Selecione arquivos de áudio</label>
-					<input type="file" id="audioUpload" accept="audio/*" multiple />
-				</div>
-				<ul id="musicList" class="list music-list"></ul>
-			</div>
-			
-			<!-- TAB 3: Processamento de Áudio Avançado -->
-			<div class="session-tab-content" id="tabProcessing" data-tab-content="processing" role="tabpanel">
-				<div class="tab-section-header">
-					<h3><i class="fa-solid fa-waveform-lines"></i> Processamento de Áudio Avançado</h3>
-				</div>
-				
-				<!-- Grid com dois cards lado a lado -->
-				<div class="audio-processing-grid">
-					<!-- Card 8D Audio -->
-					<div class="processing-card audio-8d-card">
-						<div class="processing-card-header">
-							<div class="processing-toggle" id="audio-8d-toggle" role="switch" aria-checked="false" tabindex="0">
-								<div class="toggle-switch"></div>
-								<div class="toggle-info">
-									<span class="toggle-label"><i class="fa-solid fa-headphones-simple"></i> Áudio 8D Espacial</span>
-									<span class="toggle-desc">Som imersivo circulando ao redor da cabeça</span>
-								</div>
-							</div>
-						</div>
-						
-						<div class="processing-controls audio-8d-controls" id="audio8dControls">
-							<div class="control-compact">
-								<label>Padrão</label>
-								<div class="pattern-selector">
-									<button type="button" class="pattern-btn active" data-pattern="circular" title="Circular">
-										<i class="fa-solid fa-circle-notch"></i>
-									</button>
-									<button type="button" class="pattern-btn" data-pattern="infinity" title="Infinito">
-										<i class="fa-solid fa-infinity"></i>
-									</button>
-									<button type="button" class="pattern-btn" data-pattern="random" title="Aleatório">
-										<i class="fa-solid fa-shuffle"></i>
-									</button>
-									<button type="button" class="pattern-btn" data-pattern="pendulum" title="Pêndulo">
-										<i class="fa-solid fa-arrows-left-right"></i>
-									</button>
-								</div>
-							</div>
-							<div class="control-compact">
-								<label for="audio8dSpeed">Velocidade <output id="audio8dSpeedValue">50%</output></label>
-								<input type="range" id="audio8dSpeed" min="10" max="100" value="50" title="Velocidade de rotação do áudio 8D" />
-							</div>
-							<div class="control-compact">
-								<label for="audio8dIntensity">Intensidade <output id="audio8dIntensityValue">80%</output></label>
-								<input type="range" id="audio8dIntensity" min="0" max="100" value="80" title="Intensidade do efeito 8D" />
-							</div>
-						</div>
-					</div>
-					
-					<!-- Card Audio Enhancer -->
-					<div class="processing-card audio-enhancer-card">
-						<div class="processing-card-header">
-							<div class="processing-toggle enhancer-toggle" id="enhancer-toggle" role="switch" aria-checked="false" tabindex="0">
-								<div class="toggle-switch"></div>
-								<div class="toggle-info">
-									<span class="toggle-label"><i class="fa-solid fa-sliders"></i> Aprimoramento</span>
-									<span class="toggle-desc">Redução de ruído e equalização</span>
-								</div>
-							</div>
-						</div>
-						
-						<div class="processing-controls enhancer-controls" id="enhancerControls">
-							<div class="control-compact full-width">
-								<label for="enhancerPreset"><i class="fa-solid fa-wand-magic-sparkles"></i> Preset</label>
-								<select id="enhancerPreset" class="enhancer-select" title="Preset de aprimoramento de áudio">
-									<option value="default">Padrão</option>
-									<option value="noise_reduction">Redução de Ruído</option>
-									<option value="music">Música Hi-Fi</option>
-									<option value="voice">Voz/Podcast</option>
-									<option value="bass_boost">Mais Graves</option>
-									<option value="phone_quality">Fone Simples</option>
-								</select>
-							</div>
-							
-							<!-- EQ Compacto -->
-							<div class="eq-compact">
-								<div class="eq-band-compact">
-									<label for="eqLow">Graves</label>
-									<input type="range" id="eqLow" min="-12" max="12" value="0" class="eq-slider vertical" orient="vertical" title="Equalização de graves" />
-									<output id="eqLowValue">0</output>
-								</div>
-								<div class="eq-band-compact">
-									<label for="eqMid">Médios</label>
-									<input type="range" id="eqMid" min="-12" max="12" value="0" class="eq-slider vertical" orient="vertical" title="Equalização de médios" />
-									<output id="eqMidValue">0</output>
-								</div>
-								<div class="eq-band-compact">
-									<label for="eqHigh">Agudos</label>
-									<input type="range" id="eqHigh" min="-12" max="12" value="0" class="eq-slider vertical" orient="vertical" title="Equalização de agudos" />
-									<output id="eqHighValue">0</output>
-								</div>
-							</div>
-							
-							<div class="control-compact">
-								<label for="compressorRatio"><i class="fa-solid fa-compress"></i> Compressão <output id="compressorValue">4:1</output></label>
-								<input type="range" id="compressorRatio" min="1" max="20" value="4" step="0.5" title="Taxa de compressão de dinâmica" />
-							</div>
-							
-							<!-- Controles ocultos para compatibilidade -->
-							<input type="hidden" id="noiseGateThreshold" value="-50" />
-							<input type="hidden" id="deHissAmount" value="-6" />
-							<input type="hidden" id="bassEnhance" value="0" />
-							<input type="hidden" id="stereoWidth" value="100" />
-							<input type="hidden" id="outputGain" value="0" />
-						</div>
-					</div>
-				</div>
-				
-				<!-- Base Científica Colapsada -->
-				<details class="scientific-info-unified">
-					<summary><i class="fa-solid fa-microscope"></i> Base Científica do Processamento</summary>
-					<div class="scientific-content-grid">
-						<div class="sci-card">
-							<h4>Áudio 8D (HRTF)</h4>
-							<ul>
-								<li><strong>Møller (1992)</strong>: Modelagem da filtragem sonora por ouvidos, cabeça e torso</li>
-								<li><strong>Blauert (1997)</strong>: Diferenças de tempo/intensidade interaural para localização</li>
-								<li><strong>Västfjäll (2003)</strong>: Imersão intensifica experiências emocionais</li>
-							</ul>
-						</div>
-						<div class="sci-card">
-							<h4>Processamento DSP</h4>
-							<ul>
-								<li><strong>Fletcher-Munson (1933)</strong>: Sensibilidade variável do ouvido por frequência</li>
-								<li><strong>Katz (2002)</strong>: Noise Gate elimina ruído em silêncios</li>
-								<li><strong>Giannoulis (2012)</strong>: Compressão melhora audibilidade</li>
-							</ul>
-						</div>
-					</div>
-				</details>
-			</div>
-			
-			<!-- TAB 4: Centro de Controle Terapêutico -->
-			<div class="session-tab-content" id="tabControl" data-tab-content="control" role="tabpanel">
-				<div class="tab-section-header">
-					<h3><i class="fa-solid fa-spa"></i> Centro de Controle Terapêutico</h3>
 					<div class="session-status" id="sessionStatus">
 						<span class="status-indicator"></span>
-						<span class="status-text">Aguardando sessão</span>
+						<span class="status-text">Aguardando</span>
 					</div>
 				</div>
 				
-				<!-- Ticker de Dicas Científicas -->
-				<div class="scientific-tips-ticker" id="scientificTipsTicker" aria-live="polite" aria-label="Dicas terapêuticas baseadas em evidências científicas">
-					<div class="ticker-icon">
-						<i class="fa-solid fa-flask"></i>
-					</div>
-					<div class="ticker-content">
-						<span class="ticker-label">Evidência:</span>
-						<span class="ticker-text" id="tickerText"></span>
-					</div>
-					<div class="ticker-controls">
-						<button type="button" id="tickerPrev" class="ticker-btn" aria-label="Dica anterior" title="Dica anterior">
-							<i class="fa-solid fa-chevron-left"></i>
+				<!-- CONTROLES DE REPRODUÇÃO (sempre visíveis no topo) -->
+				<div class="unified-player-bar" id="playerBar">
+					<div class="player-main-controls">
+						<button id="playBtn" class="control-btn primary" type="button" aria-label="Reproduzir">
+							<i class="fa-solid fa-play"></i>
 						</button>
-						<button type="button" id="tickerPause" class="ticker-btn" aria-label="Pausar rotação" title="Pausar/Continuar">
-							<i class="fa-solid fa-pause" id="tickerPauseIcon"></i>
+						<button id="pauseBtn" class="control-btn" type="button" aria-label="Pausar">
+							<i class="fa-solid fa-pause"></i>
 						</button>
-						<button type="button" id="tickerNext" class="ticker-btn" aria-label="Próxima dica" title="Próxima dica">
-							<i class="fa-solid fa-chevron-right"></i>
+						<button id="stopBtn" class="control-btn" type="button" aria-label="Parar">
+							<i class="fa-solid fa-stop"></i>
 						</button>
-					</div>
-				</div>
-				
-				<!-- Visualizador de Sessão Ativa -->
-				<div class="session-visualizer" id="sessionVisualizer">
-					<div class="wave-container">
-						<div class="wave-pulse" id="wavePulse"></div>
-						<div class="frequency-display" id="frequencyDisplay">
-							<span class="freq-value">--</span>
-							<span class="freq-label">Hz binaural</span>
-						</div>
 					</div>
 					
-					<!-- Timer Circular -->
-					<div class="circular-timer" id="circularTimer">
-						<svg class="timer-ring" viewBox="0 0 100 100">
-							<circle class="timer-ring-bg" cx="50" cy="50" r="45"></circle>
-							<circle class="timer-ring-progress" id="timerProgress" cx="50" cy="50" r="45"></circle>
-						</svg>
-						<div class="timer-content">
-							<span id="timerDisplay" class="timer-value">00:00</span>
-							<span class="timer-label">restantes</span>
-						</div>
+					<div class="player-timer" id="playerTimer">
+						<span id="timerDisplay" class="timer-value">00:00</span>
+						<span class="timer-separator">/</span>
+						<span id="timerTotal" class="timer-total">--:--</span>
 					</div>
 					
-					<!-- Guia de Respiração -->
-					<div class="breathing-guide" id="breathingGuide">
-						<div class="breath-circle" id="breathCircle">
-							<span class="breath-text" id="breathText">Inspire</span>
-						</div>
-						<div class="breath-info">
-							<small>Sincronizado com a frequência</small>
-						</div>
+					<div class="player-volume">
+						<i class="fa-solid fa-volume-high"></i>
+						<input type="range" id="masterVolume" min="0" max="100" value="70" title="Volume geral" />
+						<output id="masterVolumeValue">70%</output>
+					</div>
+					
+					<div class="player-actions">
+						<button id="zenModeBtn" class="ghost small" type="button" title="Modo Zen">
+							<i class="fa-solid fa-moon"></i>
+						</button>
+						<button id="audioMonitorBtn" class="ghost small" type="button" title="Monitor de Áudio">
+							<i class="fa-solid fa-wave-square"></i>
+						</button>
 					</div>
 				</div>
 
-				<div class="player-controls">
-					<!-- Controles Principais -->
-					<div class="main-controls">
-						<div class="buttons">
-							<button id="playBtn" class="control-btn primary" type="button" aria-label="Reproduzir sessão">
-								<i class="fa-solid fa-play"></i>
-							</button>
-							<button id="pauseBtn" class="control-btn secondary" type="button" aria-label="Pausar sessão">
-								<i class="fa-solid fa-pause"></i>
-							</button>
-							<button id="stopBtn" class="control-btn ghost" type="button" aria-label="Parar sessão">
-								<i class="fa-solid fa-stop"></i>
-							</button>
+				<!-- CONTEÚDO UNIFICADO -->
+				<div class="unified-content">
+					
+					<!-- SEÇÃO 1: Configuração da Sessão -->
+					<div class="unified-section" id="sectionConfig">
+						<div class="section-header" data-section="config">
+							<div class="section-title">
+								<i class="fa-solid fa-sliders"></i>
+								<h3>Configuração da Sessão</h3>
+							</div>
+							<span class="section-hint">Frequências, duração e protocolo</span>
 						</div>
-						<button id="zenModeBtn" class="ghost" type="button" aria-label="Modo Zen">
-							<i class="fa-solid fa-moon"></i> Modo Zen
-						</button>
-						<button id="audioMonitorBtn" class="ghost" type="button" aria-label="Monitor de Áudio">
-							<i class="fa-solid fa-wave-square"></i> Monitor
-						</button>
+						
+						<div class="section-body">
+							<form id="sessionForm">
+								<!-- Protocolo Terapêutico -->
+								<div class="form-group">
+									<label for="therapeuticProtocol">
+										<i class="fa-solid fa-stethoscope"></i> Protocolo terapêutico
+									</label>
+									<select id="therapeuticProtocol">
+										<option value="">Configuração manual</option>
+										<optgroup label="Dor e Tensão (Skille 1991)">
+											<option value="pain-lumbar">Dor lombar - 52Hz + Delta 2Hz</option>
+											<option value="pain-muscle">Espasmos musculares - 40Hz + Teta 6Hz</option>
+											<option value="pain-fibro">Fibromialgia - 40Hz + Alfa 10Hz</option>
+											<option value="tension-neck">Tensão cervical - 60Hz + Alfa 10Hz</option>
+										</optgroup>
+										<optgroup label="Relaxamento (Wigram 1995)">
+											<option value="relax-anxiety">Ansiedade - 68Hz + Alfa 10Hz</option>
+											<option value="relax-deep">Relaxamento profundo - 52Hz + Teta 6Hz</option>
+											<option value="relax-stress">Redução de estresse - 60Hz + SMR 14Hz</option>
+										</optgroup>
+										<optgroup label="Sono (Oster 1973)">
+											<option value="sleep-induction">Indução ao sono - 40Hz + Delta 2Hz</option>
+											<option value="sleep-deep">Sono reparador - 52Hz + Delta 1Hz</option>
+											<option value="sleep-insomnia">Insônia crônica - 40Hz + Delta 3Hz</option>
+										</optgroup>
+										<optgroup label="Cognição e Foco">
+											<option value="focus-attention">Atenção sustentada - 80Hz + Beta 18Hz</option>
+											<option value="focus-creativity">Criatividade - 68Hz + Teta 7Hz</option>
+											<option value="focus-memory">Memória - 80Hz + Gama 40Hz</option>
+										</optgroup>
+										<optgroup label="Respiratório (Skille)">
+											<option value="resp-expansion">Expansão pulmonar - 68Hz + Alfa 8Hz</option>
+											<option value="resp-asthma">Suporte asmático - 50Hz + Teta 5Hz</option>
+										</optgroup>
+									</select>
+								</div>
+
+								<!-- Legenda de bandas cerebrais -->
+								<div class="brain-bands-legend">
+									<span class="band-chip delta">Delta 0.5-4Hz</span>
+									<span class="band-chip teta">Teta 4-8Hz</span>
+									<span class="band-chip alfa">Alfa 8-13Hz</span>
+									<span class="band-chip sigma">SMR 12-15Hz</span>
+									<span class="band-chip beta">Beta 13-30Hz</span>
+									<span class="band-chip gama">Gama 30-40Hz</span>
+								</div>
+
+								<!-- Grid de Controles -->
+								<div class="form-grid">
+									<div class="form-group">
+										<label for="baseFreq">
+											Frequência base vibroacústica
+											<small class="helper">30-120Hz • Skille: 40Hz espasmos, 52Hz lombar</small>
+										</label>
+										<input type="range" id="baseFreq" name="baseFreq" min="30" max="120" value="52" />
+										<output id="baseFreqValue">52 Hz</output>
+									</div>
+									<div class="form-group">
+										<label for="diffFreq">
+											Diferença binaural
+											<small class="helper">0.5-40Hz • Entrainment EEG</small>
+										</label>
+										<input type="range" id="diffFreq" name="diffFreq" min="0.5" max="40" step="0.5" value="10" />
+										<output id="diffFreqValue">10 Hz • Alfa</output>
+									</div>
+									<div class="form-group">
+										<label for="duration">
+											Duração
+											<small class="helper">Mínimo: 20min (Wigram)</small>
+										</label>
+										<input type="range" id="duration" name="duration" min="5" max="60" value="25" />
+										<output id="durationValue">25 min</output>
+									</div>
+									<div class="form-group">
+										<label for="binauralVolume">
+											Intensidade vibroacústica
+											<small class="helper">Seguro: 50-75%</small>
+										</label>
+										<input type="range" id="binauralVolume" name="binauralVolume" min="20" max="85" value="65" />
+										<output id="binauralVolumeValue">65%</output>
+									</div>
+								</div>
+								
+								<!-- Mixer Compacto -->
+								<div class="compact-mixer">
+									<div class="mixer-item">
+										<label for="mixSlider"><i class="fa-solid fa-sliders"></i> Mix Binaural/Música</label>
+										<input type="range" id="mixSlider" min="0" max="100" value="70" />
+										<output id="mixValue">70%</output>
+									</div>
+									<div class="mixer-item">
+										<label for="panSlider"><i class="fa-solid fa-headphones"></i> Pan Estéreo</label>
+										<input type="range" id="panSlider" min="-1" max="1" step="0.1" value="0" />
+										<output id="panValue">Centro</output>
+									</div>
+									<div class="mixer-item">
+										<label for="lowPass"><i class="fa-solid fa-filter"></i> Filtro Passa-baixas</label>
+										<input type="range" id="lowPass" name="lowPass" min="30" max="120" value="80" />
+										<output id="lowPassValue">80 Hz</output>
+									</div>
+								</div>
+								
+								<!-- Salvar Preset -->
+								<details class="save-preset-section">
+									<summary><i class="fa-solid fa-bookmark"></i> Salvar como preset</summary>
+									<div class="save-preset-content">
+										<div class="form-group">
+											<label for="presetName">Nome do preset</label>
+											<input type="text" id="presetName" name="presetName" placeholder="Ex: Relaxamento noturno" />
+										</div>
+										<button type="submit" class="secondary"><i class="fa-solid fa-plus"></i> Salvar preset</button>
+									</div>
+								</details>
+								
+								<!-- Botão Principal -->
+								<div class="form-actions-unified">
+									<button type="button" id="startSessionBtn" class="primary large">
+										<i class="fa-solid fa-play"></i> Iniciar Sessão
+									</button>
+								</div>
+							</form>
+						</div>
 					</div>
 					
-					<!-- Volume Master -->
-					<div class="volume-master">
-						<label for="masterVolume">
-							<i class="fa-solid fa-volume-high"></i> Volume geral
-						</label>
-						<div class="volume-slider-wrapper">
-							<input type="range" id="masterVolume" min="0" max="100" value="70" />
-							<div class="volume-zones">
-								<span class="zone safe">Seguro</span>
-								<span class="zone caution">Atenção</span>
-								<span class="zone danger">Risco</span>
+					<!-- SEÇÃO 2: Biblioteca de Áudio -->
+					<details class="unified-section collapsible" id="sectionLibrary">
+						<summary class="section-header">
+							<div class="section-title">
+								<i class="fa-solid fa-music"></i>
+								<h3>Biblioteca de Áudio</h3>
+							</div>
+							<span class="section-hint">Upload e busca de músicas</span>
+						</summary>
+						
+						<div class="section-body">
+							<p class="helper"><i class="fa-solid fa-lightbulb"></i> Você pode tocar binaural aqui e música em outro app simultaneamente.</p>
+							
+							<!-- Upload Zone -->
+							<div class="upload-zone" id="dropZone">
+								<i class="fa-solid fa-cloud-arrow-up"></i>
+								<p>Arraste arquivos MP3/WAV ou clique para selecionar</p>
+								<label for="audioUpload" class="sr-only">Selecione arquivos de áudio</label>
+								<input type="file" id="audioUpload" accept="audio/*" multiple />
+							</div>
+							
+							<!-- Internet Archive Search -->
+							<details class="archive-search-panel" id="archivePanel">
+								<summary><i class="fa-solid fa-globe"></i> Buscar no Internet Archive</summary>
+								<div class="archive-search-content">
+									<p class="helper">Sons ambientes e músicas de domínio público.</p>
+									<div class="archive-search-row">
+										<input type="text" id="archiveQuery" placeholder="Ex: ambient meditation..." />
+										<select id="archiveCategory">
+											<option value="">Todas</option>
+											<option value="ambient">Ambient</option>
+											<option value="meditation">Meditação</option>
+											<option value="nature">Natureza</option>
+											<option value="drone">Drone</option>
+											<option value="classical">Clássica</option>
+										</select>
+										<button type="button" id="archiveSearchBtn" class="secondary"><i class="fa-solid fa-search"></i></button>
+									</div>
+									<div id="archiveResults" class="archive-results"></div>
+									<div id="archiveStatus" class="archive-status"></div>
+								</div>
+							</details>
+							
+							<!-- Lista de Músicas -->
+							<ul id="musicList" class="list music-list"></ul>
+							
+							<!-- Playlist -->
+							<div class="playlist-selector">
+								<label for="playlistSelect"><i class="fa-solid fa-list-music"></i> Playlist da sessão</label>
+								<select id="playlistSelect" multiple></select>
+								<div id="musicSuggestions" class="suggestions"></div>
 							</div>
 						</div>
-						<output id="masterVolumeValue">70% <i class="fa-solid fa-shield-check"></i></output>
-					</div>
-
-					<!-- Mixer Binaural/Música -->
-					<div class="mixer">
-						<label for="mixSlider">
-							<i class="fa-solid fa-sliders"></i> Balanço binaural / música
-						</label>
-						<input type="range" id="mixSlider" min="0" max="100" value="70" class="mix-slider" />
-						<div class="mix-labels">
-							<span>🎵 Música</span>
-							<output id="mixValue">70% binaural</output>
-							<span>🧠 Binaural</span>
+					</details>
+					
+					<!-- SEÇÃO 3: Efeitos de Áudio -->
+					<details class="unified-section collapsible" id="sectionEffects">
+						<summary class="section-header">
+							<div class="section-title">
+								<i class="fa-solid fa-waveform-lines"></i>
+								<h3>Efeitos de Áudio</h3>
+							</div>
+							<span class="section-hint">8D espacial e equalização</span>
+						</summary>
+						
+						<div class="section-body">
+							<div class="effects-grid">
+								<!-- Card 8D Audio -->
+								<div class="effect-card">
+									<div class="effect-header">
+										<div class="processing-toggle" id="audio-8d-toggle" role="switch" aria-checked="false" tabindex="0">
+											<div class="toggle-switch"></div>
+											<div class="toggle-info">
+												<span class="toggle-label"><i class="fa-solid fa-headphones-simple"></i> Áudio 8D</span>
+												<span class="toggle-desc">Som espacial imersivo</span>
+											</div>
+										</div>
+									</div>
+									
+									<div class="effect-controls" id="audio8dControls">
+										<div class="control-row">
+											<label>Padrão</label>
+											<div class="pattern-selector">
+												<button type="button" class="pattern-btn active" data-pattern="circular" title="Circular"><i class="fa-solid fa-circle-notch"></i></button>
+												<button type="button" class="pattern-btn" data-pattern="infinity" title="Infinito"><i class="fa-solid fa-infinity"></i></button>
+												<button type="button" class="pattern-btn" data-pattern="random" title="Aleatório"><i class="fa-solid fa-shuffle"></i></button>
+												<button type="button" class="pattern-btn" data-pattern="pendulum" title="Pêndulo"><i class="fa-solid fa-arrows-left-right"></i></button>
+											</div>
+										</div>
+										<div class="control-row">
+											<label for="audio8dSpeed">Velocidade</label>
+											<input type="range" id="audio8dSpeed" min="10" max="100" value="50" />
+											<output id="audio8dSpeedValue">50%</output>
+										</div>
+										<div class="control-row">
+											<label for="audio8dIntensity">Intensidade</label>
+											<input type="range" id="audio8dIntensity" min="0" max="100" value="80" />
+											<output id="audio8dIntensityValue">80%</output>
+										</div>
+									</div>
+								</div>
+								
+								<!-- Card Enhancer -->
+								<div class="effect-card">
+									<div class="effect-header">
+										<div class="processing-toggle enhancer-toggle" id="enhancer-toggle" role="switch" aria-checked="false" tabindex="0">
+											<div class="toggle-switch"></div>
+											<div class="toggle-info">
+												<span class="toggle-label"><i class="fa-solid fa-sliders"></i> Aprimoramento</span>
+												<span class="toggle-desc">EQ e redução de ruído</span>
+											</div>
+										</div>
+									</div>
+									
+									<div class="effect-controls" id="enhancerControls">
+										<div class="control-row">
+											<label for="enhancerPreset">Preset</label>
+											<select id="enhancerPreset" class="enhancer-select">
+												<option value="default">Padrão</option>
+												<option value="noise_reduction">Redução de Ruído</option>
+												<option value="music">Música Hi-Fi</option>
+												<option value="voice">Voz/Podcast</option>
+												<option value="bass_boost">Mais Graves</option>
+											</select>
+										</div>
+										
+										<div class="eq-mini">
+											<div class="eq-band">
+												<input type="range" id="eqLow" min="-12" max="12" value="0" orient="vertical" />
+												<label>Graves</label>
+											</div>
+											<div class="eq-band">
+												<input type="range" id="eqMid" min="-12" max="12" value="0" orient="vertical" />
+												<label>Médios</label>
+											</div>
+											<div class="eq-band">
+												<input type="range" id="eqHigh" min="-12" max="12" value="0" orient="vertical" />
+												<label>Agudos</label>
+											</div>
+										</div>
+										
+										<div class="control-row">
+											<label for="compressorRatio">Compressão</label>
+											<input type="range" id="compressorRatio" min="1" max="20" value="4" step="0.5" />
+											<output id="compressorValue">4:1</output>
+										</div>
+										
+										<!-- Hidden para compatibilidade -->
+										<input type="hidden" id="noiseGateThreshold" value="-50" />
+										<input type="hidden" id="deHissAmount" value="-6" />
+										<input type="hidden" id="bassEnhance" value="0" />
+										<input type="hidden" id="stereoWidth" value="100" />
+										<input type="hidden" id="outputGain" value="0" />
+									</div>
+								</div>
+							</div>
+						</div>
+					</details>
+					
+					<!-- SEÇÃO 4: Visualização (Durante sessão) -->
+					<div class="unified-section session-visualizer-section" id="sectionVisualizer">
+						<div class="session-visualizer" id="sessionVisualizer">
+							<!-- Ticker de Dicas -->
+							<div class="scientific-tips-ticker" id="scientificTipsTicker" aria-live="polite">
+								<div class="ticker-icon"><i class="fa-solid fa-flask"></i></div>
+								<div class="ticker-content">
+									<span class="ticker-label">Evidência:</span>
+									<span class="ticker-text" id="tickerText"></span>
+								</div>
+								<div class="ticker-controls">
+									<button type="button" id="tickerPrev" class="ticker-btn"><i class="fa-solid fa-chevron-left"></i></button>
+									<button type="button" id="tickerPause" class="ticker-btn"><i class="fa-solid fa-pause" id="tickerPauseIcon"></i></button>
+									<button type="button" id="tickerNext" class="ticker-btn"><i class="fa-solid fa-chevron-right"></i></button>
+								</div>
+							</div>
+							
+							<!-- Visualização Central -->
+							<div class="visualizer-central">
+								<div class="wave-container">
+									<div class="wave-pulse" id="wavePulse"></div>
+									<div class="frequency-display" id="frequencyDisplay">
+										<span class="freq-value">--</span>
+										<span class="freq-label">Hz</span>
+									</div>
+								</div>
+								
+								<div class="circular-timer" id="circularTimer">
+									<svg class="timer-ring" viewBox="0 0 100 100">
+										<circle class="timer-ring-bg" cx="50" cy="50" r="45"></circle>
+										<circle class="timer-ring-progress" id="timerProgress" cx="50" cy="50" r="45"></circle>
+									</svg>
+								</div>
+								
+								<div class="breathing-guide" id="breathingGuide">
+									<div class="breath-circle" id="breathCircle">
+										<span class="breath-text" id="breathText">Inspire</span>
+									</div>
+								</div>
+							</div>
 						</div>
 					</div>
 					
-					<!-- Pan Estéreo -->
-					<div class="pan-control">
-						<label for="panSlider">
-							<i class="fa-solid fa-headphones"></i> Pan estéreo
-						</label>
-						<input type="range" id="panSlider" min="-1" max="1" step="0.1" value="0" />
-						<output id="panValue">Centralizado</output>
-					</div>
-				</div>
-			</div>
-			
-		</section>
-		<!-- FIM DA SEÇÃO UNIFICADA -->
+				</div><!-- /.unified-content -->
+				
+			</section>
+			<!-- FIM DA SEÇÃO UNIFICADA -->
 		</main>
 
 		<footer class="site-footer">
