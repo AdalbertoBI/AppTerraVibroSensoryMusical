@@ -311,6 +311,9 @@
 						<button id="zenModeBtn" class="ghost" type="button" aria-label="Modo Zen">
 							<i class="fa-solid fa-moon"></i> Modo Zen
 						</button>
+						<button id="audioMonitorBtn" class="ghost" type="button" aria-label="Monitor de Áudio">
+							<i class="fa-solid fa-wave-square"></i> Monitor
+						</button>
 					</div>
 					
 					<!-- Volume Master -->
@@ -1690,6 +1693,129 @@
 				</div>
 			</div>
 		</div>
+	</div>
+
+	<!-- Monitor de Áudio Profissional (Janela Flutuante) -->
+	<div id="audioMonitorWindow" class="audio-monitor hidden" role="dialog" aria-label="Monitor de Áudio">
+		<div class="audio-monitor__header">
+			<div class="audio-monitor__title">
+				<i class="fa-solid fa-wave-square"></i>
+				<span>Monitor de Áudio</span>
+			</div>
+			<div class="audio-monitor__controls">
+				<button type="button" id="audioMonitorMinimize" class="audio-monitor__btn" title="Minimizar">
+					<i class="fa-solid fa-minus"></i>
+				</button>
+				<button type="button" id="audioMonitorClose" class="audio-monitor__btn audio-monitor__btn--close" title="Fechar">
+					<i class="fa-solid fa-times"></i>
+				</button>
+			</div>
+		</div>
+		
+		<div class="audio-monitor__body">
+			<!-- Indicadores de Frequência -->
+			<div class="audio-monitor__section">
+				<h4><i class="fa-solid fa-headphones"></i> Frequências por Canal</h4>
+				<div class="frequency-indicators">
+					<div class="freq-channel freq-channel--left">
+						<span class="freq-channel__label">L</span>
+						<div class="freq-channel__info">
+							<span class="freq-channel__value" id="monitorFreqLeft">-- Hz</span>
+							<span class="freq-channel__desc">Canal Esquerdo</span>
+						</div>
+					</div>
+					<div class="freq-channel freq-channel--diff">
+						<span class="freq-channel__label">Δ</span>
+						<div class="freq-channel__info">
+							<span class="freq-channel__value" id="monitorFreqDiff">-- Hz</span>
+							<span class="freq-channel__desc">Binaural</span>
+						</div>
+					</div>
+					<div class="freq-channel freq-channel--right">
+						<span class="freq-channel__label">R</span>
+						<div class="freq-channel__info">
+							<span class="freq-channel__value" id="monitorFreqRight">-- Hz</span>
+							<span class="freq-channel__desc">Canal Direito</span>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Analisador de Espectro -->
+			<div class="audio-monitor__section">
+				<h4><i class="fa-solid fa-chart-bar"></i> Analisador de Espectro</h4>
+				<div class="spectrum-analyzer">
+					<canvas id="spectrumCanvas" width="400" height="120"></canvas>
+					<div class="spectrum-labels">
+						<span>20Hz</span>
+						<span>100Hz</span>
+						<span>1kHz</span>
+						<span>10kHz</span>
+						<span>20kHz</span>
+					</div>
+				</div>
+			</div>
+
+			<!-- Medidores de Volume por Canal -->
+			<div class="audio-monitor__section">
+				<h4><i class="fa-solid fa-sliders"></i> Níveis de Volume</h4>
+				<div class="volume-meters">
+					<div class="volume-meter">
+						<span class="volume-meter__label">L</span>
+						<div class="volume-meter__bar">
+							<div class="volume-meter__fill" id="volumeMeterLeft"></div>
+							<div class="volume-meter__peak" id="volumePeakLeft"></div>
+						</div>
+						<span class="volume-meter__value" id="volumeValueLeft">-∞ dB</span>
+					</div>
+					<div class="volume-meter">
+						<span class="volume-meter__label">R</span>
+						<div class="volume-meter__bar">
+							<div class="volume-meter__fill" id="volumeMeterRight"></div>
+							<div class="volume-meter__peak" id="volumePeakRight"></div>
+						</div>
+						<span class="volume-meter__value" id="volumeValueRight">-∞ dB</span>
+					</div>
+					<div class="volume-meter volume-meter--master">
+						<span class="volume-meter__label">M</span>
+						<div class="volume-meter__bar">
+							<div class="volume-meter__fill" id="volumeMeterMaster"></div>
+							<div class="volume-meter__peak" id="volumePeakMaster"></div>
+						</div>
+						<span class="volume-meter__value" id="volumeValueMaster">-∞ dB</span>
+					</div>
+				</div>
+			</div>
+
+			<!-- Forma de Onda em Tempo Real -->
+			<div class="audio-monitor__section">
+				<h4><i class="fa-solid fa-wave-square"></i> Forma de Onda</h4>
+				<div class="waveform-display">
+					<canvas id="waveformCanvas" width="400" height="80"></canvas>
+				</div>
+			</div>
+
+			<!-- Informações da Sessão -->
+			<div class="audio-monitor__section audio-monitor__section--info">
+				<div class="session-info-grid">
+					<div class="session-info-item">
+						<i class="fa-solid fa-music"></i>
+						<span id="monitorMusicStatus">Sem música</span>
+					</div>
+					<div class="session-info-item">
+						<i class="fa-solid fa-clock"></i>
+						<span id="monitorSessionTime">00:00</span>
+					</div>
+					<div class="session-info-item">
+						<i class="fa-solid fa-brain"></i>
+						<span id="monitorBrainwave">--</span>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Resize Handle -->
+		<div class="audio-monitor__resize" title="Redimensionar"></div>
 	</div>
 
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.4/howler.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>

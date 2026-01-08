@@ -5313,3 +5313,411 @@ fieldset:focus-within {
 	}
 }
 
+
+/* =============================================================================
+   MONITOR DE ÁUDIO PROFISSIONAL
+   ============================================================================= */
+
+/* Botão do Monitor de Áudio */
+#audioMonitorBtn.active {
+	background: linear-gradient(135deg, var(--color-primary), #a855f7);
+	color: white;
+	box-shadow: 0 0 15px rgba(139, 92, 246, 0.4);
+}
+
+#audioMonitorBtn.active i {
+	animation: pulseWave 1.5s ease-in-out infinite;
+}
+
+@keyframes pulseWave {
+	0%, 100% { opacity: 1; }
+	50% { opacity: 0.6; }
+}
+
+.audio-monitor {
+	position: fixed;
+	top: 100px;
+	right: 20px;
+	width: 420px;
+	max-width: calc(100vw - 40px);
+	max-height: calc(100vh - 120px);
+	background: linear-gradient(145deg, rgba(15, 23, 42, 0.98), rgba(30, 41, 59, 0.98));
+	border: 1px solid rgba(139, 92, 246, 0.3);
+	border-radius: 16px;
+	box-shadow: 
+		0 25px 60px rgba(0, 0, 0, 0.5),
+		0 0 40px rgba(139, 92, 246, 0.15),
+		inset 0 1px 0 rgba(255, 255, 255, 0.05);
+	z-index: 9999;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+	backdrop-filter: blur(20px);
+	-webkit-backdrop-filter: blur(20px);
+	transition: opacity 0.3s ease, transform 0.3s ease;
+	resize: both;
+	min-width: 320px;
+	min-height: 400px;
+}
+
+.audio-monitor.hidden {
+	display: none;
+}
+
+.audio-monitor.minimized {
+	height: auto !important;
+	min-height: auto;
+	resize: none;
+}
+
+.audio-monitor.minimized .audio-monitor__body {
+	display: none;
+}
+
+.audio-monitor.minimized .audio-monitor__resize {
+	display: none;
+}
+
+/* Header */
+.audio-monitor__header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 0.75rem 1rem;
+	background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(99, 102, 241, 0.1));
+	border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+	cursor: move;
+	user-select: none;
+}
+
+.audio-monitor__title {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	font-size: 0.9rem;
+	font-weight: 600;
+	color: var(--color-text);
+}
+
+.audio-monitor__title i {
+	color: var(--color-primary);
+}
+
+.audio-monitor__controls {
+	display: flex;
+	gap: 0.5rem;
+}
+
+.audio-monitor__btn {
+	width: 28px;
+	height: 28px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: rgba(255, 255, 255, 0.1);
+	border: none;
+	border-radius: 6px;
+	color: var(--color-text-muted);
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.audio-monitor__btn:hover {
+	background: rgba(255, 255, 255, 0.15);
+	color: var(--color-text);
+}
+
+.audio-monitor__btn--close:hover {
+	background: rgba(239, 68, 68, 0.3);
+	color: #ef4444;
+}
+
+/* Body */
+.audio-monitor__body {
+	flex: 1;
+	overflow-y: auto;
+	padding: 0.75rem;
+	scrollbar-width: thin;
+	scrollbar-color: rgba(139, 92, 246, 0.3) transparent;
+}
+
+.audio-monitor__section {
+	margin-bottom: 1rem;
+	padding: 0.75rem;
+	background: rgba(0, 0, 0, 0.2);
+	border-radius: 10px;
+	border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.audio-monitor__section:last-child {
+	margin-bottom: 0;
+}
+
+.audio-monitor__section h4 {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	font-size: 0.75rem;
+	font-weight: 600;
+	color: var(--color-text-muted);
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	margin: 0 0 0.75rem 0;
+}
+
+.audio-monitor__section h4 i {
+	font-size: 0.7rem;
+	color: var(--color-primary);
+}
+
+/* Indicadores de Frequência */
+.frequency-indicators {
+	display: flex;
+	justify-content: space-between;
+	gap: 0.5rem;
+}
+
+.freq-channel {
+	flex: 1;
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	padding: 0.6rem;
+	background: rgba(0, 0, 0, 0.3);
+	border-radius: 8px;
+	border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.freq-channel__label {
+	width: 28px;
+	height: 28px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 50%;
+	font-size: 0.75rem;
+	font-weight: 700;
+	flex-shrink: 0;
+}
+
+.freq-channel--left .freq-channel__label {
+	background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+	color: white;
+}
+
+.freq-channel--right .freq-channel__label {
+	background: linear-gradient(135deg, #22c55e, #16a34a);
+	color: white;
+}
+
+.freq-channel--diff .freq-channel__label {
+	background: linear-gradient(135deg, #a855f7, #7c3aed);
+	color: white;
+}
+
+.freq-channel__info {
+	display: flex;
+	flex-direction: column;
+	gap: 0.1rem;
+	min-width: 0;
+}
+
+.freq-channel__value {
+	font-size: 1rem;
+	font-weight: 700;
+	color: var(--color-text);
+	font-family: 'SF Mono', 'Fira Code', monospace;
+}
+
+.freq-channel__desc {
+	font-size: 0.65rem;
+	color: var(--color-text-muted);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+/* Analisador de Espectro */
+.spectrum-analyzer {
+	position: relative;
+}
+
+.spectrum-analyzer canvas {
+	width: 100%;
+	height: 120px;
+	background: rgba(0, 0, 0, 0.4);
+	border-radius: 8px;
+	display: block;
+}
+
+.spectrum-labels {
+	display: flex;
+	justify-content: space-between;
+	padding: 0.25rem 0.5rem 0;
+	font-size: 0.6rem;
+	color: var(--color-text-muted);
+	font-family: 'SF Mono', 'Fira Code', monospace;
+}
+
+/* Medidores de Volume */
+.volume-meters {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+}
+
+.volume-meter {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+.volume-meter__label {
+	width: 20px;
+	font-size: 0.7rem;
+	font-weight: 700;
+	color: var(--color-text-muted);
+	text-align: center;
+}
+
+.volume-meter__bar {
+	flex: 1;
+	height: 12px;
+	background: rgba(0, 0, 0, 0.4);
+	border-radius: 6px;
+	overflow: hidden;
+	position: relative;
+}
+
+.volume-meter__fill {
+	height: 100%;
+	width: 0%;
+	background: linear-gradient(90deg, #22c55e 0%, #eab308 70%, #ef4444 100%);
+	border-radius: 6px;
+	transition: width 0.05s linear;
+}
+
+.volume-meter__peak {
+	position: absolute;
+	top: 0;
+	width: 2px;
+	height: 100%;
+	background: #ffffff;
+	border-radius: 1px;
+	opacity: 0.8;
+	transition: left 0.1s ease-out;
+}
+
+.volume-meter__value {
+	width: 55px;
+	font-size: 0.7rem;
+	font-family: 'SF Mono', 'Fira Code', monospace;
+	color: var(--color-text-muted);
+	text-align: right;
+}
+
+.volume-meter--master .volume-meter__label {
+	color: var(--color-primary);
+}
+
+.volume-meter--master .volume-meter__fill {
+	background: linear-gradient(90deg, #8b5cf6 0%, #a855f7 50%, #ef4444 100%);
+}
+
+/* Forma de Onda */
+.waveform-display canvas {
+	width: 100%;
+	height: 80px;
+	background: rgba(0, 0, 0, 0.4);
+	border-radius: 8px;
+	display: block;
+}
+
+/* Informações da Sessão */
+.audio-monitor__section--info {
+	background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(99, 102, 241, 0.05));
+}
+
+.session-info-grid {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 0.5rem;
+}
+
+.session-info-item {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.25rem;
+	padding: 0.5rem;
+	background: rgba(0, 0, 0, 0.2);
+	border-radius: 8px;
+	text-align: center;
+}
+
+.session-info-item i {
+	font-size: 1rem;
+	color: var(--color-primary);
+}
+
+.session-info-item span {
+	font-size: 0.7rem;
+	color: var(--color-text-muted);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	max-width: 100%;
+}
+
+/* Resize Handle */
+.audio-monitor__resize {
+	position: absolute;
+	bottom: 0;
+	right: 0;
+	width: 20px;
+	height: 20px;
+	cursor: nwse-resize;
+	background: linear-gradient(135deg, transparent 50%, rgba(139, 92, 246, 0.3) 50%);
+	border-bottom-right-radius: 16px;
+}
+
+/* Responsivo */
+@media (max-width: 500px) {
+	.audio-monitor {
+		top: 60px;
+		right: 10px;
+		left: 10px;
+		width: auto;
+		max-width: none;
+		max-height: calc(100vh - 80px);
+	}
+	
+	.frequency-indicators {
+		flex-direction: column;
+	}
+	
+	.freq-channel {
+		flex-direction: row;
+	}
+	
+	.session-info-grid {
+		grid-template-columns: 1fr;
+	}
+}
+
+/* Animação de entrada */
+@keyframes monitorSlideIn {
+	from {
+		opacity: 0;
+		transform: translateX(20px);
+	}
+	to {
+		opacity: 1;
+		transform: translateX(0);
+	}
+}
+
+.audio-monitor:not(.hidden) {
+	animation: monitorSlideIn 0.3s ease-out;
+}
+

@@ -23,7 +23,22 @@ const state = {
 	// Sistema de Pacientes
 	patients: [],
 	currentPatient: null,
-	patientFormStep: 0
+	patientFormStep: 0,
+	// Monitor de Áudio
+	audioMonitor: {
+		isOpen: false,
+		isMinimized: false,
+		analyserLeft: null,
+		analyserRight: null,
+		analyserMaster: null,
+		splitter: null,
+		animationId: null,
+		peakLeft: 0,
+		peakRight: 0,
+		peakMaster: 0,
+		peakDecay: 0.95,
+		sessionStartTime: null
+	}
 };
 
 const STORAGE_KEYS = {
@@ -446,6 +461,29 @@ function cacheDom() {
 	// Footer Actions
 	ui.repeatTutorialBtn = document.getElementById('repeatTutorialBtn');
 	ui.showTermsBtn = document.getElementById('showTermsBtn');
+	
+	// Monitor de Áudio
+	ui.audioMonitorBtn = document.getElementById('audioMonitorBtn');
+	ui.audioMonitorWindow = document.getElementById('audioMonitorWindow');
+	ui.audioMonitorClose = document.getElementById('audioMonitorClose');
+	ui.audioMonitorMinimize = document.getElementById('audioMonitorMinimize');
+	ui.spectrumCanvas = document.getElementById('spectrumCanvas');
+	ui.waveformCanvas = document.getElementById('waveformCanvas');
+	ui.monitorFreqLeft = document.getElementById('monitorFreqLeft');
+	ui.monitorFreqRight = document.getElementById('monitorFreqRight');
+	ui.monitorFreqDiff = document.getElementById('monitorFreqDiff');
+	ui.volumeMeterLeft = document.getElementById('volumeMeterLeft');
+	ui.volumeMeterRight = document.getElementById('volumeMeterRight');
+	ui.volumeMeterMaster = document.getElementById('volumeMeterMaster');
+	ui.volumePeakLeft = document.getElementById('volumePeakLeft');
+	ui.volumePeakRight = document.getElementById('volumePeakRight');
+	ui.volumePeakMaster = document.getElementById('volumePeakMaster');
+	ui.volumeValueLeft = document.getElementById('volumeValueLeft');
+	ui.volumeValueRight = document.getElementById('volumeValueRight');
+	ui.volumeValueMaster = document.getElementById('volumeValueMaster');
+	ui.monitorMusicStatus = document.getElementById('monitorMusicStatus');
+	ui.monitorSessionTime = document.getElementById('monitorSessionTime');
+	ui.monitorBrainwave = document.getElementById('monitorBrainwave');
 }
 
 function attachListeners() {
@@ -591,6 +629,19 @@ function attachListeners() {
 	if (ui.showTermsBtn) {
 		ui.showTermsBtn.addEventListener('click', showTermsModal);
 	}
+	
+	// Monitor de Áudio
+	if (ui.audioMonitorBtn) {
+		ui.audioMonitorBtn.addEventListener('click', toggleAudioMonitor);
+	}
+	if (ui.audioMonitorClose) {
+		ui.audioMonitorClose.addEventListener('click', closeAudioMonitor);
+	}
+	if (ui.audioMonitorMinimize) {
+		ui.audioMonitorMinimize.addEventListener('click', minimizeAudioMonitor);
+	}
+	// Arrastar janela do monitor
+	setupAudioMonitorDrag();
 }
 
 function setupAudioGraph() {
@@ -3621,4 +3672,527 @@ function handlePatientsListClick(e) {
 	if (patientItem) {
 		selectPatient(patientItem.dataset.id);
 	}
+}
+
+// =============================================================================
+// MONITOR DE ÁUDIO - ANALISADOR EM TEMPO REAL
+// =============================================================================
+
+/**
+ * Alterna a visibilidade do monitor de áudio
+ */
+function toggleAudioMonitor() {
+	if (!ui.audioMonitorWindow) return;
+	
+	if (state.audioMonitor.isOpen) {
+		closeAudioMonitor();
+	} else {
+		openAudioMonitor();
+	}
+}
+
+/**
+ * Abre o monitor de áudio
+ */
+function openAudioMonitor() {
+	if (!ui.audioMonitorWindow) return;
+	
+	// Garante que o contexto de áudio existe
+	if (!state.audioCtx) {
+		setupAudioGraph();
+	}
+	
+	// Cria os analysers se ainda não existem
+	if (!state.audioMonitor.analyserMaster) {
+		setupAudioAnalysers();
+	}
+	
+	// Mostra a janela (remove hidden)
+	ui.audioMonitorWindow.classList.remove('hidden');
+	state.audioMonitor.isOpen = true;
+	state.audioMonitor.isMinimized = false;
+	
+	// Marca início da sessão se não estiver rodando
+	if (!state.audioMonitor.sessionStartTime) {
+		state.audioMonitor.sessionStartTime = Date.now();
+	}
+	
+	// Inicia a animação
+	startAudioMonitorAnimation();
+	
+	// Atualiza o botão
+	if (ui.audioMonitorBtn) {
+		ui.audioMonitorBtn.classList.add('active');
+	}
+}
+
+/**
+ * Fecha o monitor de áudio
+ */
+function closeAudioMonitor() {
+	if (!ui.audioMonitorWindow) return;
+	
+	ui.audioMonitorWindow.classList.add('hidden');
+	state.audioMonitor.isOpen = false;
+	
+	// Para a animação
+	stopAudioMonitorAnimation();
+	
+	// Atualiza o botão
+	if (ui.audioMonitorBtn) {
+		ui.audioMonitorBtn.classList.remove('active');
+	}
+}
+
+/**
+ * Minimiza/restaura o monitor de áudio
+ */
+function minimizeAudioMonitor() {
+	if (!ui.audioMonitorWindow) return;
+	
+	state.audioMonitor.isMinimized = !state.audioMonitor.isMinimized;
+	ui.audioMonitorWindow.classList.toggle('minimized', state.audioMonitor.isMinimized);
+	
+	if (ui.audioMonitorMinimize) {
+		const icon = ui.audioMonitorMinimize.querySelector('i');
+		if (icon) {
+			if (state.audioMonitor.isMinimized) {
+				icon.className = 'fa-solid fa-window-maximize';
+			} else {
+				icon.className = 'fa-solid fa-minus';
+			}
+		}
+	}
+	
+	// Pausa/retoma animação baseado no estado
+	if (state.audioMonitor.isMinimized) {
+		stopAudioMonitorAnimation();
+	} else {
+		startAudioMonitorAnimation();
+	}
+}
+
+/**
+ * Configura os analisadores de áudio (AnalyserNodes)
+ */
+function setupAudioAnalysers() {
+	if (!state.audioCtx) return;
+	
+	try {
+		// Analyser para o canal master
+		state.audioMonitor.analyserMaster = state.audioCtx.createAnalyser();
+		state.audioMonitor.analyserMaster.fftSize = 256;
+		state.audioMonitor.analyserMaster.smoothingTimeConstant = 0.8;
+		
+		// Conecta o master gain ao analyser master
+		if (state.masterGain) {
+			state.masterGain.connect(state.audioMonitor.analyserMaster);
+		}
+		
+		// Para canais separados, criamos um splitter
+		state.audioMonitor.splitter = state.audioCtx.createChannelSplitter(2);
+		state.audioMonitor.analyserLeft = state.audioCtx.createAnalyser();
+		state.audioMonitor.analyserRight = state.audioCtx.createAnalyser();
+		
+		state.audioMonitor.analyserLeft.fftSize = 256;
+		state.audioMonitor.analyserRight.fftSize = 256;
+		state.audioMonitor.analyserLeft.smoothingTimeConstant = 0.8;
+		state.audioMonitor.analyserRight.smoothingTimeConstant = 0.8;
+		
+		// Conecta o splitter aos analysers de cada canal
+		if (state.masterGain) {
+			state.masterGain.connect(state.audioMonitor.splitter);
+			state.audioMonitor.splitter.connect(state.audioMonitor.analyserLeft, 0);
+			state.audioMonitor.splitter.connect(state.audioMonitor.analyserRight, 1);
+		}
+		
+		console.log('Analysers de áudio configurados com sucesso');
+	} catch (error) {
+		console.error('Erro ao configurar analysers de áudio:', error);
+	}
+}
+
+/**
+ * Inicia a animação do monitor de áudio
+ */
+function startAudioMonitorAnimation() {
+	if (state.audioMonitor.animationId) return;
+	
+	function animate() {
+		if (!state.audioMonitor.isOpen || state.audioMonitor.isMinimized) {
+			state.audioMonitor.animationId = null;
+			return;
+		}
+		
+		updateAudioMonitor();
+		state.audioMonitor.animationId = requestAnimationFrame(animate);
+	}
+	
+	animate();
+}
+
+/**
+ * Para a animação do monitor de áudio
+ */
+function stopAudioMonitorAnimation() {
+	if (state.audioMonitor.animationId) {
+		cancelAnimationFrame(state.audioMonitor.animationId);
+		state.audioMonitor.animationId = null;
+	}
+}
+
+/**
+ * Atualiza todos os elementos visuais do monitor de áudio
+ */
+function updateAudioMonitor() {
+	// Atualiza o espectro de frequências
+	drawSpectrum();
+	
+	// Atualiza a forma de onda
+	drawWaveform();
+	
+	// Atualiza os medidores de volume
+	updateVolumeMeter('left', state.audioMonitor.analyserLeft, ui.volumeMeterLeft, ui.volumePeakLeft, ui.volumeValueLeft);
+	updateVolumeMeter('right', state.audioMonitor.analyserRight, ui.volumeMeterRight, ui.volumePeakRight, ui.volumeValueRight);
+	updateVolumeMeter('master', state.audioMonitor.analyserMaster, ui.volumeMeterMaster, ui.volumePeakMaster, ui.volumeValueMaster);
+	
+	// Atualiza informações de frequência binaural
+	updateFrequencyDisplays();
+	
+	// Atualiza informações da sessão
+	updateSessionInfo();
+}
+
+/**
+ * Desenha o espectro de frequências
+ */
+function drawSpectrum() {
+	const canvas = ui.spectrumCanvas;
+	const analyser = state.audioMonitor.analyserMaster;
+	
+	if (!canvas || !analyser) return;
+	
+	const ctx = canvas.getContext('2d');
+	const width = canvas.width;
+	const height = canvas.height;
+	
+	const bufferLength = analyser.frequencyBinCount;
+	const dataArray = new Uint8Array(bufferLength);
+	analyser.getByteFrequencyData(dataArray);
+	
+	// Limpa o canvas
+	ctx.fillStyle = 'rgba(26, 26, 26, 0.95)';
+	ctx.fillRect(0, 0, width, height);
+	
+	// Desenha grid
+	ctx.strokeStyle = 'rgba(100, 100, 100, 0.3)';
+	ctx.lineWidth = 1;
+	for (let i = 0; i < 10; i++) {
+		const y = (height / 10) * i;
+		ctx.beginPath();
+		ctx.moveTo(0, y);
+		ctx.lineTo(width, y);
+		ctx.stroke();
+	}
+	
+	// Desenha as barras do espectro
+	const barWidth = (width / bufferLength) * 2.5;
+	let x = 0;
+	
+	for (let i = 0; i < bufferLength; i++) {
+		const barHeight = (dataArray[i] / 255) * height;
+		
+		// Gradiente de cores baseado na frequência e intensidade
+		const hue = (i / bufferLength) * 240 + 180; // Ciano para azul
+		const saturation = 80;
+		const lightness = 40 + (dataArray[i] / 255) * 30;
+		
+		ctx.fillStyle = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+		ctx.fillRect(x, height - barHeight, barWidth - 1, barHeight);
+		
+		x += barWidth;
+	}
+	
+	// Linha de topo brilhante
+	x = 0;
+	ctx.strokeStyle = 'rgba(0, 208, 255, 0.8)';
+	ctx.lineWidth = 2;
+	ctx.beginPath();
+	for (let i = 0; i < bufferLength; i++) {
+		const barHeight = (dataArray[i] / 255) * height;
+		const y = height - barHeight;
+		
+		if (i === 0) {
+			ctx.moveTo(x + barWidth / 2, y);
+		} else {
+			ctx.lineTo(x + barWidth / 2, y);
+		}
+		x += barWidth;
+	}
+	ctx.stroke();
+}
+
+/**
+ * Desenha a forma de onda
+ */
+function drawWaveform() {
+	const canvas = ui.waveformCanvas;
+	const analyser = state.audioMonitor.analyserMaster;
+	
+	if (!canvas || !analyser) return;
+	
+	const ctx = canvas.getContext('2d');
+	const width = canvas.width;
+	const height = canvas.height;
+	
+	const bufferLength = analyser.fftSize;
+	const dataArray = new Uint8Array(bufferLength);
+	analyser.getByteTimeDomainData(dataArray);
+	
+	// Limpa o canvas
+	ctx.fillStyle = 'rgba(26, 26, 26, 0.95)';
+	ctx.fillRect(0, 0, width, height);
+	
+	// Linha central
+	ctx.strokeStyle = 'rgba(100, 100, 100, 0.5)';
+	ctx.lineWidth = 1;
+	ctx.beginPath();
+	ctx.moveTo(0, height / 2);
+	ctx.lineTo(width, height / 2);
+	ctx.stroke();
+	
+	// Desenha a forma de onda
+	ctx.strokeStyle = '#00d9ff';
+	ctx.lineWidth = 2;
+	ctx.beginPath();
+	
+	const sliceWidth = width / bufferLength;
+	let x = 0;
+	
+	for (let i = 0; i < bufferLength; i++) {
+		const v = dataArray[i] / 128.0;
+		const y = (v * height) / 2;
+		
+		if (i === 0) {
+			ctx.moveTo(x, y);
+		} else {
+			ctx.lineTo(x, y);
+		}
+		
+		x += sliceWidth;
+	}
+	
+	ctx.lineTo(width, height / 2);
+	ctx.stroke();
+	
+	// Adiciona um brilho na onda
+	ctx.strokeStyle = 'rgba(0, 217, 255, 0.3)';
+	ctx.lineWidth = 6;
+	ctx.stroke();
+}
+
+/**
+ * Atualiza um medidor de volume específico
+ */
+function updateVolumeMeter(channel, analyser, meterEl, peakEl, valueEl) {
+	if (!analyser || !meterEl) return;
+	
+	const dataArray = new Uint8Array(analyser.frequencyBinCount);
+	analyser.getByteFrequencyData(dataArray);
+	
+	// Calcula RMS
+	let sum = 0;
+	for (let i = 0; i < dataArray.length; i++) {
+		sum += dataArray[i] * dataArray[i];
+	}
+	const rms = Math.sqrt(sum / dataArray.length);
+	const level = (rms / 255) * 100;
+	
+	// Atualiza a barra (horizontal - usa width)
+	meterEl.style.width = `${level}%`;
+	
+	// Atualiza o pico
+	const peakKey = `peak${channel.charAt(0).toUpperCase() + channel.slice(1)}`;
+	if (level > state.audioMonitor[peakKey]) {
+		state.audioMonitor[peakKey] = level;
+	} else {
+		state.audioMonitor[peakKey] *= state.audioMonitor.peakDecay;
+	}
+	
+	if (peakEl) {
+		peakEl.style.left = `${state.audioMonitor[peakKey]}%`;
+	}
+	
+	// Atualiza o valor numérico
+	if (valueEl) {
+		const db = level > 0 ? Math.round(20 * Math.log10(level / 100)) : -60;
+		valueEl.textContent = `${db > -60 ? db : '-∞'} dB`;
+	}
+}
+
+/**
+ * Atualiza os displays de frequência binaural
+ */
+function updateFrequencyDisplays() {
+	// Obtém os valores atuais do formulário
+	const baseFreq = parseFloat(ui.baseFreq?.value) || 200;
+	const diffFreq = parseFloat(ui.diffFreq?.value) || 10;
+	
+	// Calcula as frequências de cada canal
+	const freqLeft = baseFreq;
+	const freqRight = baseFreq + diffFreq;
+	
+	if (ui.monitorFreqLeft) {
+		ui.monitorFreqLeft.textContent = `${freqLeft.toFixed(1)} Hz`;
+	}
+	if (ui.monitorFreqRight) {
+		ui.monitorFreqRight.textContent = `${freqRight.toFixed(1)} Hz`;
+	}
+	if (ui.monitorFreqDiff) {
+		ui.monitorFreqDiff.textContent = `Δ ${diffFreq.toFixed(1)} Hz`;
+		
+		// Classifica a onda cerebral
+		let brainwave = '';
+		if (diffFreq <= 4) brainwave = 'Delta (Sono profundo)';
+		else if (diffFreq <= 8) brainwave = 'Theta (Meditação)';
+		else if (diffFreq <= 13) brainwave = 'Alpha (Relaxamento)';
+		else if (diffFreq <= 30) brainwave = 'Beta (Foco)';
+		else brainwave = 'Gamma (Alta cognição)';
+		
+		if (ui.monitorBrainwave) {
+			ui.monitorBrainwave.textContent = brainwave;
+		}
+	}
+}
+
+/**
+ * Atualiza informações da sessão no monitor
+ */
+function updateSessionInfo() {
+	// Status da música
+	if (ui.monitorMusicStatus) {
+		if (state.currentHowl && state.currentHowl.playing()) {
+			const track = state.musicMeta[state.currentTrackIndex];
+			const name = track?.name || 'Reproduzindo...';
+			ui.monitorMusicStatus.textContent = `♪ ${name}`;
+			ui.monitorMusicStatus.classList.add('playing');
+		} else if (state.isSessionRunning) {
+			ui.monitorMusicStatus.textContent = '◼ Sessão ativa (sem música)';
+			ui.monitorMusicStatus.classList.remove('playing');
+		} else {
+			ui.monitorMusicStatus.textContent = '◻ Aguardando...';
+			ui.monitorMusicStatus.classList.remove('playing');
+		}
+	}
+	
+	// Tempo da sessão
+	if (ui.monitorSessionTime && state.audioMonitor.sessionStartTime) {
+		const elapsed = Date.now() - state.audioMonitor.sessionStartTime;
+		const minutes = Math.floor(elapsed / 60000);
+		const seconds = Math.floor((elapsed % 60000) / 1000);
+		ui.monitorSessionTime.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+	}
+}
+
+/**
+ * Configura o arraste da janela do monitor
+ */
+function setupAudioMonitorDrag() {
+	const monitor = ui.audioMonitorWindow;
+	if (!monitor) return;
+	
+	const header = monitor.querySelector('.audio-monitor__header');
+	if (!header) return;
+	
+	let isDragging = false;
+	let startX, startY, initialX, initialY;
+	
+	header.addEventListener('mousedown', (e) => {
+		// Ignora cliques nos botões
+		if (e.target.closest('.audio-monitor__close') || e.target.closest('.audio-monitor__minimize')) {
+			return;
+		}
+		
+		isDragging = true;
+		startX = e.clientX;
+		startY = e.clientY;
+		
+		const rect = monitor.getBoundingClientRect();
+		initialX = rect.left;
+		initialY = rect.top;
+		
+		header.style.cursor = 'grabbing';
+		e.preventDefault();
+	});
+	
+	document.addEventListener('mousemove', (e) => {
+		if (!isDragging) return;
+		
+		const dx = e.clientX - startX;
+		const dy = e.clientY - startY;
+		
+		let newX = initialX + dx;
+		let newY = initialY + dy;
+		
+		// Limites da tela
+		const maxX = window.innerWidth - monitor.offsetWidth;
+		const maxY = window.innerHeight - monitor.offsetHeight;
+		
+		newX = Math.max(0, Math.min(newX, maxX));
+		newY = Math.max(0, Math.min(newY, maxY));
+		
+		monitor.style.left = `${newX}px`;
+		monitor.style.top = `${newY}px`;
+		monitor.style.right = 'auto';
+		monitor.style.bottom = 'auto';
+	});
+	
+	document.addEventListener('mouseup', () => {
+		if (isDragging) {
+			isDragging = false;
+			header.style.cursor = 'grab';
+		}
+	});
+	
+	// Suporte a touch
+	header.addEventListener('touchstart', (e) => {
+		if (e.target.closest('.audio-monitor__close') || e.target.closest('.audio-monitor__minimize')) {
+			return;
+		}
+		
+		isDragging = true;
+		const touch = e.touches[0];
+		startX = touch.clientX;
+		startY = touch.clientY;
+		
+		const rect = monitor.getBoundingClientRect();
+		initialX = rect.left;
+		initialY = rect.top;
+	}, { passive: true });
+	
+	document.addEventListener('touchmove', (e) => {
+		if (!isDragging) return;
+		
+		const touch = e.touches[0];
+		const dx = touch.clientX - startX;
+		const dy = touch.clientY - startY;
+		
+		let newX = initialX + dx;
+		let newY = initialY + dy;
+		
+		const maxX = window.innerWidth - monitor.offsetWidth;
+		const maxY = window.innerHeight - monitor.offsetHeight;
+		
+		newX = Math.max(0, Math.min(newX, maxX));
+		newY = Math.max(0, Math.min(newY, maxY));
+		
+		monitor.style.left = `${newX}px`;
+		monitor.style.top = `${newY}px`;
+		monitor.style.right = 'auto';
+		monitor.style.bottom = 'auto';
+	}, { passive: true });
+	
+	document.addEventListener('touchend', () => {
+		isDragging = false;
+	});
 }
