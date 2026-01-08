@@ -5218,21 +5218,34 @@ fieldset:focus-within {
 }
 
 /* Responsivo */
-@media (max-width: 480px) {
+@media (max-width: 600px) {
 	.guided-tutorial__tooltip {
 		width: calc(100vw - 24px);
-		left: 12px !important;
-		right: 12px !important;
+		max-width: none;
+	}
+	
+	.tooltip__content {
+		padding: 1rem;
+	}
+	
+	.tooltip__title {
+		font-size: 1rem;
+	}
+	
+	.tooltip__text {
+		font-size: 0.85rem;
 	}
 	
 	.tooltip__footer {
-		flex-direction: column;
+		flex-wrap: wrap;
 		gap: 0.75rem;
 	}
 	
 	.tooltip__btn--skip {
 		order: 2;
 		font-size: 0.75rem;
+		width: 100%;
+		justify-content: center;
 	}
 	
 	.tooltip__nav {
@@ -5244,6 +5257,45 @@ fieldset:focus-within {
 	.tooltip__btn--next {
 		flex: 1;
 		justify-content: center;
+	}
+	
+	/* Spotlight menor em mobile */
+	.guided-tutorial__spotlight {
+		border-radius: 6px;
+	}
+	
+	.guided-tutorial__spotlight::after {
+		inset: -2px;
+		border-radius: 8px;
+	}
+}
+
+/* Telas muito pequenas */
+@media (max-width: 380px) {
+	.guided-tutorial__tooltip {
+		width: calc(100vw - 16px);
+	}
+	
+	.tooltip__header {
+		padding: 0.5rem 0.75rem;
+	}
+	
+	.tooltip__content {
+		padding: 0.75rem;
+	}
+	
+	.tooltip__title {
+		font-size: 0.95rem;
+	}
+	
+	.tooltip__text {
+		font-size: 0.8rem;
+		line-height: 1.5;
+	}
+	
+	.tooltip__btn {
+		padding: 0.4rem 0.75rem;
+		font-size: 0.75rem;
 	}
 }
 

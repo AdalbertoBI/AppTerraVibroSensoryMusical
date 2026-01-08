@@ -1736,25 +1736,30 @@ function showGuidedStep(stepIndex) {
 	element.classList.add('tutorial-highlight');
 	previousHighlightedElement = element;
 	
-	// Scroll suave até o elemento se necessário
+	// Verifica se o elemento está visível na viewport
 	const rect = element.getBoundingClientRect();
-	const isInViewport = rect.top >= 0 && rect.bottom <= window.innerHeight;
+	const viewportHeight = window.innerHeight;
+	const margin = 100; // Margem extra para garantir visibilidade
 	
-	if (!isInViewport) {
+	const isFullyVisible = rect.top >= margin && rect.bottom <= (viewportHeight - margin);
+	
+	if (!isFullyVisible) {
+		// Scroll suave até o elemento, posicionando no centro
 		element.scrollIntoView({ behavior: 'smooth', block: 'center' });
 	}
 	
-	// Aguarda o scroll completar
+	// Aguarda o scroll completar (tempo maior para mobile)
+	const waitTime = isFullyVisible ? 100 : 600;
 	setTimeout(() => {
 		positionSpotlight(element);
 		positionTooltip(element, step);
 		updateGuidedTutorialUI();
-	}, isInViewport ? 50 : 400);
+	}, waitTime);
 }
 
 function positionSpotlight(element) {
 	const rect = element.getBoundingClientRect();
-	const padding = 8;
+	const padding = window.innerWidth < 600 ? 4 : 8;
 	
 	ui.tutorialSpotlight.style.top = `${rect.top - padding}px`;
 	ui.tutorialSpotlight.style.left = `${rect.left - padding}px`;
@@ -1765,53 +1770,89 @@ function positionSpotlight(element) {
 function positionTooltip(element, step) {
 	const rect = element.getBoundingClientRect();
 	const tooltip = ui.tutorialTooltip;
-	const tooltipRect = tooltip.getBoundingClientRect();
 	const gap = 16;
 	const viewportWidth = window.innerWidth;
 	const viewportHeight = window.innerHeight;
+	const isMobile = viewportWidth < 600;
+	
+	// Atualiza conteúdo primeiro
+	ui.tooltipTitle.textContent = step.title;
+	ui.tooltipText.textContent = step.text;
+	
+	// Força recálculo do tamanho do tooltip após atualizar conteúdo
+	tooltip.style.top = '0';
+	tooltip.style.left = '0';
+	
+	// Obtém dimensões reais do tooltip
+	const tooltipRect = tooltip.getBoundingClientRect();
+	const tooltipWidth = Math.min(tooltipRect.width, viewportWidth - 32);
+	const tooltipHeight = tooltipRect.height;
 	
 	let top, left;
 	let arrowPosition = step.position;
 	
-	// Atualiza conteúdo
-	ui.tooltipTitle.textContent = step.title;
-	ui.tooltipText.textContent = step.text;
-	
-	// Calcula posição baseada na preferência
-	switch (step.position) {
-		case 'top':
-			top = rect.top - tooltipRect.height - gap;
-			left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
-			break;
-		case 'bottom':
+	// Em mobile, posiciona sempre abaixo ou acima do elemento
+	if (isMobile) {
+		left = (viewportWidth - tooltipWidth) / 2;
+		
+		// Verifica se cabe abaixo
+		if (rect.bottom + gap + tooltipHeight < viewportHeight - 20) {
 			top = rect.bottom + gap;
-			left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
-			break;
-		case 'left':
-			top = rect.top + (rect.height / 2) - (tooltipRect.height / 2);
-			left = rect.left - tooltipRect.width - gap;
-			break;
-		case 'right':
-			top = rect.top + (rect.height / 2) - (tooltipRect.height / 2);
-			left = rect.right + gap;
-			break;
-		default:
+			arrowPosition = 'bottom';
+		} else {
+			// Posiciona acima
+			top = rect.top - tooltipHeight - gap;
+			arrowPosition = 'top';
+		}
+		
+		// Se ainda não couber, posiciona no centro da tela
+		if (top < 10) {
+			top = Math.max(10, (viewportHeight - tooltipHeight) / 2);
+		}
+	} else {
+		// Desktop: calcula posição baseada na preferência
+		switch (step.position) {
+			case 'top':
+				top = rect.top - tooltipHeight - gap;
+				left = rect.left + (rect.width / 2) - (tooltipWidth / 2);
+				break;
+			case 'bottom':
+				top = rect.bottom + gap;
+				left = rect.left + (rect.width / 2) - (tooltipWidth / 2);
+				break;
+			case 'left':
+				top = rect.top + (rect.height / 2) - (tooltipHeight / 2);
+				left = rect.left - tooltipWidth - gap;
+				break;
+			case 'right':
+				top = rect.top + (rect.height / 2) - (tooltipHeight / 2);
+				left = rect.right + gap;
+				break;
+			default:
+				top = rect.bottom + gap;
+				left = rect.left;
+		}
+		
+		// Ajusta se sair da tela horizontalmente
+		if (left < 16) left = 16;
+		if (left + tooltipWidth > viewportWidth - 16) {
+			left = viewportWidth - tooltipWidth - 16;
+		}
+		
+		// Ajusta se sair da tela verticalmente
+		if (top < 16) {
 			top = rect.bottom + gap;
-			left = rect.left;
-	}
-	
-	// Ajusta se sair da tela
-	if (left < 16) left = 16;
-	if (left + tooltipRect.width > viewportWidth - 16) {
-		left = viewportWidth - tooltipRect.width - 16;
-	}
-	if (top < 16) {
-		top = rect.bottom + gap;
-		arrowPosition = 'bottom';
-	}
-	if (top + tooltipRect.height > viewportHeight - 16) {
-		top = rect.top - tooltipRect.height - gap;
-		arrowPosition = 'top';
+			arrowPosition = 'bottom';
+		}
+		if (top + tooltipHeight > viewportHeight - 16) {
+			top = rect.top - tooltipHeight - gap;
+			arrowPosition = 'top';
+			
+			// Se ainda não couber, centraliza verticalmente
+			if (top < 16) {
+				top = Math.max(16, (viewportHeight - tooltipHeight) / 2);
+			}
+		}
 	}
 	
 	tooltip.style.top = `${top}px`;
