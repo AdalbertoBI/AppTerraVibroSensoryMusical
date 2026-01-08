@@ -445,16 +445,16 @@
 										
 										<div class="eq-mini">
 											<div class="eq-band">
-												<input type="range" id="eqLow" min="-12" max="12" value="0" orient="vertical" />
-												<label>Graves</label>
+												<label for="eqLow">Graves</label>
+												<input type="range" id="eqLow" min="-12" max="12" value="0" orient="vertical" title="Ajuste de graves: -12dB a +12dB" />
 											</div>
 											<div class="eq-band">
-												<input type="range" id="eqMid" min="-12" max="12" value="0" orient="vertical" />
-												<label>Médios</label>
+												<label for="eqMid">Médios</label>
+												<input type="range" id="eqMid" min="-12" max="12" value="0" orient="vertical" title="Ajuste de médios: -12dB a +12dB" />
 											</div>
 											<div class="eq-band">
-												<input type="range" id="eqHigh" min="-12" max="12" value="0" orient="vertical" />
-												<label>Agudos</label>
+												<label for="eqHigh">Agudos</label>
+												<input type="range" id="eqHigh" min="-12" max="12" value="0" orient="vertical" title="Ajuste de agudos: -12dB a +12dB" />
 											</div>
 										</div>
 										
@@ -487,9 +487,9 @@
 									<span class="ticker-text" id="tickerText"></span>
 								</div>
 								<div class="ticker-controls">
-									<button type="button" id="tickerPrev" class="ticker-btn"><i class="fa-solid fa-chevron-left"></i></button>
-									<button type="button" id="tickerPause" class="ticker-btn"><i class="fa-solid fa-pause" id="tickerPauseIcon"></i></button>
-									<button type="button" id="tickerNext" class="ticker-btn"><i class="fa-solid fa-chevron-right"></i></button>
+									<button type="button" id="tickerPrev" class="ticker-btn" title="Dica anterior" aria-label="Dica anterior"><i class="fa-solid fa-chevron-left"></i></button>
+									<button type="button" id="tickerPause" class="ticker-btn" title="Pausar/Continuar dicas" aria-label="Pausar ou continuar dicas"><i class="fa-solid fa-pause" id="tickerPauseIcon"></i></button>
+									<button type="button" id="tickerNext" class="ticker-btn" title="Próxima dica" aria-label="Próxima dica"><i class="fa-solid fa-chevron-right"></i></button>
 								</div>
 							</div>
 							
