@@ -497,6 +497,17 @@ function cacheDom() {
 	// Player Bar (Unified)
 	ui.playerBar = document.getElementById('playerBar');
 	ui.timerTotal = document.getElementById('timerTotal');
+	
+	// Audio 8D e Enhancer toggles
+	ui.audio8DToggle = document.getElementById('audio-8d-toggle');
+	ui.enhancerToggle = document.getElementById('enhancer-toggle');
+	ui.audio8dControls = document.getElementById('audio8dControls');
+	ui.enhancerControls = document.getElementById('enhancerControls');
+	ui.audio8dSpeed = document.getElementById('audio8dSpeed');
+	ui.audio8dSpeedValue = document.getElementById('audio8dSpeedValue');
+	ui.audio8dIntensity = document.getElementById('audio8dIntensity');
+	ui.audio8dIntensityValue = document.getElementById('audio8dIntensityValue');
+	ui.enhancerPreset = document.getElementById('enhancerPreset');
 }
 
 function attachListeners() {
@@ -677,6 +688,45 @@ function attachListeners() {
 	}
 	// Arrastar janela do monitor
 	setupAudioMonitorDrag();
+	
+	// Audio 8D Toggle
+	if (ui.audio8DToggle) {
+		ui.audio8DToggle.addEventListener('click', toggleAudio8D);
+		ui.audio8DToggle.addEventListener('keydown', (e) => {
+			if (e.key === 'Enter' || e.key === ' ') {
+				e.preventDefault();
+				toggleAudio8D();
+			}
+		});
+	}
+	if (ui.audio8dSpeed) {
+		ui.audio8dSpeed.addEventListener('input', updateAudio8DSettings);
+	}
+	if (ui.audio8dIntensity) {
+		ui.audio8dIntensity.addEventListener('input', updateAudio8DSettings);
+	}
+	// Pattern buttons
+	document.querySelectorAll('.pattern-btn').forEach(btn => {
+		btn.addEventListener('click', (e) => {
+			document.querySelectorAll('.pattern-btn').forEach(b => b.classList.remove('active'));
+			e.currentTarget.classList.add('active');
+			updateAudio8DSettings();
+		});
+	});
+	
+	// Enhancer Toggle
+	if (ui.enhancerToggle) {
+		ui.enhancerToggle.addEventListener('click', toggleEnhancer);
+		ui.enhancerToggle.addEventListener('keydown', (e) => {
+			if (e.key === 'Enter' || e.key === ' ') {
+				e.preventDefault();
+				toggleEnhancer();
+			}
+		});
+	}
+	if (ui.enhancerPreset) {
+		ui.enhancerPreset.addEventListener('change', updateEnhancerSettings);
+	}
 }
 
 function setupAudioGraph() {
@@ -4024,6 +4074,332 @@ function minimizeAudioMonitor() {
 		stopAudioMonitorAnimation();
 	} else {
 		startAudioMonitorAnimation();
+	}
+}
+
+// ============================================================================
+// AUDIO 8D E ENHANCER
+// ============================================================================
+
+/**
+ * Estado do Audio 8D
+ */
+state.audio8D = {
+	enabled: false,
+	pannerNode: null,
+	animationId: null,
+	angle: 0,
+	speed: 50,
+	intensity: 80,
+	pattern: 'circular'
+};
+
+/**
+ * Estado do Enhancer
+ */
+state.enhancer = {
+	enabled: false,
+	preset: 'default',
+	nodes: {}
+};
+
+/**
+ * Toggle do Audio 8D
+ */
+function toggleAudio8D() {
+	state.audio8D.enabled = !state.audio8D.enabled;
+	
+	// Atualiza UI
+	if (ui.audio8DToggle) {
+		ui.audio8DToggle.classList.toggle('active', state.audio8D.enabled);
+		ui.audio8DToggle.setAttribute('aria-checked', state.audio8D.enabled);
+	}
+	if (ui.audio8dControls) {
+		ui.audio8dControls.classList.toggle('active', state.audio8D.enabled);
+	}
+	
+	if (state.audio8D.enabled) {
+		initAudio8D();
+		showToast('Áudio 8D ativado', 'success');
+	} else {
+		stopAudio8D();
+		showToast('Áudio 8D desativado', 'info');
+	}
+}
+
+/**
+ * Inicializa o efeito Audio 8D
+ */
+function initAudio8D() {
+	if (!state.audioCtx) return;
+	
+	// Cria o panner se não existir
+	if (!state.audio8D.pannerNode) {
+		state.audio8D.pannerNode = state.audioCtx.createStereoPanner();
+	}
+	
+	// Conecta ao fluxo de música se houver
+	if (state.currentHowl && state.howlSource) {
+		try {
+			// Desconecta do master e reconecta via panner
+			state.howlSource.disconnect();
+			state.howlSource.connect(state.audio8D.pannerNode);
+			state.audio8D.pannerNode.connect(state.masterGain);
+		} catch (e) {
+			console.warn('Audio 8D: não foi possível conectar ao fluxo', e);
+		}
+	}
+	
+	// Inicia animação do panning
+	startAudio8DAnimation();
+}
+
+/**
+ * Para o efeito Audio 8D
+ */
+function stopAudio8D() {
+	// Para a animação
+	if (state.audio8D.animationId) {
+		cancelAnimationFrame(state.audio8D.animationId);
+		state.audio8D.animationId = null;
+	}
+	
+	// Reseta o pan para centro
+	if (state.audio8D.pannerNode) {
+		state.audio8D.pannerNode.pan.value = 0;
+	}
+	
+	// Reconecta direto ao master
+	if (state.currentHowl && state.howlSource) {
+		try {
+			state.howlSource.disconnect();
+			state.howlSource.connect(state.masterGain);
+		} catch (e) {
+			console.warn('Audio 8D: não foi possível reconectar', e);
+		}
+	}
+}
+
+/**
+ * Anima o pan do Audio 8D
+ */
+function startAudio8DAnimation() {
+	const animate = () => {
+		if (!state.audio8D.enabled || !state.audio8D.pannerNode) return;
+		
+		const speed = state.audio8D.speed / 1000; // velocidade normalizada
+		const intensity = state.audio8D.intensity / 100;
+		
+		// Incrementa ângulo baseado na velocidade
+		state.audio8D.angle += speed;
+		if (state.audio8D.angle > Math.PI * 2) {
+			state.audio8D.angle -= Math.PI * 2;
+		}
+		
+		let panValue = 0;
+		
+		switch (state.audio8D.pattern) {
+			case 'circular':
+				panValue = Math.sin(state.audio8D.angle) * intensity;
+				break;
+			case 'infinity':
+				panValue = Math.sin(state.audio8D.angle * 2) * intensity;
+				break;
+			case 'pendulum':
+				panValue = Math.sin(state.audio8D.angle) * intensity;
+				break;
+			case 'random':
+				if (Math.random() < 0.02) {
+					panValue = (Math.random() * 2 - 1) * intensity;
+				} else {
+					panValue = state.audio8D.pannerNode.pan.value;
+				}
+				break;
+			default:
+				panValue = Math.sin(state.audio8D.angle) * intensity;
+		}
+		
+		// Aplica suavização
+		state.audio8D.pannerNode.pan.setTargetAtTime(panValue, state.audioCtx.currentTime, 0.05);
+		
+		state.audio8D.animationId = requestAnimationFrame(animate);
+	};
+	
+	animate();
+}
+
+/**
+ * Atualiza configurações do Audio 8D
+ */
+function updateAudio8DSettings() {
+	// Velocidade
+	if (ui.audio8dSpeed) {
+		state.audio8D.speed = parseInt(ui.audio8dSpeed.value);
+		if (ui.audio8dSpeedValue) {
+			ui.audio8dSpeedValue.textContent = `${state.audio8D.speed}%`;
+		}
+	}
+	
+	// Intensidade
+	if (ui.audio8dIntensity) {
+		state.audio8D.intensity = parseInt(ui.audio8dIntensity.value);
+		if (ui.audio8dIntensityValue) {
+			ui.audio8dIntensityValue.textContent = `${state.audio8D.intensity}%`;
+		}
+	}
+	
+	// Padrão
+	const activePattern = document.querySelector('.pattern-btn.active');
+	if (activePattern) {
+		state.audio8D.pattern = activePattern.dataset.pattern;
+	}
+}
+
+/**
+ * Toggle do Enhancer
+ */
+function toggleEnhancer() {
+	state.enhancer.enabled = !state.enhancer.enabled;
+	
+	// Atualiza UI
+	if (ui.enhancerToggle) {
+		ui.enhancerToggle.classList.toggle('active', state.enhancer.enabled);
+		ui.enhancerToggle.setAttribute('aria-checked', state.enhancer.enabled);
+	}
+	if (ui.enhancerControls) {
+		ui.enhancerControls.classList.toggle('active', state.enhancer.enabled);
+	}
+	
+	if (state.enhancer.enabled) {
+		initEnhancer();
+		showToast('Aprimoramento ativado', 'success');
+	} else {
+		stopEnhancer();
+		showToast('Aprimoramento desativado', 'info');
+	}
+}
+
+/**
+ * Inicializa o Enhancer com EQ e compressão
+ */
+function initEnhancer() {
+	if (!state.audioCtx) return;
+	
+	try {
+		// Cria nós se não existirem
+		if (!state.enhancer.nodes.compressor) {
+			// Compressor dinâmico
+			state.enhancer.nodes.compressor = state.audioCtx.createDynamicsCompressor();
+			state.enhancer.nodes.compressor.threshold.value = -24;
+			state.enhancer.nodes.compressor.knee.value = 12;
+			state.enhancer.nodes.compressor.ratio.value = 4;
+			state.enhancer.nodes.compressor.attack.value = 0.003;
+			state.enhancer.nodes.compressor.release.value = 0.25;
+			
+			// EQ básico (3 bandas)
+			state.enhancer.nodes.lowShelf = state.audioCtx.createBiquadFilter();
+			state.enhancer.nodes.lowShelf.type = 'lowshelf';
+			state.enhancer.nodes.lowShelf.frequency.value = 200;
+			state.enhancer.nodes.lowShelf.gain.value = 2;
+			
+			state.enhancer.nodes.midPeaking = state.audioCtx.createBiquadFilter();
+			state.enhancer.nodes.midPeaking.type = 'peaking';
+			state.enhancer.nodes.midPeaking.frequency.value = 1000;
+			state.enhancer.nodes.midPeaking.Q.value = 1;
+			state.enhancer.nodes.midPeaking.gain.value = 1;
+			
+			state.enhancer.nodes.highShelf = state.audioCtx.createBiquadFilter();
+			state.enhancer.nodes.highShelf.type = 'highshelf';
+			state.enhancer.nodes.highShelf.frequency.value = 3000;
+			state.enhancer.nodes.highShelf.gain.value = 2;
+		}
+		
+		// Conecta a cadeia se houver áudio
+		if (state.currentHowl && state.howlSource) {
+			// Se 8D estiver ativo, conecta após o panner
+			const inputNode = state.audio8D.enabled && state.audio8D.pannerNode 
+				? state.audio8D.pannerNode 
+				: state.howlSource;
+			
+			try {
+				inputNode.disconnect();
+				inputNode.connect(state.enhancer.nodes.lowShelf);
+				state.enhancer.nodes.lowShelf.connect(state.enhancer.nodes.midPeaking);
+				state.enhancer.nodes.midPeaking.connect(state.enhancer.nodes.highShelf);
+				state.enhancer.nodes.highShelf.connect(state.enhancer.nodes.compressor);
+				state.enhancer.nodes.compressor.connect(state.masterGain);
+			} catch (e) {
+				console.warn('Enhancer: não foi possível conectar', e);
+			}
+		}
+		
+		applyEnhancerPreset();
+	} catch (error) {
+		console.error('Erro ao inicializar Enhancer:', error);
+	}
+}
+
+/**
+ * Para o Enhancer
+ */
+function stopEnhancer() {
+	// Reconecta direto ao master
+	if (state.currentHowl && state.howlSource) {
+		try {
+			// Desconecta tudo primeiro
+			if (state.enhancer.nodes.compressor) {
+				state.enhancer.nodes.compressor.disconnect();
+			}
+			
+			// Reconecta baseado no estado do 8D
+			const inputNode = state.audio8D.enabled && state.audio8D.pannerNode 
+				? state.audio8D.pannerNode 
+				: state.howlSource;
+			
+			inputNode.disconnect();
+			inputNode.connect(state.masterGain);
+		} catch (e) {
+			console.warn('Enhancer: não foi possível desconectar', e);
+		}
+	}
+}
+
+/**
+ * Aplica preset do Enhancer
+ */
+function applyEnhancerPreset() {
+	const preset = state.enhancer.preset;
+	
+	const presets = {
+		default: { low: 2, mid: 1, high: 2 },
+		noise_reduction: { low: 0, mid: 0, high: -3 },
+		music: { low: 3, mid: 0, high: 3 },
+		voice: { low: -2, mid: 3, high: 2 },
+		bass_boost: { low: 6, mid: 0, high: 0 }
+	};
+	
+	const settings = presets[preset] || presets.default;
+	
+	if (state.enhancer.nodes.lowShelf) {
+		state.enhancer.nodes.lowShelf.gain.value = settings.low;
+	}
+	if (state.enhancer.nodes.midPeaking) {
+		state.enhancer.nodes.midPeaking.gain.value = settings.mid;
+	}
+	if (state.enhancer.nodes.highShelf) {
+		state.enhancer.nodes.highShelf.gain.value = settings.high;
+	}
+}
+
+/**
+ * Atualiza configurações do Enhancer
+ */
+function updateEnhancerSettings() {
+	if (ui.enhancerPreset) {
+		state.enhancer.preset = ui.enhancerPreset.value;
+		if (state.enhancer.enabled) {
+			applyEnhancerPreset();
+		}
 	}
 }
 

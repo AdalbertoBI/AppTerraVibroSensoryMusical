@@ -1339,6 +1339,92 @@
 	color: var(--text-secondary, #888);
 }
 
+/* Effect Controls - Inicialmente ocultos, visíveis quando toggle ativo */
+.effect-controls {
+	display: none;
+	padding: 1rem;
+	border-top: 1px solid rgba(255, 255, 255, 0.06);
+	background: rgba(0, 0, 0, 0.2);
+	animation: fadeIn 0.3s ease;
+}
+
+.effect-controls.active {
+	display: block;
+}
+
+.effect-controls .control-row {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	margin-bottom: 0.75rem;
+}
+
+.effect-controls .control-row:last-child {
+	margin-bottom: 0;
+}
+
+.effect-controls .control-row label {
+	flex: 0 0 80px;
+	font-size: 0.85rem;
+	color: var(--text-secondary);
+}
+
+.effect-controls .control-row input[type="range"] {
+	flex: 1;
+	accent-color: var(--primary);
+}
+
+.effect-controls .control-row output {
+	flex: 0 0 45px;
+	font-size: 0.8rem;
+	color: var(--primary);
+	text-align: right;
+}
+
+.effect-controls .control-row select {
+	flex: 1;
+	padding: 0.5rem;
+	background: rgba(255, 255, 255, 0.08);
+	border: 1px solid rgba(255, 255, 255, 0.15);
+	border-radius: 6px;
+	color: var(--text-primary);
+	font-size: 0.85rem;
+}
+
+/* Pattern Selector */
+.pattern-selector {
+	display: flex;
+	gap: 0.5rem;
+	flex: 1;
+}
+
+.pattern-btn {
+	flex: 1;
+	padding: 0.5rem;
+	background: rgba(255, 255, 255, 0.05);
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	border-radius: 6px;
+	color: var(--text-secondary);
+	cursor: pointer;
+	transition: all 0.25s ease;
+}
+
+.pattern-btn:hover {
+	background: rgba(139, 92, 246, 0.2);
+	border-color: rgba(139, 92, 246, 0.3);
+}
+
+.pattern-btn.active {
+	background: rgba(139, 92, 246, 0.3);
+	border-color: var(--primary);
+	color: var(--primary);
+}
+
+@keyframes fadeIn {
+	from { opacity: 0; }
+	to { opacity: 1; }
+}
+
 .processing-controls {
 	display: flex;
 	flex-direction: column;
