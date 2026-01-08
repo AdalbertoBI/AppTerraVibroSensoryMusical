@@ -5527,6 +5527,19 @@ fieldset:focus-within {
 	font-weight: 700;
 	color: var(--color-text);
 	font-family: 'SF Mono', 'Fira Code', monospace;
+	transition: all 0.3s ease;
+}
+
+/* Indicador de frequência ativa (sessão em execução) */
+.freq-channel__value.active {
+	color: #00ff88;
+	text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+	animation: freqPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes freqPulse {
+	0%, 100% { opacity: 1; }
+	50% { opacity: 0.7; }
 }
 
 .freq-channel__desc {
@@ -5535,6 +5548,32 @@ fieldset:focus-within {
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
+}
+
+/* Classes de ondas cerebrais */
+.brainwave-indicator {
+	transition: all 0.3s ease;
+	font-weight: 600;
+}
+
+.brainwave-indicator.delta {
+	color: #8b5cf6;
+}
+
+.brainwave-indicator.theta {
+	color: #06b6d4;
+}
+
+.brainwave-indicator.alpha {
+	color: #22c55e;
+}
+
+.brainwave-indicator.beta {
+	color: #f59e0b;
+}
+
+.brainwave-indicator.gamma {
+	color: #ef4444;
 }
 
 /* Analisador de Espectro */

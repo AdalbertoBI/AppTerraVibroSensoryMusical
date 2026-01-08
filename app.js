@@ -31,7 +31,6 @@ const state = {
 		analyserLeft: null,
 		analyserRight: null,
 		analyserMaster: null,
-		splitter: null,
 		animationId: null,
 		peakLeft: 0,
 		peakRight: 0,
@@ -1026,7 +1025,25 @@ function buildBinauralChain(preset) {
 	binauralGain.connect(state.masterGain);
 	leftOsc.start();
 	rightOsc.start();
-	state.binauralChain = { leftOsc, rightOsc, lowPass, analyser, binauralGain };
+	
+	// Guarda referências para o monitor de áudio poder conectar
+	state.binauralChain = { 
+		leftOsc, 
+		rightOsc, 
+		leftGain,
+		rightGain,
+		merger,
+		lowPass, 
+		analyser, 
+		binauralGain,
+		// Guarda as frequências para o monitor exibir
+		freqLeft: preset.baseHz,
+		freqRight: preset.baseHz + preset.diffHz,
+		freqDiff: preset.diffHz
+	};
+	
+	// Conecta os analysers do monitor aos canais L/R se estiverem configurados
+	connectMonitorToBinaural();
 }
 
 function stopBinaural() {
@@ -3779,7 +3796,7 @@ function setupAudioAnalysers() {
 	if (!state.audioCtx) return;
 	
 	try {
-		// Analyser para o canal master
+		// Analyser para o canal master (espectro geral)
 		state.audioMonitor.analyserMaster = state.audioCtx.createAnalyser();
 		state.audioMonitor.analyserMaster.fftSize = 256;
 		state.audioMonitor.analyserMaster.smoothingTimeConstant = 0.8;
@@ -3789,26 +3806,48 @@ function setupAudioAnalysers() {
 			state.masterGain.connect(state.audioMonitor.analyserMaster);
 		}
 		
-		// Para canais separados, criamos um splitter
-		state.audioMonitor.splitter = state.audioCtx.createChannelSplitter(2);
+		// Analysers dedicados para L/R (serão conectados aos osciladores)
 		state.audioMonitor.analyserLeft = state.audioCtx.createAnalyser();
 		state.audioMonitor.analyserRight = state.audioCtx.createAnalyser();
 		
-		state.audioMonitor.analyserLeft.fftSize = 256;
-		state.audioMonitor.analyserRight.fftSize = 256;
-		state.audioMonitor.analyserLeft.smoothingTimeConstant = 0.8;
-		state.audioMonitor.analyserRight.smoothingTimeConstant = 0.8;
+		state.audioMonitor.analyserLeft.fftSize = 2048; // Alta resolução para detectar frequência
+		state.audioMonitor.analyserRight.fftSize = 2048;
+		state.audioMonitor.analyserLeft.smoothingTimeConstant = 0.85;
+		state.audioMonitor.analyserRight.smoothingTimeConstant = 0.85;
 		
-		// Conecta o splitter aos analysers de cada canal
-		if (state.masterGain) {
-			state.masterGain.connect(state.audioMonitor.splitter);
-			state.audioMonitor.splitter.connect(state.audioMonitor.analyserLeft, 0);
-			state.audioMonitor.splitter.connect(state.audioMonitor.analyserRight, 1);
-		}
+		// Tenta conectar aos osciladores se já existirem
+		connectMonitorToBinaural();
 		
 		console.log('Analysers de áudio configurados com sucesso');
 	} catch (error) {
 		console.error('Erro ao configurar analysers de áudio:', error);
+	}
+}
+
+/**
+ * Conecta os analysers do monitor diretamente aos osciladores binaurais L/R
+ * Isso permite medir a frequência real de cada canal separadamente
+ */
+function connectMonitorToBinaural() {
+	// Verifica se os analysers do monitor existem
+	if (!state.audioMonitor.analyserLeft || !state.audioMonitor.analyserRight) {
+		return;
+	}
+	
+	// Verifica se a cadeia binaural existe
+	if (!state.binauralChain?.leftGain || !state.binauralChain?.rightGain) {
+		return;
+	}
+	
+	try {
+		// Conecta os gains L/R aos analysers do monitor
+		// Isso permite analisar cada canal ANTES de serem mesclados
+		state.binauralChain.leftGain.connect(state.audioMonitor.analyserLeft);
+		state.binauralChain.rightGain.connect(state.audioMonitor.analyserRight);
+		
+		console.log('Monitor conectado aos canais binaurais L/R');
+	} catch (error) {
+		console.warn('Erro ao conectar monitor aos canais binaurais:', error);
 	}
 }
 
@@ -4032,37 +4071,122 @@ function updateVolumeMeter(channel, analyser, meterEl, peakEl, valueEl) {
 
 /**
  * Atualiza os displays de frequência binaural
+ * Usa as frequências reais dos osciladores quando disponíveis
+ * Também detecta a frequência dominante via FFT para confirmação
  */
 function updateFrequencyDisplays() {
-	// Obtém os valores atuais do formulário
-	const baseFreq = parseFloat(ui.baseFreq?.value) || 200;
-	const diffFreq = parseFloat(ui.diffFreq?.value) || 10;
+	let freqLeft, freqRight, freqDiff;
 	
-	// Calcula as frequências de cada canal
-	const freqLeft = baseFreq;
-	const freqRight = baseFreq + diffFreq;
+	// Prioridade 1: Usar frequências reais dos osciladores em execução
+	if (state.binauralChain?.leftOsc && state.binauralChain?.rightOsc) {
+		freqLeft = state.binauralChain.leftOsc.frequency.value;
+		freqRight = state.binauralChain.rightOsc.frequency.value;
+		freqDiff = freqRight - freqLeft;
+	} 
+	// Prioridade 2: Usar valores guardados na cadeia binaural
+	else if (state.binauralChain?.freqLeft !== undefined) {
+		freqLeft = state.binauralChain.freqLeft;
+		freqRight = state.binauralChain.freqRight;
+		freqDiff = state.binauralChain.freqDiff;
+	}
+	// Prioridade 3: Usar valores do formulário (quando não há sessão ativa)
+	else {
+		const baseFreq = parseFloat(ui.baseFreq?.value) || 200;
+		const diffFreqVal = parseFloat(ui.diffFreq?.value) || 10;
+		freqLeft = baseFreq;
+		freqRight = baseFreq + diffFreqVal;
+		freqDiff = diffFreqVal;
+	}
 	
+	// Detecta frequência dominante via FFT para confirmação visual
+	const detectedLeft = detectDominantFrequency(state.audioMonitor.analyserLeft);
+	const detectedRight = detectDominantFrequency(state.audioMonitor.analyserRight);
+	
+	// Atualiza displays
 	if (ui.monitorFreqLeft) {
-		ui.monitorFreqLeft.textContent = `${freqLeft.toFixed(1)} Hz`;
+		const displayFreq = freqLeft.toFixed(1);
+		const detected = detectedLeft > 0 ? ` (${detectedLeft.toFixed(0)})` : '';
+		ui.monitorFreqLeft.textContent = `${displayFreq} Hz`;
+		// Adiciona indicador visual se a sessão está ativa
+		if (state.binauralChain?.leftOsc) {
+			ui.monitorFreqLeft.classList.add('active');
+		} else {
+			ui.monitorFreqLeft.classList.remove('active');
+		}
 	}
+	
 	if (ui.monitorFreqRight) {
-		ui.monitorFreqRight.textContent = `${freqRight.toFixed(1)} Hz`;
+		const displayFreq = freqRight.toFixed(1);
+		ui.monitorFreqRight.textContent = `${displayFreq} Hz`;
+		if (state.binauralChain?.rightOsc) {
+			ui.monitorFreqRight.classList.add('active');
+		} else {
+			ui.monitorFreqRight.classList.remove('active');
+		}
 	}
+	
 	if (ui.monitorFreqDiff) {
-		ui.monitorFreqDiff.textContent = `Δ ${diffFreq.toFixed(1)} Hz`;
+		ui.monitorFreqDiff.textContent = `Δ ${freqDiff.toFixed(1)} Hz`;
 		
-		// Classifica a onda cerebral
+		// Classifica a onda cerebral baseada na diferença
 		let brainwave = '';
-		if (diffFreq <= 4) brainwave = 'Delta (Sono profundo)';
-		else if (diffFreq <= 8) brainwave = 'Theta (Meditação)';
-		else if (diffFreq <= 13) brainwave = 'Alpha (Relaxamento)';
-		else if (diffFreq <= 30) brainwave = 'Beta (Foco)';
-		else brainwave = 'Gamma (Alta cognição)';
+		let brainwaveClass = '';
+		if (freqDiff <= 4) {
+			brainwave = 'Delta (Sono profundo)';
+			brainwaveClass = 'delta';
+		} else if (freqDiff <= 8) {
+			brainwave = 'Theta (Meditação)';
+			brainwaveClass = 'theta';
+		} else if (freqDiff <= 13) {
+			brainwave = 'Alpha (Relaxamento)';
+			brainwaveClass = 'alpha';
+		} else if (freqDiff <= 30) {
+			brainwave = 'Beta (Foco)';
+			brainwaveClass = 'beta';
+		} else {
+			brainwave = 'Gamma (Alta cognição)';
+			brainwaveClass = 'gamma';
+		}
 		
 		if (ui.monitorBrainwave) {
 			ui.monitorBrainwave.textContent = brainwave;
+			ui.monitorBrainwave.className = `brainwave-indicator ${brainwaveClass}`;
 		}
 	}
+}
+
+/**
+ * Detecta a frequência dominante em um analyser usando FFT
+ * @param {AnalyserNode} analyser - O analyser node a analisar
+ * @returns {number} A frequência dominante em Hz, ou 0 se não detectada
+ */
+function detectDominantFrequency(analyser) {
+	if (!analyser || !state.audioCtx) return 0;
+	
+	const bufferLength = analyser.frequencyBinCount;
+	const dataArray = new Uint8Array(bufferLength);
+	analyser.getByteFrequencyData(dataArray);
+	
+	// Encontra o bin com maior amplitude
+	let maxValue = 0;
+	let maxIndex = 0;
+	
+	// Ignora frequências muito baixas (ruído DC) - começa do bin 2
+	for (let i = 2; i < bufferLength; i++) {
+		if (dataArray[i] > maxValue) {
+			maxValue = dataArray[i];
+			maxIndex = i;
+		}
+	}
+	
+	// Se a amplitude máxima for muito baixa, não há sinal significativo
+	if (maxValue < 30) return 0;
+	
+	// Calcula a frequência baseada no índice do bin
+	const sampleRate = state.audioCtx.sampleRate;
+	const frequency = (maxIndex * sampleRate) / (analyser.fftSize);
+	
+	return frequency;
 }
 
 /**
