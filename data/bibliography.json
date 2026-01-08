@@ -1,0 +1,210 @@
+{
+	"version": "1.2.1",
+	"lastUpdate": "2026-01-08",
+	"description": "Bibliografia completa com referências científicas",
+	
+	"categories": {
+		"vibroacoustic": {
+			"name": "Terapia Vibroacústica",
+			"icon": "fa-solid fa-wave-square",
+			"references": [
+				{
+					"id": "naghdi2015",
+					"authors": "Naghdi, L., Ahonen, H., Macario, P., & Bartel, L.",
+					"year": 2015,
+					"title": "The effect of low-frequency sound stimulation on patients with fibromyalgia: A clinical study",
+					"journal": "Pain Research & Management",
+					"volume": "20(1)",
+					"pages": "e21-e27",
+					"doi": "10.1155/2015/375174",
+					"pmcid": "PMC4325896",
+					"highlight": true,
+					"summary": "n=19, 10 sessões × 23 min a 40 Hz, 81% redução de dor"
+				},
+				{
+					"id": "skille1989",
+					"authors": "Skille, O.",
+					"year": 1989,
+					"title": "VibroAcoustic Therapy",
+					"journal": "Music Therapy",
+					"volume": "8(1)",
+					"pages": "61-77",
+					"doi": "10.1093/mt/8.1.61"
+				},
+				{
+					"id": "skille1991",
+					"authors": "Skille, O.",
+					"year": 1991,
+					"title": "Manual of vibroacoustic therapy",
+					"publisher": "ISVA Publications, Levanger, Norway"
+				},
+				{
+					"id": "kantor2022",
+					"authors": "Kantor, J., Campbell, E.A., Kantorová, L., et al.",
+					"year": 2022,
+					"title": "Exploring vibroacoustic therapy in adults experiencing pain: a scoping review",
+					"journal": "BMJ Open",
+					"volume": "12(4)",
+					"pages": "e046591",
+					"doi": "10.1136/bmjopen-2020-046591"
+				},
+				{
+					"id": "boydbrewer2004",
+					"authors": "Boyd-Brewer, C., & McCaffrey, R.",
+					"year": 2004,
+					"title": "Vibroacoustic sound therapy improves pain management and more",
+					"journal": "Holistic Nursing Practice",
+					"volume": "18(3)",
+					"pages": "111-118",
+					"doi": "10.1097/00004650-200405000-00002"
+				},
+				{
+					"id": "zheng2009",
+					"authors": "Zheng, A., Sakari, R., Cheng, S.M., et al.",
+					"year": 2009,
+					"title": "Effects of a low-frequency sound wave therapy programme on functional capacity, blood circulation and bone metabolism in frail old men and women",
+					"journal": "Clinical Rehabilitation",
+					"volume": "23(10)",
+					"pages": "897-908",
+					"doi": "10.1177/0269215509337273"
+				},
+				{
+					"id": "konkayev2023",
+					"authors": "Konkayev, A., & Bekniyazova, A.",
+					"year": 2023,
+					"title": "Vibroacoustic therapy in the treatment of patients with COVID-19 complicated by respiratory failure: a pilot randomized controlled trial",
+					"journal": "Frontiers in Medicine",
+					"volume": "10",
+					"pages": "1225384",
+					"doi": "10.3389/fmed.2023.1225384"
+				},
+				{
+					"id": "punkanen2012",
+					"authors": "Punkanen, M., & Ala-Ruona, E.",
+					"year": 2012,
+					"title": "Contemporary vibroacoustic therapy: perspectives on clinical practice, research, and training",
+					"journal": "Music and Medicine",
+					"volume": "4(3)",
+					"pages": "128-135",
+					"doi": "10.1177/1943862112445324"
+				}
+			]
+		},
+		"binaural": {
+			"name": "Batimentos Binaurais",
+			"icon": "fa-solid fa-headphones",
+			"references": [
+				{
+					"id": "oster1973",
+					"authors": "Oster, G.",
+					"year": 1973,
+					"title": "Auditory beats in the brain",
+					"journal": "Scientific American",
+					"volume": "229(4)",
+					"pages": "94-102",
+					"doi": "10.1038/scientificamerican1073-94",
+					"highlight": true,
+					"summary": "Artigo seminal que popularizou os batimentos binaurais"
+				},
+				{
+					"id": "ingendoh2023",
+					"authors": "Ingendoh, R.M., Posny, E.S., & Heine, A.",
+					"year": 2023,
+					"title": "Binaural beats to entrain the brain? A systematic review of the effects of binaural beat stimulation on brain oscillatory activity",
+					"journal": "PLoS ONE",
+					"volume": "18(5)",
+					"pages": "e0286023",
+					"doi": "10.1371/journal.pone.0286023"
+				},
+				{
+					"id": "schmid2020",
+					"authors": "Schmid, W., Marhofer, P., Opfermann, P., et al.",
+					"year": 2020,
+					"title": "Brainwave entrainment to minimise sedative drug doses in paediatric surgery: a randomised controlled trial",
+					"journal": "British Journal of Anaesthesia",
+					"volume": "125(3)",
+					"pages": "330-335",
+					"doi": "10.1016/j.bja.2020.05.050"
+				},
+				{
+					"id": "prakash2024",
+					"authors": "Prakash, P., & Konadath, S.",
+					"year": 2024,
+					"title": "Brainwave entrainment using binaural beats stimulation: Exploring the treatment efficacy in individuals with tinnitus",
+					"journal": "Auris Nasus Larynx",
+					"volume": "52(1)",
+					"pages": "1-11",
+					"doi": "10.1016/j.anl.2024.11.001"
+				},
+				{
+					"id": "cidralfilho2025",
+					"authors": "Cidral-Filho, F.J., Porter, P., & Donatello, N.N.",
+					"year": 2025,
+					"title": "An Integrative Review of Brainwave Entrainment Benefits for Human Health",
+					"journal": "Applied Psychophysiology and Biofeedback",
+					"volume": "50(1)",
+					"pages": "3-9",
+					"doi": "10.1007/s10484-024-09682-x"
+				}
+			]
+		},
+		"spatial": {
+			"name": "Áudio Espacial",
+			"icon": "fa-solid fa-cube",
+			"references": [
+				{
+					"id": "blauert1997",
+					"authors": "Blauert, J.",
+					"year": 1997,
+					"title": "Spatial Hearing: The Psychophysics of Human Sound Localization",
+					"publisher": "MIT Press",
+					"highlight": true,
+					"summary": "Obra de referência em psicoacústica espacial"
+				},
+				{
+					"id": "moller1992",
+					"authors": "Møller, H.",
+					"year": 1992,
+					"title": "Fundamentals of binaural technology",
+					"journal": "Applied Acoustics",
+					"volume": "36(3-4)",
+					"pages": "171-218"
+				}
+			]
+		},
+		"musicMedicine": {
+			"name": "Medicina Musical",
+			"icon": "fa-solid fa-music",
+			"references": [
+				{
+					"id": "wigram1995",
+					"authors": "Wigram, T.",
+					"year": 1995,
+					"title": "The effects of vibroacoustic therapy on clinical and non-clinical populations",
+					"publisher": "PhD Thesis, London University",
+					"highlight": true
+				},
+				{
+					"id": "spintge",
+					"authors": "Spintge, R.",
+					"year": "Various",
+					"title": "Music Medicine research on anxiolytic music therapy (50-70 BPM protocols)",
+					"publisher": "International Society for Music in Medicine"
+				}
+			]
+		}
+	},
+	
+	"statistics": {
+		"totalReferences": 15,
+		"peerReviewed": 12,
+		"rcts": 4,
+		"systematicReviews": 2,
+		"yearsSpan": "1973-2025"
+	},
+	
+	"disclaimer": {
+		"text": "Embora existam evidências promissoras para terapia vibroacústica e batimentos binaurais, a revisão de Kantor et al. (2022) observa que a pesquisa ainda é esparsa para identificar propriedades ideais de VAT. Ensaios clínicos randomizados adicionais são necessários para estabelecer prova científica confiável tanto para dor aguda quanto crônica. Esta aplicação é uma ferramenta educacional e não substitui orientação médica profissional.",
+		"source": "Kantor et al., 2022"
+	}
+}

@@ -15,7 +15,7 @@ importScripts('https://storage.googleapis.com/workbox-cdn/releases/6.5.4/workbox
  * IMPORTANTE: Incremente APP_VERSION a cada deploy!
  */
 
-const APP_VERSION = '1.2.1.0';
+const APP_VERSION = '1.2.2.0';
 const CACHE_PREFIX = 'terra-sensory';
 const CACHE_NAME = `${CACHE_PREFIX}-v${APP_VERSION}`;
 
@@ -53,8 +53,12 @@ if (workbox) {
 		{ url: './js/patients/patientManager.js', revision: APP_VERSION },
 		{ url: './js/ui/controls.js', revision: APP_VERSION },
 		{ url: './js/ui/tutorial.js', revision: APP_VERSION },
+		{ url: './js/ui/scientificContent.js', revision: APP_VERSION },
 		// Dados científicos
 		{ url: './data/scientific_references.json', revision: APP_VERSION },
+		{ url: './data/therapeutic_presets.json', revision: APP_VERSION },
+		{ url: './data/scientific_foundations.json', revision: APP_VERSION },
+		{ url: './data/bibliography.json', revision: APP_VERSION },
 		// CDN
 		{ url: 'https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.4/howler.min.js', revision: '2.2.4' },
 		{ url: 'https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js', revision: '1.10.0' }

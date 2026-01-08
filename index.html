@@ -489,97 +489,12 @@
 				</div>
 			</section>
 
-			<!-- Seção de Referências Científicas - Compacta -->
-			<section class="panel wide references-compact" id="references">
-				<div class="panel-header">
-					<h2><i class="fa-solid fa-flask"></i> Evidências Científicas</h2>
-				</div>
-
-				<!-- Destaque Principal -->
-				<div class="evidence-highlight">
-					<div class="evidence-stat">
-						<span class="stat-value">81%</span>
-						<span class="stat-label">Redução de dor em fibromialgia</span>
-						<span class="stat-source">Naghdi et al., 2015</span>
-					</div>
-					<div class="evidence-stat">
-						<span class="stat-value">40Hz</span>
-						<span class="stat-label">Frequência mais estudada</span>
-						<span class="stat-source">Kantor et al., 2022</span>
-					</div>
-					<div class="evidence-stat">
-						<span class="stat-value">50+</span>
-						<span class="stat-label">Anos de pesquisa</span>
-						<span class="stat-source">Skille, 1982-presente</span>
-					</div>
-				</div>
-
-				<!-- Acordeões de Conteúdo -->
-				<div class="references-accordion">
-					<details class="ref-section">
-						<summary><i class="fa-solid fa-wave-square"></i> Terapia Vibroacústica (VAT)</summary>
-						<div class="ref-content">
-							<p><strong>Dr. Olav Skille (1982-1991)</strong> desenvolveu a VAT com ondas sinusoidais de 30-120 Hz. Resultados em 40+ anos de prática clínica incluem relaxamento muscular, vasodilatação e alívio de dor.</p>
-							<ul class="ref-highlights">
-								<li><strong>Fibromialgia:</strong> 10 sessões × 23min @ 40Hz → 81% redução de dor (Naghdi, 2015)</li>
-								<li><strong>Dor crônica:</strong> 20 estudos confirmam eficácia com 20-45min/sessão (Kantor, 2022)</li>
-								<li><strong>COVID-19:</strong> Melhora na função pulmonar em ensaio RCT (Konkayev, 2023)</li>
-							</ul>
-						</div>
-					</details>
-
-					<details class="ref-section">
-						<summary><i class="fa-solid fa-brain"></i> Batimentos Binaurais</summary>
-						<div class="ref-content">
-							<p><strong>Gerald Oster (1973)</strong> descreveu o fenômeno de percepção de pulsação quando frequências diferentes são apresentadas a cada ouvido.</p>
-							<ul class="ref-highlights">
-								<li><strong>Entrainment:</strong> Sincronização cerebral confirmada em revisão sistemática (Ingendoh, 2023)</li>
-								<li><strong>Anestesia pediátrica:</strong> Redução de sedativos necessários em RCT (Schmid, 2020)</li>
-								<li><strong>Tinnitus:</strong> Redução do handicap do zumbido (Prakash, 2024)</li>
-							</ul>
-						</div>
-					</details>
-
-					<details class="ref-section">
-						<summary><i class="fa-solid fa-sliders"></i> Presets Baseados em Evidências</summary>
-						<div class="ref-content">
-							<table class="ref-table-compact">
-								<tr><td><strong>Delta 2Hz</strong></td><td>Sono, analgesia, regeneração</td><td>Skille, Wigram</td></tr>
-								<tr><td><strong>Teta 6Hz</strong></td><td>Meditação, criatividade</td><td>Oster, Ingendoh</td></tr>
-								<tr><td><strong>Alfa 10Hz</strong></td><td>Relaxamento, ansiolítico</td><td>Oster, Spintge</td></tr>
-								<tr><td><strong>Beta 18Hz</strong></td><td>Concentração, foco</td><td>Wigram</td></tr>
-							</table>
-						</div>
-					</details>
-
-					<details class="ref-section">
-						<summary><i class="fa-solid fa-book"></i> Bibliografia Completa (15 referências)</summary>
-						<div class="ref-content ref-bibliography">
-							<ol class="ref-list-compact">
-								<li><strong>Naghdi et al.</strong> (2015) Pain Res Manag. DOI: 10.1155/2015/375174</li>
-								<li><strong>Skille, O.</strong> (1989) Music Therapy, 8(1). DOI: 10.1093/mt/8.1.61</li>
-								<li><strong>Oster, G.</strong> (1973) Scientific American, 229(4)</li>
-								<li><strong>Wigram, T.</strong> (1995) PhD Thesis, London University</li>
-								<li><strong>Kantor et al.</strong> (2022) BMJ Open. DOI: 10.1136/bmjopen-2020-046591</li>
-								<li><strong>Ingendoh et al.</strong> (2023) PLoS ONE. DOI: 10.1371/journal.pone.0286023</li>
-								<li><strong>Schmid et al.</strong> (2020) Br J Anaesth. DOI: 10.1016/j.bja.2020.05.050</li>
-								<li><strong>Konkayev et al.</strong> (2023) Front Med. DOI: 10.3389/fmed.2023.1225384</li>
-								<li><strong>Prakash & Konadath</strong> (2024) Auris Nasus Larynx</li>
-								<li><strong>Zheng et al.</strong> (2009) Clin Rehabil. DOI: 10.1177/0269215509337273</li>
-								<li><strong>Boyd-Brewer & McCaffrey</strong> (2004) Holist Nurs Pract</li>
-								<li><strong>Punkanen & Ala-Ruona</strong> (2012) Music Med</li>
-								<li><strong>Cidral-Filho et al.</strong> (2025) Appl Psychophysiol Biofeedback</li>
-								<li><strong>Spintge, R.</strong> ISMM - Music Medicine research</li>
-								<li><strong>Blauert, J.</strong> (1997) Spatial Hearing, MIT Press</li>
-							</ol>
-						</div>
-					</details>
-				</div>
-
-				<!-- Aviso Compacto -->
-				<div class="research-notice-compact">
-					<i class="fa-solid fa-triangle-exclamation"></i>
-					<span>Ferramenta educacional. A pesquisa ainda está em evolução (Kantor, 2022). Não substitui orientação médica.</span>
+			<!-- Seção Científica - Renderizada dinamicamente -->
+			<section class="panel wide" id="scientificSection">
+				<!-- Conteúdo será carregado pelo módulo scientificContent.js -->
+				<div class="sci-loading-initial">
+					<i class="fa-solid fa-spinner fa-spin"></i>
+					<span>Carregando base científica...</span>
 				</div>
 			</section>
 		</main>

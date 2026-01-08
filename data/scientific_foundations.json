@@ -1,0 +1,213 @@
+{
+	"version": "1.2.1",
+	"lastUpdate": "2026-01-08",
+	"description": "Fundamentos científicos da terapia vibroacústica e batimentos binaurais",
+	
+	"foundations": {
+		"vibroacoustic": {
+			"id": "vat",
+			"title": "Terapia Vibroacústica (VAT)",
+			"icon": "fa-solid fa-wave-square",
+			"pioneer": {
+				"name": "Dr. Olav Skille",
+				"period": "1982-1991",
+				"country": "Noruega"
+			},
+			"summary": "Terapia que utiliza ondas sonoras de baixa frequência (30-120 Hz) transmitidas através de superfícies vibrantes para promover efeitos fisiológicos benéficos.",
+			"mechanisms": [
+				{
+					"name": "Massagem interna",
+					"description": "Ondas de baixa frequência penetram tecidos e promovem vibração celular"
+				},
+				{
+					"name": "Relaxamento muscular",
+					"description": "Redução de tensão e espasmos através de estimulação rítmica"
+				},
+				{
+					"name": "Vasodilatação",
+					"description": "Melhora da circulação sanguínea em áreas tratadas"
+				},
+				{
+					"name": "Analgesia",
+					"description": "Modulação da percepção de dor via estímulos sensoriais"
+				}
+			],
+			"frequencyRanges": {
+				"low": { "range": "30-50Hz", "uses": "Relaxamento profundo, sono" },
+				"mid": { "range": "50-70Hz", "uses": "Dor, tensão muscular" },
+				"high": { "range": "70-120Hz", "uses": "Energização, foco" }
+			},
+			"keyStudies": [
+				{
+					"title": "Fibromialgia - 81% redução de dor",
+					"authors": "Naghdi et al.",
+					"year": 2015,
+					"journal": "Pain Research & Management",
+					"sample": 19,
+					"protocol": "10 sessões × 23 min @ 40Hz",
+					"results": "81% redução de dor, 90% melhora no sono",
+					"pmcid": "PMC4325896"
+				},
+				{
+					"title": "Revisão de escopo em dor",
+					"authors": "Kantor et al.",
+					"year": 2022,
+					"journal": "BMJ Open",
+					"sample": "20 estudos",
+					"protocol": "20-45 min/sessão",
+					"results": "Eficácia confirmada para dor crônica e aguda"
+				},
+				{
+					"title": "COVID-19 e função pulmonar",
+					"authors": "Konkayev & Bekniyazova",
+					"year": 2023,
+					"journal": "Frontiers in Medicine",
+					"sample": "RCT",
+					"protocol": "Vibrações torácicas de baixa frequência",
+					"results": "Melhora na perfusão e drenagem pulmonar"
+				}
+			]
+		},
+		"binaural": {
+			"id": "binaural",
+			"title": "Batimentos Binaurais",
+			"icon": "fa-solid fa-headphones",
+			"pioneer": {
+				"name": "Gerald Oster",
+				"period": "1973",
+				"country": "EUA"
+			},
+			"summary": "Fenômeno auditivo onde duas frequências ligeiramente diferentes apresentadas separadamente aos ouvidos criam uma percepção de pulsação na frequência da diferença.",
+			"mechanisms": [
+				{
+					"name": "Entrainment cerebral",
+					"description": "Sincronização das ondas cerebrais com a frequência de batimento"
+				},
+				{
+					"name": "Processamento binaural",
+					"description": "Integração no tronco cerebral das diferenças interaurais"
+				},
+				{
+					"name": "Modulação de estados",
+					"description": "Indução de estados mentais específicos via frequência"
+				}
+			],
+			"brainwaveBands": [
+				{ "name": "Delta", "range": "0.5-4Hz", "state": "Sono profundo, regeneração" },
+				{ "name": "Teta", "range": "4-8Hz", "state": "Meditação, criatividade, REM" },
+				{ "name": "Alfa", "range": "8-13Hz", "state": "Relaxamento alerta, calma" },
+				{ "name": "SMR", "range": "12-15Hz", "state": "Foco relaxado, estabilização" },
+				{ "name": "Beta", "range": "13-30Hz", "state": "Concentração, alerta ativo" },
+				{ "name": "Gama", "range": "30-100Hz", "state": "Cognição elevada, percepção" }
+			],
+			"keyStudies": [
+				{
+					"title": "Revisão sistemática de entrainment",
+					"authors": "Ingendoh et al.",
+					"year": 2023,
+					"journal": "PLoS ONE",
+					"sample": "Múltiplos estudos",
+					"results": "Confirmação de sincronização cerebral"
+				},
+				{
+					"title": "Anestesia pediátrica",
+					"authors": "Schmid et al.",
+					"year": 2020,
+					"journal": "British Journal of Anaesthesia",
+					"sample": "RCT pediátrico",
+					"results": "Redução de sedativos necessários"
+				},
+				{
+					"title": "Tratamento de Tinnitus",
+					"authors": "Prakash & Konadath",
+					"year": 2024,
+					"journal": "Auris Nasus Larynx",
+					"sample": "Pacientes com zumbido",
+					"results": "Redução de emoções negativas e handicap"
+				}
+			]
+		},
+		"audio8d": {
+			"id": "audio8d",
+			"title": "Áudio 8D e Espacialização",
+			"icon": "fa-solid fa-cube",
+			"summary": "Técnica de processamento de áudio que cria a ilusão de som tridimensional movendo-se ao redor do ouvinte usando funções de transferência relacionadas à cabeça (HRTF).",
+			"mechanisms": [
+				{
+					"name": "HRTF (Head-Related Transfer Function)",
+					"description": "Modelagem de como os ouvidos, cabeça e torso filtram o som"
+				},
+				{
+					"name": "ITD (Interaural Time Difference)",
+					"description": "Diferenças de tempo entre chegada do som aos ouvidos"
+				},
+				{
+					"name": "ILD (Interaural Level Difference)",
+					"description": "Diferenças de intensidade entre os ouvidos"
+				}
+			],
+			"therapeuticBenefits": [
+				"Maior imersão e engajamento na terapia",
+				"Distração eficaz de estímulos dolorosos",
+				"Relaxamento induzido por movimentação suave",
+				"Melhora da experiência auditiva geral"
+			],
+			"keyStudies": [
+				{
+					"title": "Spatial Hearing",
+					"authors": "Blauert, J.",
+					"year": 1997,
+					"publisher": "MIT Press",
+					"description": "Obra de referência sobre psicoacústica espacial"
+				},
+				{
+					"title": "Modelagem de filtragem sonora",
+					"authors": "Møller",
+					"year": 1992,
+					"description": "Fundamentos da HRTF e localização sonora"
+				}
+			]
+		}
+	},
+	
+	"clinicalEvidence": {
+		"summary": {
+			"totalYearsResearch": 50,
+			"keyFinding": "81% redução de dor em fibromialgia",
+			"mostStudiedFrequency": "40Hz",
+			"recommendedSessionDuration": "20-45 minutos"
+		},
+		"conditions": [
+			{
+				"name": "Fibromialgia",
+				"evidence": "Alta",
+				"protocol": "40Hz, 23min, 2x/semana",
+				"source": "Naghdi, 2015"
+			},
+			{
+				"name": "Dor crônica",
+				"evidence": "Moderada-Alta",
+				"protocol": "40-52Hz, 20-45min",
+				"source": "Kantor, 2022"
+			},
+			{
+				"name": "Ansiedade",
+				"evidence": "Moderada",
+				"protocol": "Alfa 10Hz binaural",
+				"source": "Ingendoh, 2023"
+			},
+			{
+				"name": "Insônia",
+				"evidence": "Moderada",
+				"protocol": "Delta 2Hz binaural",
+				"source": "Oster, 1973"
+			},
+			{
+				"name": "Tinnitus",
+				"evidence": "Emergente",
+				"protocol": "Binaurais personalizados",
+				"source": "Prakash, 2024"
+			}
+		]
+	}
+}

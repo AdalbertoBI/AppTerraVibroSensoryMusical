@@ -3,11 +3,11 @@
  * TERRA SENSORY MUSICAL - Aplicação Principal
  * =============================================================================
  * 
- * Versão: 1.2.1.0
+ * Versão: 1.2.2.0
  * 
  * Ponto de entrada principal que inicializa e conecta todos os módulos:
  * - Audio: binaurais, 8D, player, enhancer
- * - UI: controles, tutorial, modais
+ * - UI: controles, tutorial, modais, conteúdo científico
  * - Dados: pacientes, presets, histórico
  * 
  * Arquitetura modular ES6 para manutenção e escalabilidade.
@@ -35,6 +35,7 @@ import patientManager from './patients/patientManager.js';
 // UI
 import controls from './ui/controls.js';
 import tutorial from './ui/tutorial.js';
+import { initScientificContent } from './ui/scientificContent.js';
 
 // ============================================================================
 // REFERÊNCIAS DE UI
@@ -122,7 +123,7 @@ const ui = {
  * Inicializa a aplicação
  */
 async function init() {
-	console.log('Terra Sensory Musical v1.1.0.0 - Iniciando...');
+	console.log('Terra Sensory Musical v1.2.2.0 - Iniciando...');
 	
 	try {
 		// 1. Coleta referências de UI
@@ -156,6 +157,9 @@ async function init() {
 		// 10. Configura monitor
 		audioMonitor.setup();
 		audioMonitor.setupDrag();
+		
+		// 11. Inicializa conteúdo científico
+		await initScientificContent('#scientificSection');
 		
 		console.log('Terra Sensory Musical - Pronto!');
 		

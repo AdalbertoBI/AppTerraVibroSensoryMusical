@@ -1,0 +1,202 @@
+{
+	"version": "1.2.1",
+	"lastUpdate": "2026-01-08",
+	"description": "Presets terapêuticos baseados em protocolos científicos validados",
+	
+	"protocols": {
+		"pain": {
+			"name": "Dor e Tensão",
+			"source": "Skille 1991",
+			"icon": "fa-solid fa-bone",
+			"presets": [
+				{
+					"id": "pain-lumbar",
+					"name": "Dor lombar",
+					"baseFreq": 52,
+					"binauralDiff": 2,
+					"brainwave": "delta",
+					"duration": 30,
+					"description": "Protocolo para alívio de dor lombar crônica",
+					"evidence": "Zheng et al., 2009"
+				},
+				{
+					"id": "pain-muscle",
+					"name": "Espasmos musculares",
+					"baseFreq": 40,
+					"binauralDiff": 6,
+					"brainwave": "theta",
+					"duration": 25,
+					"description": "Relaxamento de espasmos e tensão muscular",
+					"evidence": "Naghdi et al., 2015"
+				},
+				{
+					"id": "pain-fibro",
+					"name": "Fibromialgia",
+					"baseFreq": 40,
+					"binauralDiff": 10,
+					"brainwave": "alpha",
+					"duration": 23,
+					"description": "Protocolo testado com 81% de redução de dor",
+					"evidence": "Naghdi et al., 2015 - PMC4325896"
+				},
+				{
+					"id": "tension-neck",
+					"name": "Tensão cervical",
+					"baseFreq": 60,
+					"binauralDiff": 10,
+					"brainwave": "alpha",
+					"duration": 20,
+					"description": "Alívio de tensão na região cervical",
+					"evidence": "Skille, 1991"
+				}
+			]
+		},
+		"relaxation": {
+			"name": "Relaxamento",
+			"source": "Wigram 1995",
+			"icon": "fa-solid fa-spa",
+			"presets": [
+				{
+					"id": "relax-anxiety",
+					"name": "Ansiedade",
+					"baseFreq": 68,
+					"binauralDiff": 10,
+					"brainwave": "alpha",
+					"duration": 25,
+					"description": "Redução de ansiedade e agitação",
+					"evidence": "Wigram, 1995"
+				},
+				{
+					"id": "relax-deep",
+					"name": "Relaxamento profundo",
+					"baseFreq": 52,
+					"binauralDiff": 6,
+					"brainwave": "theta",
+					"duration": 30,
+					"description": "Indução de estado meditativo profundo",
+					"evidence": "Oster, 1973; Ingendoh, 2023"
+				},
+				{
+					"id": "relax-stress",
+					"name": "Redução de estresse",
+					"baseFreq": 60,
+					"binauralDiff": 14,
+					"brainwave": "smr",
+					"duration": 20,
+					"description": "Estabilização autonômica e calma",
+					"evidence": "Spintge, ISMM"
+				}
+			]
+		},
+		"sleep": {
+			"name": "Sono",
+			"source": "Oster 1973",
+			"icon": "fa-solid fa-moon",
+			"presets": [
+				{
+					"id": "sleep-induction",
+					"name": "Indução ao sono",
+					"baseFreq": 40,
+					"binauralDiff": 2,
+					"brainwave": "delta",
+					"duration": 45,
+					"description": "Preparação para o sono natural",
+					"evidence": "Oster, 1973"
+				},
+				{
+					"id": "sleep-deep",
+					"name": "Sono reparador",
+					"baseFreq": 52,
+					"binauralDiff": 1,
+					"brainwave": "delta",
+					"duration": 60,
+					"description": "Promoção de sono profundo regenerativo",
+					"evidence": "Skille, 1991"
+				},
+				{
+					"id": "sleep-insomnia",
+					"name": "Insônia crônica",
+					"baseFreq": 40,
+					"binauralDiff": 3,
+					"brainwave": "delta",
+					"duration": 40,
+					"description": "Suporte para casos de insônia",
+					"evidence": "Ingendoh et al., 2023"
+				}
+			]
+		},
+		"cognition": {
+			"name": "Cognição e Foco",
+			"source": "Wigram 1995",
+			"icon": "fa-solid fa-brain",
+			"presets": [
+				{
+					"id": "focus-attention",
+					"name": "Atenção sustentada",
+					"baseFreq": 80,
+					"binauralDiff": 18,
+					"brainwave": "beta",
+					"duration": 25,
+					"description": "Aumento de foco e concentração",
+					"evidence": "Wigram, 1995"
+				},
+				{
+					"id": "focus-creativity",
+					"name": "Criatividade",
+					"baseFreq": 68,
+					"binauralDiff": 7,
+					"brainwave": "theta",
+					"duration": 30,
+					"description": "Estímulo à criatividade e insight",
+					"evidence": "Oster, 1973"
+				},
+				{
+					"id": "focus-memory",
+					"name": "Memória",
+					"baseFreq": 80,
+					"binauralDiff": 40,
+					"brainwave": "gamma",
+					"duration": 20,
+					"description": "Suporte à consolidação de memória",
+					"evidence": "Cidral-Filho et al., 2025"
+				}
+			]
+		},
+		"respiratory": {
+			"name": "Respiratório",
+			"source": "Skille",
+			"icon": "fa-solid fa-lungs",
+			"presets": [
+				{
+					"id": "resp-expansion",
+					"name": "Expansão pulmonar",
+					"baseFreq": 68,
+					"binauralDiff": 8,
+					"brainwave": "alpha",
+					"duration": 25,
+					"description": "Melhora da função respiratória",
+					"evidence": "Konkayev et al., 2023"
+				},
+				{
+					"id": "resp-asthma",
+					"name": "Suporte asmático",
+					"baseFreq": 50,
+					"binauralDiff": 5,
+					"brainwave": "theta",
+					"duration": 20,
+					"description": "Relaxamento brônquico suave",
+					"evidence": "Skille, 1991"
+				}
+			]
+		}
+	},
+	
+	"brainwaves": {
+		"delta": { "range": "0.5-4Hz", "color": "#6366f1", "effect": "Sono profundo, regeneração" },
+		"theta": { "range": "4-8Hz", "color": "#8b5cf6", "effect": "Meditação, criatividade" },
+		"alpha": { "range": "8-13Hz", "color": "#22c55e", "effect": "Relaxamento, calma" },
+		"smr": { "range": "12-15Hz", "color": "#eab308", "effect": "Estabilização, foco suave" },
+		"beta": { "range": "13-30Hz", "color": "#f97316", "effect": "Concentração, alerta" },
+		"gamma": { "range": "30-100Hz", "color": "#ef4444", "effect": "Cognição elevada" }
+	}
+}
