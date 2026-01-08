@@ -1736,12 +1736,10 @@ footer,
 
 /* Visualizador de Sessão - Layout responsivo profissional */
 .session-visualizer {
-	display: grid;
-	grid-template-columns: 1fr;
-	gap: 1.25rem;
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
 	padding: 1.25rem;
-	align-items: center;
-	justify-items: center;
 	opacity: 0.4;
 	transition: opacity 0.5s ease;
 	background: rgba(15, 23, 42, 0.02);
@@ -1753,11 +1751,10 @@ body.dark .session-visualizer {
 	background: rgba(255, 255, 255, 0.02);
 }
 
-/* Tablet - 3 colunas */
+/* Tablet */
 @media (min-width: 600px) {
 	.session-visualizer {
-		grid-template-columns: repeat(3, 1fr);
-		padding: 1.5rem 1rem;
+		padding: 1.5rem;
 	}
 }
 
@@ -1765,7 +1762,7 @@ body.dark .session-visualizer {
 @media (min-width: 1200px) {
 	.session-visualizer {
 		padding: 2rem;
-		gap: 2rem;
+		gap: 1.5rem;
 	}
 }
 
@@ -3773,6 +3770,47 @@ fieldset:focus-within {
 	width: 16px;
 	height: 16px;
 	accent-color: var(--accent-color, #8b5cf6);
+}
+
+/* Seção Salvar Preset */
+.save-preset-section {
+	margin-top: 1.5rem;
+	padding: 1rem;
+	background: rgba(15, 23, 42, 0.3);
+	border-radius: 12px;
+	border: 1px solid rgba(100, 116, 139, 0.2);
+}
+
+.save-preset-title {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	font-size: 0.9rem;
+	font-weight: 600;
+	color: var(--accent-color, #8b5cf6);
+	margin: 0 0 1rem 0;
+}
+
+.save-preset-title i {
+	font-size: 1rem;
+}
+
+.save-preset-content {
+	display: flex;
+	flex-direction: column;
+	gap: 0.75rem;
+}
+
+@media (min-width: 480px) {
+	.save-preset-content {
+		flex-direction: row;
+		align-items: flex-end;
+	}
+	
+	.save-preset-content .form-group {
+		flex: 1;
+		margin-bottom: 0;
+	}
 }
 
 /* Seções dentro das tabs */
@@ -5988,67 +6026,95 @@ fieldset:focus-within {
    MONITOR DE ÁUDIO INTEGRADO NO VISUALIZADOR
    ============================================================================= */
 
-/* Tabs do Visualizador */
-.visualizer-tabs {
+/* Layout Unificado: Visualizer + Monitor lado a lado */
+.visualizer-unified-layout {
 	display: flex;
-	justify-content: center;
-	gap: 0.5rem;
-	margin-bottom: 1rem;
-	padding: 0.25rem;
-	background: rgba(15, 23, 42, 0.05);
-	border-radius: 0.75rem;
-	width: fit-content;
-	margin-left: auto;
-	margin-right: auto;
+	flex-direction: column;
+	gap: 1.5rem;
+	width: 100%;
 }
 
-body.dark .visualizer-tabs {
+.visualizer-column {
+	width: 100%;
+}
+
+.visualizer-column--main {
+	flex: 1;
+	display: flex;
+	justify-content: center;
+}
+
+.visualizer-column--monitor {
+	flex: 1;
+}
+
+/* Visualização Central (wave, timer, breathing) */
+.visualizer-central {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	align-items: center;
+	gap: 2rem;
+	padding: 1.5rem;
+	background: rgba(15, 23, 42, 0.03);
+	border-radius: 1rem;
+}
+
+body.dark .visualizer-central {
+	background: rgba(255, 255, 255, 0.03);
+}
+
+@media (min-width: 1024px) {
+	.visualizer-unified-layout {
+		flex-direction: row;
+		align-items: flex-start;
+	}
+	
+	.visualizer-column--main {
+		flex: 1;
+		min-width: 0;
+	}
+	
+	.visualizer-column--monitor {
+		flex: 1;
+		max-width: 500px;
+	}
+}
+
+/* Barra de Informações da Sessão */
+.session-info-bar {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 1rem;
+	padding: 0.75rem 1rem;
+	background: rgba(15, 23, 42, 0.05);
+	border-radius: 0.75rem;
+	margin-top: 0.5rem;
+}
+
+body.dark .session-info-bar {
 	background: rgba(255, 255, 255, 0.05);
 }
 
-.visualizer-tab {
+.session-info-item {
 	display: flex;
 	align-items: center;
 	gap: 0.5rem;
-	padding: 0.5rem 1rem;
-	border: none;
-	background: transparent;
-	color: var(--color-text-secondary);
 	font-size: 0.875rem;
-	font-weight: 500;
-	border-radius: 0.5rem;
-	cursor: pointer;
-	transition: all 0.2s ease;
+	color: var(--color-text-secondary);
 }
 
-.visualizer-tab:hover {
-	background: rgba(37, 99, 235, 0.1);
+.session-info-item i {
 	color: var(--color-primary);
+	font-size: 0.875rem;
 }
 
-.visualizer-tab.active {
-	background: var(--color-primary);
-	color: white;
-}
-
-.visualizer-tab i {
-	font-size: 1rem;
-}
-
-/* Tab Content */
-.visualizer-tab-content {
-	display: none;
-	width: 100%;
-	animation: fadeIn 0.3s ease;
-}
-
-.visualizer-tab-content.active {
-	display: block;
-}
-
-@keyframes fadeIn {
-	from { opacity: 0; transform: translateY(10px); }
-	to { opacity: 1; transform: translateY(0); }
+@media (min-width: 768px) {
+	.session-info-bar {
+		justify-content: space-around;
+		gap: 2rem;
+	}
 }
 
 /* Monitor Integrado */
@@ -6295,12 +6361,8 @@ body.dark .audio-monitor-integrated .waveform-display canvas {
 
 /* Responsivo - Mobile */
 @media (max-width: 599px) {
-	.visualizer-tab span {
-		display: none;
-	}
-	
-	.visualizer-tab {
-		padding: 0.5rem 0.75rem;
+	.visualizer-unified-layout {
+		gap: 1rem;
 	}
 	
 	.audio-monitor-integrated {

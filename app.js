@@ -543,11 +543,6 @@ function cacheDom() {
 	ui.monitorSessionTime = document.getElementById('monitorSessionTime');
 	ui.monitorBrainwave = document.getElementById('monitorBrainwave');
 	
-	// Tabs do Visualizador
-	ui.visualizerTabs = document.querySelectorAll('.visualizer-tab');
-	ui.tabVisualizer = document.getElementById('tabVisualizer');
-	ui.tabMonitor = document.getElementById('tabMonitor');
-	
 	// Menu Drawer Principal
 	ui.menuToggle = document.getElementById('menuToggle');
 	ui.mainDrawer = document.getElementById('mainDrawer');
@@ -746,14 +741,6 @@ function attachListeners() {
 	if (ui.showTermsBtn) {
 		ui.showTermsBtn.addEventListener('click', showTermsModal);
 	}
-	
-	// Tabs do Visualizador
-	ui.visualizerTabs.forEach(tab => {
-		tab.addEventListener('click', () => {
-			const tabName = tab.dataset.tab;
-			switchVisualizerTab(tabName);
-		});
-	});
 	
 	// Audio 8D Toggle
 	if (ui.audio8DToggle) {
@@ -1297,6 +1284,9 @@ async function startSession(preset) {
 	updateSessionUI(true, false);
 	updateFrequencyDisplay(preset.diffHz);
 	startBreathingGuide(preset.diffHz);
+	
+	// Iniciar monitor de áudio automaticamente
+	openAudioMonitor();
 	
 	console.log('Sessão iniciada', preset.name);
 }
@@ -4261,31 +4251,6 @@ function handlePatientsListClick(e) {
 // =============================================================================
 // MONITOR DE ÁUDIO - INTEGRADO NO VISUALIZADOR
 // =============================================================================
-
-/**
- * Alterna entre as tabs do visualizador (Visual/Monitor)
- */
-function switchVisualizerTab(tabName) {
-	// Atualiza tabs
-	ui.visualizerTabs.forEach(tab => {
-		tab.classList.toggle('active', tab.dataset.tab === tabName);
-	});
-	
-	// Atualiza conteúdo
-	const allContents = document.querySelectorAll('.visualizer-tab-content');
-	allContents.forEach(content => {
-		content.classList.toggle('active', content.dataset.tabContent === tabName);
-	});
-	
-	// Se for tab do monitor, inicia análise
-	if (tabName === 'monitor') {
-		openAudioMonitor();
-	} else {
-		// Fecha monitor mas mantém os analysers
-		state.audioMonitor.isOpen = false;
-		stopAudioMonitorAnimation();
-	}
-}
 
 /**
  * Abre o monitor de áudio (inicia análise)

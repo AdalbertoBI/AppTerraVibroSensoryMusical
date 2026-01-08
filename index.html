@@ -290,8 +290,8 @@
 								</div>
 								
 								<!-- Salvar Preset -->
-								<details class="save-preset-section">
-									<summary><i class="fa-solid fa-bookmark"></i> Salvar como preset</summary>
+								<div class="save-preset-section">
+									<h4 class="save-preset-title"><i class="fa-solid fa-bookmark"></i> Salvar como preset</h4>
 									<div class="save-preset-content">
 										<div class="form-group">
 											<label for="presetName">Nome do preset</label>
@@ -299,7 +299,7 @@
 										</div>
 										<button type="submit" class="secondary"><i class="fa-solid fa-plus"></i> Salvar preset</button>
 									</div>
-								</details>
+								</div>
 								
 								<!-- Botão Principal -->
 								<div class="form-actions-unified">
@@ -470,22 +470,11 @@
 						</div>
 					</details>
 					
-					<!-- SEÇÃO 4: Visualização (Durante sessão) -->
+					<!-- SEÇÃO 4: Visualização e Monitor (Durante sessão) -->
 					<div class="unified-section session-visualizer-section" id="sectionVisualizer">
 						<div class="session-visualizer" id="sessionVisualizer">
-							<!-- Tabs para alternar entre Visualização e Monitor -->
-							<div class="visualizer-tabs" id="visualizerTabs">
-								<button type="button" class="visualizer-tab active" data-tab="visualizer" title="Visualização">
-									<i class="fa-solid fa-eye"></i>
-									<span>Visual</span>
-								</button>
-								<button type="button" class="visualizer-tab" data-tab="monitor" title="Monitor de Áudio">
-									<i class="fa-solid fa-wave-square"></i>
-									<span>Monitor</span>
-								</button>
-							</div>
 							
-							<!-- Ticker de Dicas (comum a ambas tabs) -->
+							<!-- Ticker de Dicas -->
 							<div class="scientific-tips-ticker" id="scientificTipsTicker" aria-live="polite">
 								<div class="ticker-icon"><i class="fa-solid fa-flask"></i></div>
 								<div class="ticker-content">
@@ -499,134 +488,131 @@
 								</div>
 							</div>
 							
-							<!-- Tab: Visualização Central (padrão) -->
-							<div class="visualizer-tab-content active" id="tabVisualizer" data-tab-content="visualizer">
-								<div class="visualizer-central">
-									<div class="wave-container">
-										<div class="wave-pulse" id="wavePulse"></div>
-										<div class="frequency-display" id="frequencyDisplay">
-											<span class="freq-value">--</span>
-											<span class="freq-label">Hz</span>
+							<!-- Layout Unificado: Visualização + Monitor -->
+							<div class="visualizer-unified-layout">
+								
+								<!-- Coluna 1: Visualização Central -->
+								<div class="visualizer-column visualizer-column--main">
+									<div class="visualizer-central">
+										<div class="wave-container">
+											<div class="wave-pulse" id="wavePulse"></div>
+											<div class="frequency-display" id="frequencyDisplay">
+												<span class="freq-value">--</span>
+												<span class="freq-label">Hz</span>
+											</div>
+										</div>
+										
+										<div class="circular-timer" id="circularTimer">
+											<svg class="timer-ring" viewBox="0 0 100 100">
+												<circle class="timer-ring-bg" cx="50" cy="50" r="45"></circle>
+												<circle class="timer-ring-progress" id="timerProgress" cx="50" cy="50" r="45"></circle>
+											</svg>
+										</div>
+										
+										<div class="breathing-guide" id="breathingGuide">
+											<div class="breath-circle" id="breathCircle">
+												<span class="breath-text" id="breathText">Inspire</span>
+											</div>
 										</div>
 									</div>
-									
-									<div class="circular-timer" id="circularTimer">
-										<svg class="timer-ring" viewBox="0 0 100 100">
-											<circle class="timer-ring-bg" cx="50" cy="50" r="45"></circle>
-											<circle class="timer-ring-progress" id="timerProgress" cx="50" cy="50" r="45"></circle>
-										</svg>
-									</div>
-									
-									<div class="breathing-guide" id="breathingGuide">
-										<div class="breath-circle" id="breathCircle">
-											<span class="breath-text" id="breathText">Inspire</span>
+								</div>
+								
+								<!-- Coluna 2: Monitor de Áudio -->
+								<div class="visualizer-column visualizer-column--monitor">
+									<div class="audio-monitor-integrated">
+										<!-- Indicadores de Frequência -->
+										<div class="monitor-section">
+											<h4><i class="fa-solid fa-headphones"></i> Frequências</h4>
+											<div class="frequency-indicators">
+												<div class="freq-channel freq-channel--left">
+													<span class="freq-channel__label">L</span>
+													<div class="freq-channel__info">
+														<span class="freq-channel__value" id="monitorFreqLeft">-- Hz</span>
+													</div>
+												</div>
+												<div class="freq-channel freq-channel--diff">
+													<span class="freq-channel__label">Δ</span>
+													<div class="freq-channel__info">
+														<span class="freq-channel__value" id="monitorFreqDiff">-- Hz</span>
+													</div>
+												</div>
+												<div class="freq-channel freq-channel--right">
+													<span class="freq-channel__label">R</span>
+													<div class="freq-channel__info">
+														<span class="freq-channel__value" id="monitorFreqRight">-- Hz</span>
+													</div>
+												</div>
+											</div>
+										</div>
+
+										<!-- Analisador de Espectro -->
+										<div class="monitor-section">
+											<h4><i class="fa-solid fa-chart-bar"></i> Espectro</h4>
+											<div class="spectrum-analyzer">
+												<canvas id="spectrumCanvas" width="400" height="80"></canvas>
+												<div class="spectrum-labels">
+													<span>20Hz</span>
+													<span>1kHz</span>
+													<span>20kHz</span>
+												</div>
+											</div>
+										</div>
+
+										<!-- Medidores de Volume -->
+										<div class="monitor-section">
+											<h4><i class="fa-solid fa-sliders"></i> Níveis</h4>
+											<div class="volume-meters">
+												<div class="volume-meter">
+													<span class="volume-meter__label">L</span>
+													<div class="volume-meter__bar">
+														<div class="volume-meter__fill" id="volumeMeterLeft"></div>
+														<div class="volume-meter__peak" id="volumePeakLeft"></div>
+													</div>
+													<span class="volume-meter__value" id="volumeValueLeft">-∞</span>
+												</div>
+												<div class="volume-meter">
+													<span class="volume-meter__label">R</span>
+													<div class="volume-meter__bar">
+														<div class="volume-meter__fill" id="volumeMeterRight"></div>
+														<div class="volume-meter__peak" id="volumePeakRight"></div>
+													</div>
+													<span class="volume-meter__value" id="volumeValueRight">-∞</span>
+												</div>
+												<div class="volume-meter volume-meter--master">
+													<span class="volume-meter__label">M</span>
+													<div class="volume-meter__bar">
+														<div class="volume-meter__fill" id="volumeMeterMaster"></div>
+														<div class="volume-meter__peak" id="volumePeakMaster"></div>
+													</div>
+													<span class="volume-meter__value" id="volumeValueMaster">-∞</span>
+												</div>
+											</div>
+										</div>
+
+										<!-- Forma de Onda -->
+										<div class="monitor-section">
+											<h4><i class="fa-solid fa-wave-square"></i> Onda</h4>
+											<div class="waveform-display">
+												<canvas id="waveformCanvas" width="400" height="60"></canvas>
+											</div>
 										</div>
 									</div>
 								</div>
 							</div>
 							
-							<!-- Tab: Monitor de Áudio Integrado -->
-							<div class="visualizer-tab-content" id="tabMonitor" data-tab-content="monitor">
-								<div class="audio-monitor-integrated">
-									<!-- Indicadores de Frequência -->
-									<div class="monitor-section">
-										<h4><i class="fa-solid fa-headphones"></i> Frequências por Canal</h4>
-										<div class="frequency-indicators">
-											<div class="freq-channel freq-channel--left">
-												<span class="freq-channel__label">L</span>
-												<div class="freq-channel__info">
-													<span class="freq-channel__value" id="monitorFreqLeft">-- Hz</span>
-													<span class="freq-channel__desc">Canal Esquerdo</span>
-												</div>
-											</div>
-											<div class="freq-channel freq-channel--diff">
-												<span class="freq-channel__label">Δ</span>
-												<div class="freq-channel__info">
-													<span class="freq-channel__value" id="monitorFreqDiff">-- Hz</span>
-													<span class="freq-channel__desc">Binaural</span>
-												</div>
-											</div>
-											<div class="freq-channel freq-channel--right">
-												<span class="freq-channel__label">R</span>
-												<div class="freq-channel__info">
-													<span class="freq-channel__value" id="monitorFreqRight">-- Hz</span>
-													<span class="freq-channel__desc">Canal Direito</span>
-												</div>
-											</div>
-										</div>
-									</div>
-
-									<!-- Analisador de Espectro -->
-									<div class="monitor-section">
-										<h4><i class="fa-solid fa-chart-bar"></i> Espectro</h4>
-										<div class="spectrum-analyzer">
-											<canvas id="spectrumCanvas" width="400" height="100"></canvas>
-											<div class="spectrum-labels">
-												<span>20Hz</span>
-												<span>100Hz</span>
-												<span>1kHz</span>
-												<span>10kHz</span>
-												<span>20kHz</span>
-											</div>
-										</div>
-									</div>
-
-									<!-- Medidores de Volume por Canal -->
-									<div class="monitor-section">
-										<h4><i class="fa-solid fa-sliders"></i> Níveis</h4>
-										<div class="volume-meters">
-											<div class="volume-meter">
-												<span class="volume-meter__label">L</span>
-												<div class="volume-meter__bar">
-													<div class="volume-meter__fill" id="volumeMeterLeft"></div>
-													<div class="volume-meter__peak" id="volumePeakLeft"></div>
-												</div>
-												<span class="volume-meter__value" id="volumeValueLeft">-∞ dB</span>
-											</div>
-											<div class="volume-meter">
-												<span class="volume-meter__label">R</span>
-												<div class="volume-meter__bar">
-													<div class="volume-meter__fill" id="volumeMeterRight"></div>
-													<div class="volume-meter__peak" id="volumePeakRight"></div>
-												</div>
-												<span class="volume-meter__value" id="volumeValueRight">-∞ dB</span>
-											</div>
-											<div class="volume-meter volume-meter--master">
-												<span class="volume-meter__label">M</span>
-												<div class="volume-meter__bar">
-													<div class="volume-meter__fill" id="volumeMeterMaster"></div>
-													<div class="volume-meter__peak" id="volumePeakMaster"></div>
-												</div>
-												<span class="volume-meter__value" id="volumeValueMaster">-∞ dB</span>
-											</div>
-										</div>
-									</div>
-
-									<!-- Forma de Onda em Tempo Real -->
-									<div class="monitor-section">
-										<h4><i class="fa-solid fa-wave-square"></i> Forma de Onda</h4>
-										<div class="waveform-display">
-											<canvas id="waveformCanvas" width="400" height="80"></canvas>
-										</div>
-									</div>
-
-									<!-- Informações da Sessão -->
-									<div class="monitor-section monitor-section--info">
-										<div class="session-info-grid">
-											<div class="session-info-item">
-												<i class="fa-solid fa-music"></i>
-												<span id="monitorMusicStatus">Sem música</span>
-											</div>
-											<div class="session-info-item">
-												<i class="fa-solid fa-clock"></i>
-												<span id="monitorSessionTime">00:00</span>
-											</div>
-											<div class="session-info-item">
-												<i class="fa-solid fa-brain"></i>
-												<span id="monitorBrainwave">--</span>
-											</div>
-										</div>
-									</div>
+							<!-- Info da Sessão (rodapé) -->
+							<div class="session-info-bar">
+								<div class="session-info-item">
+									<i class="fa-solid fa-music"></i>
+									<span id="monitorMusicStatus">Sem música</span>
+								</div>
+								<div class="session-info-item">
+									<i class="fa-solid fa-clock"></i>
+									<span id="monitorSessionTime">00:00</span>
+								</div>
+								<div class="session-info-item">
+									<i class="fa-solid fa-brain"></i>
+									<span id="monitorBrainwave">--</span>
 								</div>
 							</div>
 						</div>
