@@ -27,6 +27,10 @@
 <body class="dark">
 	<div id="app" class="app-shell">
 		<header class="app-header">
+			<!-- Menu Hambúrguer -->
+			<button id="menuToggle" class="menu-toggle" type="button" aria-label="Abrir menu de presets" aria-expanded="false">
+				<i class="fa-solid fa-bars"></i>
+			</button>
 			<div class="identity">
 				<img src="icons/terra-sensory.svg" alt="Ícone Terra Sensory" class="brand-icon" />
 				<div>
@@ -44,6 +48,23 @@
 				</div>
 			</div>
 		</header>
+
+		<!-- Drawer Menu de Presets -->
+		<div id="presetsDrawerOverlay" class="drawer-overlay"></div>
+		<aside id="presetsDrawer" class="presets-drawer" aria-label="Menu de presets terapêuticos">
+			<div class="drawer-header">
+				<h2><i class="fa-solid fa-bookmark"></i> Presets Terapêuticos</h2>
+				<button id="closeDrawerBtn" class="ghost drawer-close" type="button" aria-label="Fechar menu">
+					<i class="fa-solid fa-xmark"></i>
+				</button>
+			</div>
+			<div class="drawer-actions">
+				<button id="loadDefaultPresets" class="ghost" type="button">
+					<i class="fa-solid fa-seedling"></i> Recarregar científicos
+				</button>
+			</div>
+			<ul id="presetList" class="drawer-list"></ul>
+		</aside>
 
 		<section id="connectivity" class="connectivity" aria-live="polite">
 			<span id="onlineStatus"><i class="fa-solid fa-wifi"></i> Online</span>
@@ -69,14 +90,6 @@
 		</section>
 
 		<main class="grid">
-			<section class="panel" id="presetsPanel">
-				<div class="panel-header">
-					<h2><i class="fa-solid fa-bookmark"></i> Presets terapêuticos</h2>
-					<button id="loadDefaultPresets" class="ghost" type="button"><i class="fa-solid fa-seedling"></i> Recarregar científicos</button>
-				</div>
-				<ul id="presetList" class="list"></ul>
-			</section>
-
 			<section class="panel wide" id="sessionBuilder">
 				<div class="panel-header">
 					<h2><i class="fa-solid fa-wand-magic-sparkles"></i> Nova sessão guiada</h2>

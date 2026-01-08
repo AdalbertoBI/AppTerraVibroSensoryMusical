@@ -4,11 +4,229 @@
  * =============================================================================
  * 
  * Estilos específicos para os novos componentes modulares:
+ * - Menu hambúrguer e drawer de presets
  * - Controles 8D
  * - Toast notifications
  * - Tour tutorial
  * - Melhorias gerais
  */
+
+/* ============================================================================
+   MENU HAMBÚRGUER E DRAWER DE PRESETS
+   ============================================================================ */
+
+/* Botão Menu Toggle */
+.menu-toggle {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 44px;
+	height: 44px;
+	padding: 0;
+	background: transparent;
+	border: none;
+	border-radius: 8px;
+	color: var(--text-primary, #e8e8e8);
+	font-size: 1.25rem;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	flex-shrink: 0;
+}
+
+.menu-toggle:hover {
+	background: var(--bg-tertiary, rgba(255, 255, 255, 0.1));
+	color: var(--primary, #00d0ff);
+}
+
+.menu-toggle:focus {
+	outline: 2px solid var(--primary, #00d0ff);
+	outline-offset: 2px;
+}
+
+/* Drawer Overlay */
+.drawer-overlay {
+	position: fixed;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.6);
+	-webkit-backdrop-filter: blur(4px);
+	backdrop-filter: blur(4px);
+	z-index: 9998;
+	opacity: 0;
+	visibility: hidden;
+	transition: all 0.3s ease;
+}
+
+.drawer-overlay.active {
+	opacity: 1;
+	visibility: visible;
+}
+
+/* Presets Drawer */
+.presets-drawer {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: min(380px, 85vw);
+	height: 100vh;
+	height: 100dvh;
+	background: var(--bg-primary, #0f172a);
+	border-right: 1px solid var(--border, rgba(255, 255, 255, 0.1));
+	z-index: 9999;
+	display: flex;
+	flex-direction: column;
+	transform: translateX(-100%);
+	transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+	box-shadow: 4px 0 20px rgba(0, 0, 0, 0.5);
+}
+
+.presets-drawer.open {
+	transform: translateX(0);
+}
+
+/* Drawer Header */
+.drawer-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 16px 20px;
+	background: var(--bg-secondary, #1e293b);
+	border-bottom: 1px solid var(--border, rgba(255, 255, 255, 0.1));
+	flex-shrink: 0;
+}
+
+.drawer-header h2 {
+	font-size: 1.1rem;
+	font-weight: 600;
+	color: var(--text-primary, #e8e8e8);
+	margin: 0;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.drawer-header h2 i {
+	color: var(--primary, #00d0ff);
+}
+
+.drawer-close {
+	width: 36px;
+	height: 36px;
+	padding: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 1.2rem;
+}
+
+/* Drawer Actions */
+.drawer-actions {
+	padding: 12px 16px;
+	background: var(--bg-secondary, #1e293b);
+	border-bottom: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+	flex-shrink: 0;
+}
+
+.drawer-actions button {
+	width: 100%;
+	justify-content: center;
+}
+
+/* Drawer List */
+.drawer-list {
+	flex: 1;
+	overflow-y: auto;
+	padding: 12px;
+	margin: 0;
+	list-style: none;
+}
+
+.drawer-list::-webkit-scrollbar {
+	width: 6px;
+}
+
+.drawer-list::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+.drawer-list::-webkit-scrollbar-thumb {
+	background: var(--bg-tertiary, rgba(255, 255, 255, 0.2));
+	border-radius: 3px;
+}
+
+.drawer-list li {
+	background: var(--bg-secondary, #1e293b);
+	border-radius: 10px;
+	padding: 14px;
+	margin-bottom: 10px;
+	border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+	transition: all 0.2s ease;
+}
+
+.drawer-list li:hover {
+	border-color: var(--primary, #00d0ff);
+	background: var(--bg-tertiary, #283548);
+}
+
+.drawer-list li:last-child {
+	margin-bottom: 0;
+}
+
+/* Preset Row no Drawer */
+.drawer-list .preset-row {
+	margin-bottom: 10px;
+}
+
+.drawer-list .preset-info {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	flex-wrap: wrap;
+	margin-bottom: 4px;
+}
+
+.drawer-list .preset-info strong {
+	font-size: 0.95rem;
+	color: var(--text-primary, #e8e8e8);
+}
+
+.drawer-list .preset-row small {
+	display: block;
+	color: var(--text-muted, #94a3b8);
+	font-size: 0.8rem;
+}
+
+.drawer-list .preset-row small i {
+	margin-right: 4px;
+	color: var(--primary, #00d0ff);
+	opacity: 0.7;
+}
+
+/* Preset Actions no Drawer */
+.drawer-list .preset-actions {
+	display: flex;
+	gap: 8px;
+}
+
+.drawer-list .preset-actions button {
+	flex: 1;
+	padding: 8px 12px;
+	font-size: 0.85rem;
+}
+
+/* Responsivo para telas pequenas */
+@media (max-width: 480px) {
+	.presets-drawer {
+		width: 100vw;
+	}
+	
+	.drawer-list .preset-actions {
+		flex-direction: column;
+	}
+	
+	.drawer-list .preset-actions button {
+		width: 100%;
+	}
+}
 
 /* ============================================================================
    TOAST NOTIFICATIONS

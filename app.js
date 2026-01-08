@@ -483,9 +483,25 @@ function cacheDom() {
 	ui.monitorMusicStatus = document.getElementById('monitorMusicStatus');
 	ui.monitorSessionTime = document.getElementById('monitorSessionTime');
 	ui.monitorBrainwave = document.getElementById('monitorBrainwave');
+	
+	// Menu Drawer de Presets
+	ui.menuToggle = document.getElementById('menuToggle');
+	ui.presetsDrawer = document.getElementById('presetsDrawer');
+	ui.presetsDrawerOverlay = document.getElementById('presetsDrawerOverlay');
+	ui.closeDrawerBtn = document.getElementById('closeDrawerBtn');
 }
 
 function attachListeners() {
+	// Menu Drawer de Presets
+	ui.menuToggle.addEventListener('click', openPresetsDrawer);
+	ui.closeDrawerBtn.addEventListener('click', closePresetsDrawer);
+	ui.presetsDrawerOverlay.addEventListener('click', closePresetsDrawer);
+	document.addEventListener('keydown', (ev) => {
+		if (ev.key === 'Escape' && ui.presetsDrawer.classList.contains('open')) {
+			closePresetsDrawer();
+		}
+	});
+	
 	ui.form.addEventListener('submit', handlePresetSave);
 	ui.loadDefaultPresets.addEventListener('click', reloadScientificPresets);
 	ui.startSessionBtn.addEventListener('click', () => startSessionFromForm(false));
@@ -731,6 +747,24 @@ async function hydrateHistory() {
 	state.history = Array.isArray(saved) ? saved : [];
 }
 
+// ============================================================================
+// MENU DRAWER DE PRESETS
+// ============================================================================
+
+function openPresetsDrawer() {
+	ui.presetsDrawer.classList.add('open');
+	ui.presetsDrawerOverlay.classList.add('active');
+	ui.menuToggle.setAttribute('aria-expanded', 'true');
+	document.body.style.overflow = 'hidden';
+}
+
+function closePresetsDrawer() {
+	ui.presetsDrawer.classList.remove('open');
+	ui.presetsDrawerOverlay.classList.remove('active');
+	ui.menuToggle.setAttribute('aria-expanded', 'false');
+	document.body.style.overflow = '';
+}
+
 function renderPresetList() {
 	ui.presetList.innerHTML = '';
 	state.presets.forEach((preset) => {
@@ -763,8 +797,10 @@ function handlePresetActions(event) {
 	if (!preset) return;
 	if (button.dataset.action === 'load') {
 		loadPresetToForm(preset);
+		closePresetsDrawer();
 	}
 	if (button.dataset.action === 'start') {
+		closePresetsDrawer();
 		startSession(preset);
 	}
 }
