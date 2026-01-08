@@ -4032,37 +4032,84 @@ function drawSpectrum() {
 }
 
 /**
- * Desenha a forma de onda
+ * Desenha a forma de onda - canais L e R separados
  */
 function drawWaveform() {
 	const canvas = ui.waveformCanvas;
-	const analyser = state.audioMonitor.analyserMaster;
 	
-	if (!canvas || !analyser) return;
+	if (!canvas) return;
 	
 	const ctx = canvas.getContext('2d');
 	const width = canvas.width;
 	const height = canvas.height;
 	
-	const bufferLength = analyser.fftSize;
-	const dataArray = new Uint8Array(bufferLength);
-	analyser.getByteTimeDomainData(dataArray);
-	
 	// Limpa o canvas
 	ctx.fillStyle = 'rgba(26, 26, 26, 0.95)';
 	ctx.fillRect(0, 0, width, height);
 	
-	// Linha central
-	ctx.strokeStyle = 'rgba(100, 100, 100, 0.5)';
+	// Linhas de referência
+	ctx.strokeStyle = 'rgba(100, 100, 100, 0.3)';
 	ctx.lineWidth = 1;
+	
+	// Linha central (0)
 	ctx.beginPath();
 	ctx.moveTo(0, height / 2);
 	ctx.lineTo(width, height / 2);
 	ctx.stroke();
 	
+	// Linhas 25% e 75% (para L e R)
+	ctx.setLineDash([2, 4]);
+	ctx.beginPath();
+	ctx.moveTo(0, height * 0.25);
+	ctx.lineTo(width, height * 0.25);
+	ctx.moveTo(0, height * 0.75);
+	ctx.lineTo(width, height * 0.75);
+	ctx.stroke();
+	ctx.setLineDash([]);
+	
+	// Labels L/R
+	ctx.font = '10px monospace';
+	ctx.fillStyle = '#3b82f6';
+	ctx.fillText('L', 5, height * 0.25 - 3);
+	ctx.fillStyle = '#22c55e';
+	ctx.fillText('R', 5, height * 0.75 - 3);
+	
+	// Desenha canal ESQUERDO (azul) - metade superior
+	drawWaveformChannel(
+		ctx, 
+		state.audioMonitor.analyserLeft, 
+		width, 
+		height * 0.5, 
+		0, 
+		'#3b82f6', 
+		'rgba(59, 130, 246, 0.2)'
+	);
+	
+	// Desenha canal DIREITO (verde) - metade inferior
+	drawWaveformChannel(
+		ctx, 
+		state.audioMonitor.analyserRight, 
+		width, 
+		height * 0.5, 
+		height * 0.5, 
+		'#22c55e', 
+		'rgba(34, 197, 94, 0.2)'
+	);
+}
+
+/**
+ * Desenha a forma de onda de um canal específico
+ */
+function drawWaveformChannel(ctx, analyser, width, height, offsetY, color, glowColor) {
+	if (!analyser) return;
+	
+	const bufferLength = analyser.fftSize;
+	const dataArray = new Uint8Array(bufferLength);
+	analyser.getByteTimeDomainData(dataArray);
+	
 	// Desenha a forma de onda
-	ctx.strokeStyle = '#00d9ff';
-	ctx.lineWidth = 2;
+	ctx.strokeStyle = color;
+	ctx.lineWidth = 1.5;
 	ctx.beginPath();
 	
 	const sliceWidth = width / bufferLength;
@@ -4070,7 +4117,7 @@ function drawWaveform() {
 	
 	for (let i = 0; i < bufferLength; i++) {
 		const v = dataArray[i] / 128.0;
-		const y = (v * height) / 2;
+		const y = offsetY + (v * height) / 2;
 		
 		if (i === 0) {
 			ctx.moveTo(x, y);
@@ -4081,12 +4128,12 @@ function drawWaveform() {
 		x += sliceWidth;
 	}
 	
-	ctx.lineTo(width, height / 2);
+	ctx.lineTo(width, offsetY + height / 2);
 	ctx.stroke();
 	
-	// Adiciona um brilho na onda
-	ctx.strokeStyle = 'rgba(0, 217, 255, 0.3)';
-	ctx.lineWidth = 6;
+	// Adiciona um brilho suave
+	ctx.strokeStyle = glowColor;
+	ctx.lineWidth = 4;
 	ctx.stroke();
 }
 
