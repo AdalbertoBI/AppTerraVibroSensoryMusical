@@ -20,6 +20,7 @@
 	<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css" integrity="sha384-t1nt8BQoYMLFN5p42tRAtuAAFQaCQODekUVeKKZrEnEyp4H2R0RHFz0KWpmj7i8g" crossorigin="anonymous" referrerpolicy="no-referrer" />
 	<link rel="stylesheet" href="style.css" />
+	<link rel="stylesheet" href="css/modules.css" />
 	<link rel="icon" type="image/svg+xml" href="icons/terra-sensory.svg" />
 </head>
 
@@ -228,6 +229,65 @@
 					<input type="file" id="audioUpload" accept="audio/*" multiple />
 				</div>
 				<ul id="musicList" class="list music-list"></ul>
+			</section>
+
+			<!-- Seção Áudio 8D -->
+			<section class="panel wide audio-8d-section" id="audio8dSection">
+				<div class="panel-header">
+					<h2><i class="fa-solid fa-headphones-simple"></i> Áudio 8D Espacial</h2>
+					<p class="subtitle">Processamento espacial imersivo baseado em HRTF (Head-Related Transfer Function)</p>
+				</div>
+				
+				<div class="audio-8d-toggle" id="audio-8d-toggle" role="switch" aria-checked="false" tabindex="0">
+					<div class="toggle-switch"></div>
+					<div class="toggle-info">
+						<span class="toggle-label">Ativar Áudio 8D</span>
+						<span class="toggle-desc">Cria sensação de som circulando ao redor da cabeça</span>
+					</div>
+				</div>
+				
+				<div class="audio-8d-controls" id="audio8dControls">
+					<div class="audio-8d-control">
+						<label for="audio8dPattern">Padrão de Movimento</label>
+						<div class="pattern-selector">
+							<button type="button" class="pattern-btn active" data-pattern="circular">
+								<i class="fa-solid fa-circle-notch"></i> Circular
+							</button>
+							<button type="button" class="pattern-btn" data-pattern="infinity">
+								<i class="fa-solid fa-infinity"></i> Infinito
+							</button>
+							<button type="button" class="pattern-btn" data-pattern="random">
+								<i class="fa-solid fa-shuffle"></i> Aleatório
+							</button>
+							<button type="button" class="pattern-btn" data-pattern="pendulum">
+								<i class="fa-solid fa-arrows-left-right"></i> Pêndulo
+							</button>
+						</div>
+					</div>
+					
+					<div class="audio-8d-control">
+						<label for="audio8dSpeed">Velocidade: <output id="audio8dSpeedValue">50%</output></label>
+						<input type="range" id="audio8dSpeed" min="10" max="100" value="50" />
+					</div>
+					
+					<div class="audio-8d-control">
+						<label for="audio8dIntensity">Intensidade: <output id="audio8dIntensityValue">80%</output></label>
+						<input type="range" id="audio8dIntensity" min="0" max="100" value="80" />
+					</div>
+				</div>
+				
+				<details class="scientific-info">
+					<summary><i class="fa-solid fa-microscope"></i> Base Científica</summary>
+					<div class="scientific-content">
+						<p>O áudio 8D utiliza técnicas de processamento espacial baseadas em pesquisas em psicoacústica:</p>
+						<ul>
+							<li><strong>HRTF (Møller, 1992):</strong> Função de transferência relacionada à cabeça que modela como o som é filtrado pelos ouvidos, cabeça e torso.</li>
+							<li><strong>ITD/ILD (Blauert, 1997):</strong> Diferenças de tempo e intensidade interaural para localização espacial.</li>
+							<li><strong>Imersão (Västfjäll, 2003):</strong> Ambientes sonoros imersivos aumentam sensação de presença e intensificam experiências emocionais.</li>
+						</ul>
+						<p><strong>Recomendação:</strong> Use fones de ouvido para a experiência completa do áudio 8D.</p>
+					</div>
+				</details>
 			</section>
 
 			<section class="panel wide" id="playerSection">

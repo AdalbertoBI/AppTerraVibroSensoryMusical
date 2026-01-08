@@ -1,0 +1,673 @@
+/**
+ * =============================================================================
+ * TERRA SENSORY MUSICAL - Estilos dos Módulos
+ * =============================================================================
+ * 
+ * Estilos específicos para os novos componentes modulares:
+ * - Controles 8D
+ * - Toast notifications
+ * - Tour tutorial
+ * - Melhorias gerais
+ */
+
+/* ============================================================================
+   TOAST NOTIFICATIONS
+   ============================================================================ */
+
+.toast {
+	position: fixed;
+	bottom: 20px;
+	left: 50%;
+	transform: translateX(-50%) translateY(100px);
+	background: var(--bg-secondary, #1a1a2e);
+	color: var(--text-primary, #e8e8e8);
+	padding: 12px 24px;
+	border-radius: 8px;
+	box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+	z-index: 10000;
+	opacity: 0;
+	transition: all 0.3s ease;
+	font-size: 0.95rem;
+	max-width: 90%;
+	text-align: center;
+}
+
+.toast.show {
+	opacity: 1;
+	transform: translateX(-50%) translateY(0);
+}
+
+.toast--info {
+	border-left: 4px solid var(--primary, #00d0ff);
+}
+
+.toast--success {
+	border-left: 4px solid var(--success, #22c55e);
+}
+
+.toast--warning {
+	border-left: 4px solid var(--warning, #f59e0b);
+}
+
+.toast--error {
+	border-left: 4px solid var(--error, #ef4444);
+	background: rgba(239, 68, 68, 0.15);
+}
+
+/* ============================================================================
+   CONTROLES 8D AUDIO
+   ============================================================================ */
+
+.audio-8d-section {
+	background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(236, 72, 153, 0.1));
+	border: 1px solid rgba(139, 92, 246, 0.3);
+	border-radius: 12px;
+	padding: 1.5rem;
+	margin-top: 1.5rem;
+}
+
+.audio-8d-section h3 {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	margin-bottom: 1rem;
+	color: #a78bfa;
+}
+
+.audio-8d-section h3 i {
+	font-size: 1.25rem;
+}
+
+.audio-8d-toggle {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+	padding: 0.75rem 1rem;
+	background: rgba(139, 92, 246, 0.15);
+	border: 1px solid rgba(139, 92, 246, 0.3);
+	border-radius: 8px;
+	cursor: pointer;
+	transition: all 0.3s ease;
+}
+
+.audio-8d-toggle:hover {
+	background: rgba(139, 92, 246, 0.25);
+}
+
+.audio-8d-toggle.active {
+	background: linear-gradient(135deg, #8b5cf6, #ec4899);
+	border-color: transparent;
+}
+
+.audio-8d-toggle .toggle-switch {
+	width: 48px;
+	height: 26px;
+	background: rgba(255, 255, 255, 0.1);
+	border-radius: 13px;
+	position: relative;
+	transition: background 0.3s ease;
+}
+
+.audio-8d-toggle.active .toggle-switch {
+	background: rgba(255, 255, 255, 0.3);
+}
+
+.audio-8d-toggle .toggle-switch::after {
+	content: '';
+	position: absolute;
+	width: 20px;
+	height: 20px;
+	background: white;
+	border-radius: 50%;
+	top: 3px;
+	left: 3px;
+	transition: transform 0.3s ease;
+}
+
+.audio-8d-toggle.active .toggle-switch::after {
+	transform: translateX(22px);
+}
+
+.audio-8d-controls {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+	gap: 1rem;
+	margin-top: 1rem;
+}
+
+.audio-8d-control {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+}
+
+.audio-8d-control label {
+	font-size: 0.85rem;
+	color: var(--text-secondary, #a0a0a0);
+}
+
+.pattern-selector {
+	display: flex;
+	gap: 0.5rem;
+	flex-wrap: wrap;
+}
+
+.pattern-btn {
+	padding: 0.5rem 1rem;
+	background: rgba(139, 92, 246, 0.15);
+	border: 1px solid rgba(139, 92, 246, 0.3);
+	border-radius: 6px;
+	color: var(--text-primary, #e8e8e8);
+	cursor: pointer;
+	transition: all 0.2s ease;
+	font-size: 0.85rem;
+}
+
+.pattern-btn:hover {
+	background: rgba(139, 92, 246, 0.3);
+}
+
+.pattern-btn.active {
+	background: #8b5cf6;
+	border-color: #8b5cf6;
+}
+
+.pattern-btn i {
+	margin-right: 0.35rem;
+}
+
+/* ============================================================================
+   TUTORIAL MODAL
+   ============================================================================ */
+
+.tutorial-modal .modal-content {
+	max-width: 600px;
+	width: 95%;
+}
+
+.tutorial-content {
+	padding: 0;
+}
+
+.tutorial-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 1rem 1.5rem;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tutorial-progress {
+	font-size: 0.85rem;
+	color: var(--text-secondary, #a0a0a0);
+}
+
+.tutorial-close {
+	background: none;
+	border: none;
+	color: var(--text-secondary, #a0a0a0);
+	cursor: pointer;
+	padding: 0.5rem;
+	font-size: 1.25rem;
+	transition: color 0.2s ease;
+}
+
+.tutorial-close:hover {
+	color: var(--text-primary, #e8e8e8);
+}
+
+.tutorial-body {
+	padding: 2rem 1.5rem;
+	text-align: center;
+}
+
+.tutorial-icon {
+	font-size: 4rem;
+	margin-bottom: 1.5rem;
+	background: linear-gradient(135deg, var(--primary, #00d0ff), var(--secondary, #8b5cf6));
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	background-clip: text;
+}
+
+.tutorial-title {
+	font-size: 1.75rem;
+	font-weight: 600;
+	margin-bottom: 1rem;
+	color: var(--text-primary, #e8e8e8);
+}
+
+.tutorial-text {
+	font-size: 1rem;
+	line-height: 1.7;
+	color: var(--text-secondary, #a0a0a0);
+	text-align: left;
+}
+
+.tutorial-text p {
+	margin-bottom: 1rem;
+}
+
+.tutorial-text ul {
+	margin: 1rem 0;
+	padding-left: 1.5rem;
+}
+
+.tutorial-text li {
+	margin-bottom: 0.5rem;
+}
+
+.tutorial-text strong {
+	color: var(--primary, #00d0ff);
+}
+
+.tutorial-text .tip {
+	background: rgba(0, 208, 255, 0.1);
+	padding: 0.75rem 1rem;
+	border-radius: 8px;
+	margin-top: 1rem;
+}
+
+.tutorial-footer {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 1rem 1.5rem;
+	border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tutorial-footer.hidden {
+	display: none;
+}
+
+.tutorial-dots {
+	display: flex;
+	gap: 0.5rem;
+}
+
+.tutorial-dot {
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	background: rgba(255, 255, 255, 0.2);
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.tutorial-dot:hover {
+	background: rgba(255, 255, 255, 0.4);
+}
+
+.tutorial-dot.active {
+	background: var(--primary, #00d0ff);
+	transform: scale(1.2);
+}
+
+.tutorial-final-actions {
+	display: flex;
+	gap: 1rem;
+	justify-content: center;
+	padding: 1.5rem;
+	border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tutorial-final-actions.hidden {
+	display: none;
+}
+
+/* ============================================================================
+   TOUR GUIADO
+   ============================================================================ */
+
+.tour-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: rgba(0, 0, 0, 0.7);
+	z-index: 9999;
+}
+
+.tour-highlighted {
+	position: relative !important;
+	z-index: 10001 !important;
+	box-shadow: 0 0 0 4px var(--primary, #00d0ff),
+				0 0 30px rgba(0, 208, 255, 0.5) !important;
+	border-radius: 8px;
+}
+
+.tour-tooltip {
+	position: fixed;
+	background: var(--bg-primary, #0f0f1a);
+	border: 1px solid var(--primary, #00d0ff);
+	border-radius: 12px;
+	padding: 1rem;
+	max-width: 320px;
+	z-index: 10002;
+	box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.tour-tooltip::before {
+	content: '';
+	position: absolute;
+	width: 0;
+	height: 0;
+	border: 8px solid transparent;
+}
+
+.tour-tooltip--bottom::before {
+	top: -16px;
+	left: 50%;
+	transform: translateX(-50%);
+	border-bottom-color: var(--primary, #00d0ff);
+}
+
+.tour-tooltip--top::before {
+	bottom: -16px;
+	left: 50%;
+	transform: translateX(-50%);
+	border-top-color: var(--primary, #00d0ff);
+}
+
+.tour-tooltip--left::before {
+	right: -16px;
+	top: 50%;
+	transform: translateY(-50%);
+	border-left-color: var(--primary, #00d0ff);
+}
+
+.tour-tooltip--right::before {
+	left: -16px;
+	top: 50%;
+	transform: translateY(-50%);
+	border-right-color: var(--primary, #00d0ff);
+}
+
+.tour-tooltip__header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 0.75rem;
+}
+
+.tour-tooltip__step {
+	font-size: 0.8rem;
+	color: var(--primary, #00d0ff);
+	font-weight: 600;
+}
+
+.tour-tooltip__close {
+	background: none;
+	border: none;
+	color: var(--text-secondary, #a0a0a0);
+	cursor: pointer;
+	padding: 0.25rem;
+}
+
+.tour-tooltip__title {
+	font-size: 1.1rem;
+	font-weight: 600;
+	margin-bottom: 0.5rem;
+	color: var(--text-primary, #e8e8e8);
+}
+
+.tour-tooltip__content {
+	font-size: 0.9rem;
+	color: var(--text-secondary, #a0a0a0);
+	line-height: 1.5;
+	margin-bottom: 1rem;
+}
+
+.tour-tooltip__footer {
+	display: flex;
+	gap: 0.5rem;
+	justify-content: flex-end;
+}
+
+/* ============================================================================
+   FREQUÊNCIA LABELS (BRAINWAVE)
+   ============================================================================ */
+
+.freq-label {
+	display: inline-block;
+	padding: 0.25rem 0.75rem;
+	border-radius: 4px;
+	font-size: 0.85rem;
+	font-weight: 500;
+}
+
+.freq-label.delta {
+	background: rgba(139, 92, 246, 0.2);
+	color: #a78bfa;
+}
+
+.freq-label.theta {
+	background: rgba(59, 130, 246, 0.2);
+	color: #60a5fa;
+}
+
+.freq-label.alpha {
+	background: rgba(34, 197, 94, 0.2);
+	color: #4ade80;
+}
+
+.freq-label.beta {
+	background: rgba(251, 191, 36, 0.2);
+	color: #fbbf24;
+}
+
+.freq-label.gamma {
+	background: rgba(239, 68, 68, 0.2);
+	color: #f87171;
+}
+
+/* ============================================================================
+   MUSIC LIST MELHORIAS
+   ============================================================================ */
+
+.music-item {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+	padding: 0.75rem 1rem;
+	background: rgba(255, 255, 255, 0.03);
+	border-radius: 8px;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.music-item:hover {
+	background: rgba(255, 255, 255, 0.08);
+}
+
+.music-item.active {
+	background: linear-gradient(135deg, rgba(0, 208, 255, 0.15), rgba(139, 92, 246, 0.15));
+	border: 1px solid rgba(0, 208, 255, 0.3);
+}
+
+.music-item__name {
+	flex: 1;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-size: 0.95rem;
+}
+
+.music-item__duration {
+	font-size: 0.8rem;
+	color: var(--text-secondary, #a0a0a0);
+	font-variant-numeric: tabular-nums;
+}
+
+.music-item__remove {
+	background: none;
+	border: none;
+	color: var(--text-secondary, #a0a0a0);
+	cursor: pointer;
+	padding: 0.25rem;
+	opacity: 0;
+	transition: all 0.2s ease;
+}
+
+.music-item:hover .music-item__remove {
+	opacity: 1;
+}
+
+.music-item__remove:hover {
+	color: var(--error, #ef4444);
+}
+
+.no-music {
+	text-align: center;
+	padding: 2rem;
+	color: var(--text-secondary, #a0a0a0);
+	font-style: italic;
+}
+
+/* ============================================================================
+   PATIENT ITEMS
+   ============================================================================ */
+
+.patient-item {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+	padding: 0.75rem 1rem;
+	background: rgba(255, 255, 255, 0.03);
+	border-radius: 8px;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.patient-item:hover {
+	background: rgba(255, 255, 255, 0.08);
+}
+
+.patient-item.selected {
+	background: linear-gradient(135deg, rgba(0, 208, 255, 0.1), rgba(139, 92, 246, 0.1));
+	border: 1px solid rgba(0, 208, 255, 0.2);
+}
+
+.patient-item__avatar {
+	width: 40px;
+	height: 40px;
+	border-radius: 50%;
+	background: linear-gradient(135deg, var(--primary, #00d0ff), var(--secondary, #8b5cf6));
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: 600;
+	font-size: 0.9rem;
+	color: white;
+	flex-shrink: 0;
+}
+
+.patient-item__info {
+	flex: 1;
+	min-width: 0;
+}
+
+.patient-item__name {
+	display: block;
+	font-weight: 500;
+	color: var(--text-primary, #e8e8e8);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.patient-item__meta {
+	font-size: 0.8rem;
+	color: var(--text-secondary, #a0a0a0);
+}
+
+.patient-item__actions {
+	display: flex;
+	gap: 0.25rem;
+	opacity: 0;
+	transition: opacity 0.2s ease;
+}
+
+.patient-item:hover .patient-item__actions {
+	opacity: 1;
+}
+
+.empty-list {
+	text-align: center;
+	padding: 3rem 1rem;
+	color: var(--text-secondary, #a0a0a0);
+}
+
+.empty-list i {
+	font-size: 3rem;
+	margin-bottom: 1rem;
+	opacity: 0.3;
+}
+
+/* ============================================================================
+   BRAINWAVE INDICATOR (MONITOR)
+   ============================================================================ */
+
+.brainwave-indicator {
+	font-size: 0.85rem;
+	padding: 0.35rem 0.75rem;
+	border-radius: 4px;
+	display: inline-block;
+}
+
+.brainwave-indicator.delta {
+	background: rgba(139, 92, 246, 0.2);
+	color: #a78bfa;
+}
+
+.brainwave-indicator.theta {
+	background: rgba(59, 130, 246, 0.2);
+	color: #60a5fa;
+}
+
+.brainwave-indicator.alpha {
+	background: rgba(34, 197, 94, 0.2);
+	color: #4ade80;
+}
+
+.brainwave-indicator.beta {
+	background: rgba(251, 191, 36, 0.2);
+	color: #fbbf24;
+}
+
+.brainwave-indicator.gamma {
+	background: rgba(239, 68, 68, 0.2);
+	color: #f87171;
+}
+
+/* ============================================================================
+   RESPONSIVE ADJUSTMENTS
+   ============================================================================ */
+
+@media (max-width: 768px) {
+	.tutorial-content {
+		margin: 1rem;
+	}
+	
+	.tutorial-icon {
+		font-size: 3rem;
+	}
+	
+	.tutorial-title {
+		font-size: 1.5rem;
+	}
+	
+	.tour-tooltip {
+		max-width: 280px;
+		font-size: 0.9rem;
+	}
+	
+	.audio-8d-controls {
+		grid-template-columns: 1fr;
+	}
+	
+	.pattern-selector {
+		justify-content: center;
+	}
+}

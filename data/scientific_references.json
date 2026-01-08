@@ -1,0 +1,216 @@
+{
+	"8d_audio": {
+		"title": "Áudio 8D e Processamento Espacial",
+		"description": "Evidências científicas sobre processamento auditivo espacial e seus efeitos terapêuticos",
+		"references": [
+			{
+				"authors": "Møller, H.",
+				"year": 1992,
+				"title": "Fundamentals of binaural technology",
+				"journal": "Applied Acoustics",
+				"volume": "36",
+				"pages": "171-218",
+				"summary": "Fundamentos teóricos da tecnologia binaural e HRTF (Head-Related Transfer Function) que permitem a percepção de som tridimensional."
+			},
+			{
+				"authors": "Begault, D. R.",
+				"year": 1994,
+				"title": "3-D Sound for Virtual Reality and Multimedia",
+				"publisher": "Academic Press",
+				"summary": "Referência fundamental sobre áudio 3D, incluindo técnicas de espacialização usadas no áudio 8D."
+			},
+			{
+				"authors": "Blauert, J.",
+				"year": 1997,
+				"title": "Spatial Hearing: The Psychophysics of Human Sound Localization",
+				"publisher": "MIT Press",
+				"summary": "Obra definitiva sobre como o cérebro processa informações espaciais do som, base científica para efeitos imersivos."
+			},
+			{
+				"authors": "Västfjäll, D.",
+				"year": 2003,
+				"title": "The subjective sense of presence, emotion recognition, and experienced emotions in auditory virtual environments",
+				"journal": "CyberPsychology & Behavior",
+				"volume": "6",
+				"pages": "181-188",
+				"summary": "Demonstra que ambientes sonoros imersivos aumentam a sensação de presença e intensificam experiências emocionais."
+			},
+			{
+				"authors": "Zentner, M., Grandjean, D., & Scherer, K. R.",
+				"year": 2008,
+				"title": "Emotions evoked by the sound of music: Characterization, classification, and measurement",
+				"journal": "Emotion",
+				"volume": "8",
+				"pages": "494-521",
+				"summary": "Estudo sobre como características musicais, incluindo espacialização, evocam respostas emocionais específicas."
+			}
+		],
+		"mechanisms": {
+			"hrtf": {
+				"name": "Head-Related Transfer Function",
+				"description": "Função que descreve como o som é filtrado pelo formato das orelhas, cabeça e torso antes de atingir o tímpano. Permite ao cérebro localizar sons no espaço 3D."
+			},
+			"itd": {
+				"name": "Interaural Time Difference",
+				"description": "Diferença de tempo entre a chegada do som em cada ouvido. Usado para localização horizontal de sons."
+			},
+			"ild": {
+				"name": "Interaural Level Difference",
+				"description": "Diferença de intensidade do som entre os ouvidos causada pela sombra acústica da cabeça."
+			},
+			"spectral_cues": {
+				"name": "Pistas Espectrais",
+				"description": "Modificações no espectro do som causadas pelas reflexões na pinna (orelha externa), usadas para localização vertical."
+			}
+		},
+		"therapeutic_applications": [
+			{
+				"application": "Imersão e Engajamento",
+				"description": "O movimento espacial do som aumenta o engajamento do ouvinte, reduzindo distrações e pensamentos intrusivos."
+			},
+			{
+				"application": "Redução de Ansiedade",
+				"description": "A experiência imersiva pode criar um 'espaço seguro' auditivo que auxilia na redução da ansiedade."
+			},
+			{
+				"application": "Meditação e Mindfulness",
+				"description": "O som em movimento pode servir como âncora de atenção, facilitando práticas meditativas."
+			},
+			{
+				"application": "Reabilitação Auditiva",
+				"description": "Treinamento de localização espacial para pacientes com déficits de processamento auditivo."
+			}
+		]
+	},
+	"binaural_beats": {
+		"title": "Batimentos Binaurais",
+		"description": "Base científica para a terapia com batimentos binaurais",
+		"references": [
+			{
+				"authors": "Oster, G.",
+				"year": 1973,
+				"title": "Auditory beats in the brain",
+				"journal": "Scientific American",
+				"volume": "229",
+				"pages": "94-102",
+				"summary": "Artigo seminal que popularizou os batimentos binaurais, demonstrando que o cérebro processa a diferença de frequência."
+			},
+			{
+				"authors": "Wahbeh, H., Calabrese, C., & Zwickey, H.",
+				"year": 2007,
+				"title": "Binaural beat technology in humans: A pilot study to assess psychologic and physiologic effects",
+				"journal": "Journal of Alternative and Complementary Medicine",
+				"volume": "13",
+				"pages": "25-32",
+				"summary": "Estudo piloto mostrando efeitos de relaxamento e redução de ansiedade com batimentos binaurais."
+			},
+			{
+				"authors": "Padmanabhan, R., Hildreth, A. J., & Laws, D.",
+				"year": 2005,
+				"title": "A prospective, randomised, controlled study examining binaural beat audio and pre-operative anxiety in patients undergoing general anaesthesia",
+				"journal": "Anaesthesia",
+				"volume": "60",
+				"pages": "874-877",
+				"summary": "Estudo controlado mostrando redução significativa de ansiedade pré-operatória com batimentos binaurais."
+			},
+			{
+				"authors": "Garcia-Argibay, M., Santed, M. A., & Reales, J. M.",
+				"year": 2019,
+				"title": "Efficacy of binaural auditory beats in cognition, anxiety, and pain perception: A meta-analysis",
+				"journal": "Psychological Research",
+				"volume": "83",
+				"pages": "357-372",
+				"summary": "Meta-análise confirmando efeitos positivos moderados em ansiedade e percepção de dor."
+			}
+		],
+		"brainwave_bands": {
+			"delta": {
+				"range": "0.5-4 Hz",
+				"state": "Sono profundo",
+				"effects": ["Regeneração celular", "Liberação de hormônio do crescimento", "Cura profunda"],
+				"contraindications": ["Evitar em epilepsia", "Não usar ao dirigir"]
+			},
+			"theta": {
+				"range": "4-8 Hz",
+				"state": "Meditação profunda, sono leve",
+				"effects": ["Criatividade aumentada", "Acesso a memórias", "Estados meditativos"],
+				"contraindications": ["Pode causar sonolência"]
+			},
+			"alpha": {
+				"range": "8-13 Hz",
+				"state": "Relaxamento alerta",
+				"effects": ["Redução de estresse", "Calma mental", "Ponte entre consciente e subconsciente"],
+				"contraindications": []
+			},
+			"beta": {
+				"range": "13-30 Hz",
+				"state": "Concentração, alerta",
+				"effects": ["Foco aumentado", "Pensamento analítico", "Processamento de informações"],
+				"contraindications": ["Pode aumentar ansiedade em doses altas"]
+			},
+			"gamma": {
+				"range": "30-100 Hz",
+				"state": "Alta cognição",
+				"effects": ["Processamento de alta ordem", "Insight", "Memória de trabalho"],
+				"contraindications": ["Experimental, menos pesquisado"]
+			}
+		}
+	},
+	"vibroacoustic_therapy": {
+		"title": "Terapia Vibroacústica",
+		"description": "Fundamentos da terapia sonora e suas aplicações clínicas",
+		"references": [
+			{
+				"authors": "Bartel, L. R., & Mosabbir, A.",
+				"year": 2021,
+				"title": "Possible mechanisms for the effects of sound vibration on human health",
+				"journal": "Healthcare",
+				"volume": "9",
+				"pages": "597",
+				"summary": "Revisão dos mecanismos pelos quais vibrações sonoras afetam a saúde humana."
+			},
+			{
+				"authors": "Campbell, E. A., Hynynen, J., & Burger, B.",
+				"year": 2019,
+				"title": "Vibroacoustic treatment for chronic pain and mood disorders",
+				"journal": "Music and Medicine",
+				"volume": "11",
+				"pages": "233-240",
+				"summary": "Estudo sobre uso de vibração sonora para dor crônica e distúrbios de humor."
+			}
+		]
+	},
+	"music_therapy": {
+		"title": "Musicoterapia",
+		"description": "Evidências científicas sobre os efeitos terapêuticos da música",
+		"references": [
+			{
+				"authors": "Bernardi, L., Porta, C., & Sleight, P.",
+				"year": 2006,
+				"title": "Cardiovascular, cerebrovascular, and respiratory changes induced by different types of music",
+				"journal": "Heart",
+				"volume": "92",
+				"pages": "445-452",
+				"summary": "Demonstra efeitos cardiovasculares e respiratórios mensuráveis de diferentes tipos de música."
+			},
+			{
+				"authors": "Thoma, M. V., La Marca, R., Brönnimann, R., et al.",
+				"year": 2013,
+				"title": "The effect of music on the human stress response",
+				"journal": "PLoS ONE",
+				"volume": "8",
+				"pages": "e70156",
+				"summary": "Mostra que música relaxante reduz significativamente o cortisol e outros marcadores de estresse."
+			},
+			{
+				"authors": "Juslin, P. N., & Västfjäll, D.",
+				"year": 2008,
+				"title": "Emotional responses to music: The need to consider underlying mechanisms",
+				"journal": "Behavioral and Brain Sciences",
+				"volume": "31",
+				"pages": "559-621",
+				"summary": "Propõe seis mecanismos pelos quais a música evoca emoções."
+			}
+		]
+	}
+}

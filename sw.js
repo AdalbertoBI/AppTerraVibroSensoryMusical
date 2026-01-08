@@ -15,7 +15,7 @@ importScripts('https://storage.googleapis.com/workbox-cdn/releases/6.5.4/workbox
  * IMPORTANTE: Incremente APP_VERSION a cada deploy!
  */
 
-const APP_VERSION = '1.0.2.1';
+const APP_VERSION = '1.1.0.0';
 const CACHE_PREFIX = 'terra-sensory';
 const CACHE_NAME = `${CACHE_PREFIX}-v${APP_VERSION}`;
 
@@ -38,6 +38,23 @@ if (workbox) {
 		{ url: './manifest.json', revision: APP_VERSION },
 		{ url: './presets.json', revision: APP_VERSION },
 		{ url: './icons/terra-sensory.svg', revision: APP_VERSION },
+		// Novos arquivos CSS
+		{ url: './css/modules.css', revision: APP_VERSION },
+		// Módulos JavaScript
+		{ url: './js/main.js', revision: APP_VERSION },
+		{ url: './js/core/state.js', revision: APP_VERSION },
+		{ url: './js/utils/storage.js', revision: APP_VERSION },
+		{ url: './js/audio/audioContext.js', revision: APP_VERSION },
+		{ url: './js/audio/binaural.js', revision: APP_VERSION },
+		{ url: './js/audio/audio8d.js', revision: APP_VERSION },
+		{ url: './js/audio/player.js', revision: APP_VERSION },
+		{ url: './js/monitor/audioMonitor.js', revision: APP_VERSION },
+		{ url: './js/patients/patientManager.js', revision: APP_VERSION },
+		{ url: './js/ui/controls.js', revision: APP_VERSION },
+		{ url: './js/ui/tutorial.js', revision: APP_VERSION },
+		// Dados científicos
+		{ url: './data/scientific_references.json', revision: APP_VERSION },
+		// CDN
 		{ url: 'https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.4/howler.min.js', revision: '2.2.4' },
 		{ url: 'https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js', revision: '1.10.0' }
 	];
