@@ -231,187 +231,134 @@
 				<ul id="musicList" class="list music-list"></ul>
 			</section>
 
-			<!-- Seção Áudio 8D -->
-			<section class="panel wide audio-8d-section" id="audio8dSection">
+			<!-- Seção Processamento de Áudio Avançado (8D + Enhancer Unificados) -->
+			<section class="panel wide audio-processing-section" id="audioProcessingSection">
 				<div class="panel-header">
-					<h2><i class="fa-solid fa-headphones-simple"></i> Áudio 8D Espacial</h2>
-					<p class="subtitle">Processamento espacial imersivo baseado em HRTF (Head-Related Transfer Function)</p>
+					<h2><i class="fa-solid fa-waveform-lines"></i> Processamento de Áudio Avançado</h2>
 				</div>
 				
-				<div class="audio-8d-toggle" id="audio-8d-toggle" role="switch" aria-checked="false" tabindex="0">
-					<div class="toggle-switch"></div>
-					<div class="toggle-info">
-						<span class="toggle-label">Ativar Áudio 8D</span>
-						<span class="toggle-desc">Cria sensação de som circulando ao redor da cabeça</span>
-					</div>
-				</div>
-				
-				<div class="audio-8d-controls" id="audio8dControls">
-					<div class="audio-8d-control">
-						<label for="audio8dPattern">Padrão de Movimento</label>
-						<div class="pattern-selector">
-							<button type="button" class="pattern-btn active" data-pattern="circular">
-								<i class="fa-solid fa-circle-notch"></i> Circular
-							</button>
-							<button type="button" class="pattern-btn" data-pattern="infinity">
-								<i class="fa-solid fa-infinity"></i> Infinito
-							</button>
-							<button type="button" class="pattern-btn" data-pattern="random">
-								<i class="fa-solid fa-shuffle"></i> Aleatório
-							</button>
-							<button type="button" class="pattern-btn" data-pattern="pendulum">
-								<i class="fa-solid fa-arrows-left-right"></i> Pêndulo
-							</button>
-						</div>
-					</div>
-					
-					<div class="audio-8d-control">
-						<label for="audio8dSpeed">Velocidade: <output id="audio8dSpeedValue">50%</output></label>
-						<input type="range" id="audio8dSpeed" min="10" max="100" value="50" />
-					</div>
-					
-					<div class="audio-8d-control">
-						<label for="audio8dIntensity">Intensidade: <output id="audio8dIntensityValue">80%</output></label>
-						<input type="range" id="audio8dIntensity" min="0" max="100" value="80" />
-					</div>
-				</div>
-				
-				<details class="scientific-info">
-					<summary><i class="fa-solid fa-microscope"></i> Base Científica</summary>
-					<div class="scientific-content">
-						<p>O áudio 8D utiliza técnicas de processamento espacial baseadas em pesquisas em psicoacústica:</p>
-						<ul>
-							<li><strong>HRTF (Møller, 1992):</strong> Função de transferência relacionada à cabeça que modela como o som é filtrado pelos ouvidos, cabeça e torso.</li>
-							<li><strong>ITD/ILD (Blauert, 1997):</strong> Diferenças de tempo e intensidade interaural para localização espacial.</li>
-							<li><strong>Imersão (Västfjäll, 2003):</strong> Ambientes sonoros imersivos aumentam sensação de presença e intensificam experiências emocionais.</li>
-						</ul>
-						<p><strong>Recomendação:</strong> Use fones de ouvido para a experiência completa do áudio 8D.</p>
-					</div>
-				</details>
-			</section>
-
-			<!-- Seção Aprimoramento de Áudio -->
-			<section class="panel wide audio-enhancer-section" id="audioEnhancerSection">
-				<div class="panel-header">
-					<h2><i class="fa-solid fa-sliders"></i> Aprimoramento de Áudio</h2>
-					<p class="subtitle">Melhoria de qualidade sonora com redução de ruído e equalização profissional</p>
-				</div>
-				
-				<div class="enhancer-toggle" id="enhancer-toggle" role="switch" aria-checked="false" tabindex="0">
-					<div class="toggle-switch"></div>
-					<div class="toggle-info">
-						<span class="toggle-label">Ativar Aprimoramento</span>
-						<span class="toggle-desc">Remove ruídos, chiados e melhora a clareza do áudio</span>
-					</div>
-				</div>
-				
-				<div class="enhancer-controls" id="enhancerControls">
-					<!-- Preset Selector -->
-					<div class="enhancer-control full-width">
-						<label for="enhancerPreset"><i class="fa-solid fa-wand-magic-sparkles"></i> Preset Rápido</label>
-						<select id="enhancerPreset" class="enhancer-select">
-							<option value="default">Padrão (Balanceado)</option>
-							<option value="noise_reduction">Redução de Ruído</option>
-							<option value="music">Música (Hi-Fi)</option>
-							<option value="voice">Voz/Podcast</option>
-							<option value="bass_boost">Realce de Graves</option>
-							<option value="treble_boost">Realce de Agudos</option>
-							<option value="phone_quality">Compensar Fone Simples</option>
-						</select>
-					</div>
-					
-					<!-- Noise Gate -->
-					<div class="enhancer-control">
-						<label for="noiseGateThreshold">
-							<i class="fa-solid fa-volume-xmark"></i> Noise Gate
-							<output id="noiseGateValue">-50 dB</output>
-						</label>
-						<input type="range" id="noiseGateThreshold" min="-80" max="-20" value="-50" step="1" />
-						<span class="control-hint">Remove silêncios com ruído de fundo</span>
-					</div>
-					
-					<!-- De-Hiss Filter -->
-					<div class="enhancer-control">
-						<label for="deHissAmount">
-							<i class="fa-solid fa-wind"></i> Remoção de Chiado
-							<output id="deHissValue">-6 dB</output>
-						</label>
-						<input type="range" id="deHissAmount" min="-24" max="0" value="-6" step="1" />
-						<span class="control-hint">Atenua frequências altas indesejadas</span>
-					</div>
-					
-					<!-- 3-Band EQ -->
-					<div class="enhancer-control-group">
-						<label class="group-label"><i class="fa-solid fa-chart-area"></i> Equalizador 3 Bandas</label>
-						
-						<div class="eq-band">
-							<label for="eqLow">Graves (200Hz) <output id="eqLowValue">0 dB</output></label>
-							<input type="range" id="eqLow" min="-12" max="12" value="0" step="1" class="eq-slider" />
+				<!-- Grid com dois cards lado a lado -->
+				<div class="audio-processing-grid">
+					<!-- Card 8D Audio -->
+					<div class="processing-card audio-8d-card">
+						<div class="processing-card-header">
+							<div class="processing-toggle" id="audio-8d-toggle" role="switch" aria-checked="false" tabindex="0">
+								<div class="toggle-switch"></div>
+								<div class="toggle-info">
+									<span class="toggle-label"><i class="fa-solid fa-headphones-simple"></i> Áudio 8D Espacial</span>
+									<span class="toggle-desc">Som imersivo circulando ao redor da cabeça</span>
+								</div>
+							</div>
 						</div>
 						
-						<div class="eq-band">
-							<label for="eqMid">Médios (1kHz) <output id="eqMidValue">0 dB</output></label>
-							<input type="range" id="eqMid" min="-12" max="12" value="0" step="1" class="eq-slider" />
+						<div class="processing-controls audio-8d-controls" id="audio8dControls">
+							<div class="control-compact">
+								<label>Padrão</label>
+								<div class="pattern-selector">
+									<button type="button" class="pattern-btn active" data-pattern="circular" title="Circular">
+										<i class="fa-solid fa-circle-notch"></i>
+									</button>
+									<button type="button" class="pattern-btn" data-pattern="infinity" title="Infinito">
+										<i class="fa-solid fa-infinity"></i>
+									</button>
+									<button type="button" class="pattern-btn" data-pattern="random" title="Aleatório">
+										<i class="fa-solid fa-shuffle"></i>
+									</button>
+									<button type="button" class="pattern-btn" data-pattern="pendulum" title="Pêndulo">
+										<i class="fa-solid fa-arrows-left-right"></i>
+									</button>
+								</div>
+							</div>
+							<div class="control-compact">
+								<label for="audio8dSpeed">Velocidade <output id="audio8dSpeedValue">50%</output></label>
+								<input type="range" id="audio8dSpeed" min="10" max="100" value="50" title="Velocidade de rotação do áudio 8D" />
+							</div>
+							<div class="control-compact">
+								<label for="audio8dIntensity">Intensidade <output id="audio8dIntensityValue">80%</output></label>
+								<input type="range" id="audio8dIntensity" min="0" max="100" value="80" title="Intensidade do efeito 8D" />
+							</div>
+						</div>
+					</div>
+					
+					<!-- Card Audio Enhancer -->
+					<div class="processing-card audio-enhancer-card">
+						<div class="processing-card-header">
+							<div class="processing-toggle enhancer-toggle" id="enhancer-toggle" role="switch" aria-checked="false" tabindex="0">
+								<div class="toggle-switch"></div>
+								<div class="toggle-info">
+									<span class="toggle-label"><i class="fa-solid fa-sliders"></i> Aprimoramento</span>
+									<span class="toggle-desc">Redução de ruído e equalização</span>
+								</div>
+							</div>
 						</div>
 						
-						<div class="eq-band">
-							<label for="eqHigh">Agudos (4kHz) <output id="eqHighValue">0 dB</output></label>
-							<input type="range" id="eqHigh" min="-12" max="12" value="0" step="1" class="eq-slider" />
+						<div class="processing-controls enhancer-controls" id="enhancerControls">
+							<div class="control-compact full-width">
+								<label for="enhancerPreset"><i class="fa-solid fa-wand-magic-sparkles"></i> Preset</label>
+								<select id="enhancerPreset" class="enhancer-select" title="Preset de aprimoramento de áudio">
+									<option value="default">Padrão</option>
+									<option value="noise_reduction">Redução de Ruído</option>
+									<option value="music">Música Hi-Fi</option>
+									<option value="voice">Voz/Podcast</option>
+									<option value="bass_boost">Mais Graves</option>
+									<option value="phone_quality">Fone Simples</option>
+								</select>
+							</div>
+							
+							<!-- EQ Compacto -->
+							<div class="eq-compact">
+								<div class="eq-band-compact">
+									<label for="eqLow">Graves</label>
+									<input type="range" id="eqLow" min="-12" max="12" value="0" class="eq-slider vertical" orient="vertical" title="Equalização de graves" />
+									<output id="eqLowValue">0</output>
+								</div>
+								<div class="eq-band-compact">
+									<label for="eqMid">Médios</label>
+									<input type="range" id="eqMid" min="-12" max="12" value="0" class="eq-slider vertical" orient="vertical" title="Equalização de médios" />
+									<output id="eqMidValue">0</output>
+								</div>
+								<div class="eq-band-compact">
+									<label for="eqHigh">Agudos</label>
+									<input type="range" id="eqHigh" min="-12" max="12" value="0" class="eq-slider vertical" orient="vertical" title="Equalização de agudos" />
+									<output id="eqHighValue">0</output>
+								</div>
+							</div>
+							
+							<div class="control-compact">
+								<label for="compressorRatio"><i class="fa-solid fa-compress"></i> Compressão <output id="compressorValue">4:1</output></label>
+								<input type="range" id="compressorRatio" min="1" max="20" value="4" step="0.5" title="Taxa de compressão de dinâmica" />
+							</div>
+							
+							<!-- Controles ocultos para compatibilidade -->
+							<input type="hidden" id="noiseGateThreshold" value="-50" />
+							<input type="hidden" id="deHissAmount" value="-6" />
+							<input type="hidden" id="bassEnhance" value="0" />
+							<input type="hidden" id="stereoWidth" value="100" />
+							<input type="hidden" id="outputGain" value="0" />
 						</div>
-					</div>
-					
-					<!-- Compressor -->
-					<div class="enhancer-control">
-						<label for="compressorRatio">
-							<i class="fa-solid fa-compress"></i> Compressão Dinâmica
-							<output id="compressorValue">4:1</output>
-						</label>
-						<input type="range" id="compressorRatio" min="1" max="20" value="4" step="0.5" />
-						<span class="control-hint">Uniformiza volume (mais = mais uniforme)</span>
-					</div>
-					
-					<!-- Bass Enhancer -->
-					<div class="enhancer-control">
-						<label for="bassEnhance">
-							<i class="fa-solid fa-drum"></i> Realce de Graves
-							<output id="bassEnhanceValue">0 dB</output>
-						</label>
-						<input type="range" id="bassEnhance" min="0" max="12" value="0" step="1" />
-						<span class="control-hint">Aumenta presença de frequências baixas</span>
-					</div>
-					
-					<!-- Stereo Width -->
-					<div class="enhancer-control">
-						<label for="stereoWidth">
-							<i class="fa-solid fa-arrows-left-right-to-line"></i> Largura Estéreo
-							<output id="stereoWidthValue">100%</output>
-						</label>
-						<input type="range" id="stereoWidth" min="50" max="150" value="100" step="5" />
-						<span class="control-hint">Expansão do campo sonoro</span>
-					</div>
-					
-					<!-- Output Gain -->
-					<div class="enhancer-control">
-						<label for="outputGain">
-							<i class="fa-solid fa-volume-high"></i> Ganho de Saída
-							<output id="outputGainValue">0 dB</output>
-						</label>
-						<input type="range" id="outputGain" min="-12" max="6" value="0" step="0.5" />
-						<span class="control-hint">Volume final após processamento</span>
 					</div>
 				</div>
 				
-				<details class="scientific-info">
-					<summary><i class="fa-solid fa-microscope"></i> Base Científica</summary>
-					<div class="scientific-content">
-						<p>O processamento de áudio utiliza técnicas de DSP (Digital Signal Processing) fundamentadas em psicoacústica:</p>
-						<ul>
-							<li><strong>Noise Gate:</strong> Técnica padrão de produção de áudio que elimina ruído durante silêncios, baseada em threshold de amplitude (Katz, 2002).</li>
-							<li><strong>Curvas de Fletcher-Munson (1933):</strong> A equalização compensa a sensibilidade variável do ouvido humano em diferentes frequências e volumes.</li>
-							<li><strong>Compressão Dinâmica:</strong> Reduz a faixa dinâmica para melhor audibilidade, especialmente em ambientes ruidosos (Giannoulis et al., 2012).</li>
-							<li><strong>De-Essing/De-Hissing:</strong> Filtros high-shelf atenuam frequências acima de 6kHz onde ruído de fita e chiados predominam (Owsinski, 2014).</li>
-						</ul>
-						<p><strong>Ideal para:</strong> Melhorar áudio de baixa qualidade, fones simples, ou gravações com ruído de fundo.</p>
+				<!-- Base Científica Unificada e Colapsada -->
+				<details class="scientific-info-unified">
+					<summary><i class="fa-solid fa-microscope"></i> Base Científica do Processamento</summary>
+					<div class="scientific-content-grid">
+						<div class="sci-card">
+							<h4>Áudio 8D (HRTF)</h4>
+							<ul>
+								<li><strong>Møller (1992)</strong>: Modelagem da filtragem sonora por ouvidos, cabeça e torso</li>
+								<li><strong>Blauert (1997)</strong>: Diferenças de tempo/intensidade interaural para localização</li>
+								<li><strong>Västfjäll (2003)</strong>: Imersão intensifica experiências emocionais</li>
+							</ul>
+						</div>
+						<div class="sci-card">
+							<h4>Processamento DSP</h4>
+							<ul>
+								<li><strong>Fletcher-Munson (1933)</strong>: Sensibilidade variável do ouvido por frequência</li>
+								<li><strong>Katz (2002)</strong>: Noise Gate elimina ruído em silêncios</li>
+								<li><strong>Giannoulis (2012)</strong>: Compressão melhora audibilidade</li>
+							</ul>
+						</div>
 					</div>
 				</details>
 			</section>
@@ -542,343 +489,135 @@
 				</div>
 			</section>
 
-			<!-- Seção de Referências Científicas Expandida -->
-			<section class="panel wide" id="references">
+			<!-- Seção de Referências Científicas - Compacta -->
+			<section class="panel wide references-compact" id="references">
 				<div class="panel-header">
-					<h2><i class="fa-solid fa-flask"></i> Referências Científicas & Evidências Clínicas</h2>
-					<p class="subtitle">Fundamentação baseada em mais de 50 anos de pesquisa em terapia vibroacústica e sincronização de ondas cerebrais.</p>
+					<h2><i class="fa-solid fa-flask"></i> Evidências Científicas</h2>
 				</div>
 
-				<!-- Sobre o Desenvolvimento -->
-				<article class="dev-credits">
-					<div class="dev-header">
-						<i class="fa-solid fa-microchip"></i>
-						<div>
-							<h3>Sobre o Desenvolvimento</h3>
-							<p>Esta aplicação foi desenvolvida com auxílio de uma <strong>equipe de desenvolvedores com décadas de experiência</strong> em tecnologias web, áudio digital e aplicações terapêuticas, utilizando ferramentas de última geração de inteligência artificial <strong>"GitHub Copilot"</strong> para garantir código otimizado, acessível e baseado em evidências científicas.</p>
+				<!-- Destaque Principal -->
+				<div class="evidence-highlight">
+					<div class="evidence-stat">
+						<span class="stat-value">81%</span>
+						<span class="stat-label">Redução de dor em fibromialgia</span>
+						<span class="stat-source">Naghdi et al., 2015</span>
+					</div>
+					<div class="evidence-stat">
+						<span class="stat-value">40Hz</span>
+						<span class="stat-label">Frequência mais estudada</span>
+						<span class="stat-source">Kantor et al., 2022</span>
+					</div>
+					<div class="evidence-stat">
+						<span class="stat-value">50+</span>
+						<span class="stat-label">Anos de pesquisa</span>
+						<span class="stat-source">Skille, 1982-presente</span>
+					</div>
+				</div>
+
+				<!-- Acordeões de Conteúdo -->
+				<div class="references-accordion">
+					<details class="ref-section">
+						<summary><i class="fa-solid fa-wave-square"></i> Terapia Vibroacústica (VAT)</summary>
+						<div class="ref-content">
+							<p><strong>Dr. Olav Skille (1982-1991)</strong> desenvolveu a VAT com ondas sinusoidais de 30-120 Hz. Resultados em 40+ anos de prática clínica incluem relaxamento muscular, vasodilatação e alívio de dor.</p>
+							<ul class="ref-highlights">
+								<li><strong>Fibromialgia:</strong> 10 sessões × 23min @ 40Hz → 81% redução de dor (Naghdi, 2015)</li>
+								<li><strong>Dor crônica:</strong> 20 estudos confirmam eficácia com 20-45min/sessão (Kantor, 2022)</li>
+								<li><strong>COVID-19:</strong> Melhora na função pulmonar em ensaio RCT (Konkayev, 2023)</li>
+							</ul>
 						</div>
-					</div>
-				</article>
+					</details>
 
-				<!-- Terapia Vibroacústica -->
-				<article class="references-text">
-					<h3><i class="fa-solid fa-wave-square"></i> Terapia Vibroacústica (VAT)</h3>
-					<p><strong>Fundamentos (Skille, 1982-1991)</strong>: O Dr. Olav Skille, pioneiro norueguês, desenvolveu a terapia vibroacústica utilizando ondas sinusoidais de <strong>30-120 Hz</strong> transmitidas através de superfícies vibrantes. Com mais de <strong>40 anos de prática clínica</strong> e pesquisa, acumulou experiência com milhares de pacientes em centros terapêuticos na Noruega e Finlândia, demonstrando que frequências específicas promovem massagem interna profunda, relaxamento muscular e vasodilatação.</p>
-					
-					<div class="evidence-card highlight-card">
-						<h4><i class="fa-solid fa-star"></i> Estudo em Fibromialgia (Naghdi et al., 2015)</h4>
-						<p>Um estudo clínico detalhado (<strong>Pain Research & Management</strong>, PMC4325896) com resultados notáveis:</p>
-						<ul>
-							<li><strong>Amostra</strong>: 19 pacientes com fibromialgia (média 5.76 anos com a condição)</li>
-							<li><strong>Protocolo</strong>: 10 sessões de <strong>23 minutos cada a 40 Hz</strong> (2x/semana por 5 semanas)</li>
-							<li><strong>Total de horas</strong>: ~3.8 horas de tratamento por paciente (~72 horas totais do estudo)</li>
-							<li><strong>Melhora na Dor (FIQ)</strong>: <strong>81%</strong> de redução (de 88.8 para 16.8, P<0.0001)</li>
-							<li><strong>Melhora no Sono (JSS)</strong>: <strong>90%</strong> de melhora (de 20 para 2, P<0.0001)</li>
-							<li><strong>Redução de Medicação</strong>: 73.68% reduziram dose; <strong>26.32% pararam totalmente</strong></li>
-							<li><strong>Mobilidade</strong>: Tempo sentado sem dor aumentou de 10 para 30 min (P<0.0001)</li>
-						</ul>
-					</div>
-
-					<div class="evidence-card">
-						<h4><i class="fa-solid fa-clipboard-check"></i> Revisão de Escopo em Dor (Kantor et al., 2022)</h4>
-						<p>Uma <strong>revisão de escopo</strong> (BMJ Open) analisou 20 estudos sobre VAT em adultos com dor:</p>
-						<ul>
-							<li><strong>Frequência predominante</strong>: 40 Hz foi a mais utilizada nos estudos</li>
-							<li><strong>Duração das sessões</strong>: 20-45 minutos por sessão</li>
-							<li><strong>Frequência de tratamento</strong>: Diária para dor aguda; 1-7x/semana para dor crônica</li>
-							<li><strong>Desfechos</strong>: Redução da dor percebida, diminuição do uso de medicamentos analgésicos</li>
-						</ul>
-					</div>
-
-					<div class="evidence-card">
-						<h4><i class="fa-solid fa-lungs"></i> Aplicações Pulmonares</h4>
-						<p>Estudos recentes (Konkayev & Bekniyazova, 2023 - Front Med) demonstraram eficácia da VAT pulmonar em pacientes com COVID-19 e insuficiência respiratória:</p>
-						<ul>
-							<li><strong>Amostra</strong>: Ensaio clínico randomizado controlado</li>
-							<li><strong>Protocolo</strong>: Vibrações torácicas de baixa frequência</li>
-							<li><strong>Resultados</strong>: Melhora na perfusão e drenagem pulmonar sem necessidade de procedimentos invasivos</li>
-						</ul>
-					</div>
-				</article>
-
-				<!-- Batimentos Binaurais -->
-				<article class="references-text">
-					<h3><i class="fa-solid fa-brain"></i> Batimentos Binaurais & Sincronização Cerebral</h3>
-					<p><strong>Descoberta (Oster, 1973)</strong>: Gerald Oster publicou no Scientific American a caracterização dos batimentos binaurais - fenômeno auditivo onde duas frequências ligeiramente diferentes apresentadas separadamente aos ouvidos criam uma percepção de pulsação na frequência da diferença.</p>
-					
-					<div class="evidence-card">
-						<h4><i class="fa-solid fa-chart-line"></i> Revisão Sistemática (2023)</h4>
-						<p>Uma <strong>revisão sistemática</strong> (Ingendoh et al., 2023 - PLoS ONE) analisou os efeitos dos batimentos binaurais na atividade oscilatória cerebral:</p>
-						<ul>
-							<li><strong>Hipótese de entrainment</strong>: Estimulação externa em frequência específica pode sincronizar a atividade eletrocortical na mesma frequência</li>
-							<li><strong>Bandas cerebrais estudadas</strong>: Delta (1-4 Hz), Teta (4-8 Hz), Alfa (8-12 Hz), Beta (12-30 Hz)</li>
-							<li><strong>Aplicações</strong>: Relaxamento, redução de ansiedade, melhora cognitiva, indução de estados meditativos</li>
-						</ul>
-					</div>
-
-					<div class="evidence-card">
-						<h4><i class="fa-solid fa-syringe"></i> Aplicação em Anestesia Pediátrica</h4>
-						<p>Um <strong>ensaio clínico randomizado controlado</strong> (Schmid et al., 2020 - British Journal of Anaesthesia):</p>
-						<ul>
-							<li><strong>Objetivo</strong>: Reduzir doses de sedativos em cirurgia pediátrica usando entrainment cerebral</li>
-							<li><strong>Método</strong>: Batimentos binaurais antes e durante procedimentos</li>
-							<li><strong>Resultado</strong>: Efeitos sedativos demonstrados com potencial para redução de doses medicamentosas</li>
-						</ul>
-					</div>
-
-					<div class="evidence-card">
-						<h4><i class="fa-solid fa-ear-listen"></i> Tratamento de Zumbido (Tinnitus)</h4>
-						<p>Estudos recentes (Prakash & Konadath, 2024-2025 - Auris Nasus Larynx; J Otol):</p>
-						<ul>
-							<li><strong>População</strong>: Indivíduos com zumbido e audição normal</li>
-							<li><strong>Intervenção</strong>: Estimulação com batimentos binaurais para entrainment cerebral</li>
-							<li><strong>Resultados</strong>: Redução de emoções negativas e handicap relacionado ao zumbido</li>
-						</ul>
-					</div>
-				</article>
-
-				<!-- Tabela de Estudos Clínicos -->
-				<div class="table-wrapper">
-					<h3><i class="fa-solid fa-table"></i> Síntese de Estudos Clínicos</h3>
-					<table>
-						<thead>
-							<tr>
-								<th>Estudo</th>
-								<th>Amostra</th>
-								<th>Protocolo</th>
-								<th>Frequência (Hz)</th>
-								<th>Desfecho Principal</th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr>
-								<td><strong>Naghdi et al., 2015</strong> (Fibromialgia)</td>
-								<td>n=19 pacientes</td>
-								<td>10 sessões × 23 min = <strong>3.8h/paciente</strong></td>
-								<td>40 Hz</td>
-								<td><strong>81% redução dor</strong>, 90% melhora sono</td>
-							</tr>
-							<tr>
-								<td>Kantor et al., 2022 (Revisão)</td>
-								<td>20 estudos revisados</td>
-								<td>20-45 min/sessão, 1-7x/semana</td>
-								<td>40 Hz (predominante)</td>
-								<td>Redução de dor crônica e aguda</td>
-							</tr>
-							<tr>
-								<td>Schmid et al., 2020 (RCT)</td>
-								<td>Crianças em cirurgia</td>
-								<td>Pré/intra-operatório</td>
-								<td>Binaurais variados</td>
-								<td>Redução de sedativos necessários</td>
-							</tr>
-							<tr>
-								<td>Zheng et al., 2009</td>
-								<td>Idosos frágeis</td>
-								<td>Programa terapêutico prolongado</td>
-								<td>Baixa frequência</td>
-								<td>Melhora capacidade funcional e circulação</td>
-							</tr>
-							<tr>
-								<td>Konkayev et al., 2023 (RCT)</td>
-								<td>COVID-19 grave</td>
-								<td>Múltiplas sessões</td>
-								<td>Baixa frequência</td>
-								<td>Melhora função pulmonar</td>
-							</tr>
-							<tr>
-								<td>Prakash & Konadath, 2024</td>
-								<td>Pacientes com Tinnitus</td>
-								<td>Tratamento prolongado</td>
-								<td>Binaurais personalizados</td>
-								<td>Redução handicap do zumbido</td>
-							</tr>
-							<tr>
-								<td>Ingendoh et al., 2023 (Sistemática)</td>
-								<td>Múltiplos estudos</td>
-								<td>Variada</td>
-								<td>Delta a Beta</td>
-								<td>Entrainment cerebral confirmado</td>
-							</tr>
-						</tbody>
-					</table>
-				</div>
-
-				<!-- Tabela de Presets -->
-				<div class="table-wrapper">
-					<h3><i class="fa-solid fa-sliders"></i> Configurações de Presets & Evidências</h3>
-					<table>
-						<thead>
-							<tr>
-								<th>Preset</th>
-								<th>Diferença (Hz)</th>
-								<th>Banda Cerebral</th>
-								<th>Efeito Esperado</th>
-								<th>Referência</th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr>
-								<td>Delta Profundo</td>
-								<td>2 Hz</td>
-								<td>Delta (0.5-4 Hz)</td>
-								<td>Sono reparador, analgesia, regeneração</td>
-								<td>Skille 1991; Wigram 1995</td>
-							</tr>
-							<tr>
-								<td>Teta Introspectiva</td>
-								<td>6 Hz</td>
-								<td>Teta (4-8 Hz)</td>
-								<td>Meditação profunda, criatividade, insight</td>
-								<td>Oster 1973; Ingendoh 2023</td>
-							</tr>
-							<tr>
-								<td>Alfa Relax</td>
-								<td>10 Hz</td>
-								<td>Alfa (8-12 Hz)</td>
-								<td>Relaxamento ansiolítico, redução de estresse</td>
-								<td>Oster 1973; Spintge</td>
-							</tr>
-							<tr>
-								<td>Sigma Regenerativo</td>
-								<td>14 Hz</td>
-								<td>Sigma/Beta baixo</td>
-								<td>Estabilização autonômica, fusos do sono</td>
-								<td>Skille 1991</td>
-							</tr>
-							<tr>
-								<td>Beta Focal</td>
-								<td>18 Hz</td>
-								<td>Beta (12-30 Hz)</td>
-								<td>Alerta suave, concentração, foco</td>
-								<td>Wigram 1995</td>
-							</tr>
-						</tbody>
-					</table>
-				</div>
-
-				<!-- Bibliografia Completa -->
-				<article class="bibliography">
-					<h3><i class="fa-solid fa-book"></i> Referências Bibliográficas Completas</h3>
-					<ol class="reference-list">
-						<li class="highlight-ref">
-							<strong>Naghdi, L., Ahonen, H., Macario, P., & Bartel, L.</strong> (2015). The effect of low-frequency sound stimulation on patients with fibromyalgia: A clinical study. <em>Pain Research & Management</em>, 20(1), e21-e27. <strong>n=19, 10 sessões × 23 min a 40 Hz, 81% redução dor.</strong>
-							<span class="doi">DOI: 10.1155/2015/375174 | PMCID: PMC4325896</span>
-						</li>
-						<li>
-							<strong>Skille, O.</strong> (1989). VibroAcoustic Therapy. <em>Music Therapy</em>, 8(1), 61-77.
-							<span class="doi">DOI: 10.1093/mt/8.1.61</span>
-						</li>
-						<li>
-							<strong>Skille, O.</strong> (1991). Manual of vibroacoustic therapy. <em>ISVA Publications</em>, Levanger, Norway.
-						</li>
-						<li>
-							<strong>Oster, G.</strong> (1973). Auditory beats in the brain. <em>Scientific American</em>, 229(4), 94-102.
-							<span class="doi">DOI: 10.1038/scientificamerican1073-94</span>
-						</li>
-						<li>
-							<strong>Wigram, T.</strong> (1995). <em>The effects of vibroacoustic therapy on clinical and non-clinical populations</em>. PhD Thesis, London University.
-						</li>
-						<li>
-							<strong>Kantor, J., Campbell, E.A., Kantorová, L., et al.</strong> (2022). Exploring vibroacoustic therapy in adults experiencing pain: a scoping review. <em>BMJ Open</em>, 12(4), e046591.
-							<span class="doi">DOI: 10.1136/bmjopen-2020-046591</span>
-						</li>
-						<li>
-							<strong>Boyd-Brewer, C., & McCaffrey, R.</strong> (2004). Vibroacoustic sound therapy improves pain management and more. <em>Holistic Nursing Practice</em>, 18(3), 111-118.
-							<span class="doi">DOI: 10.1097/00004650-200405000-00002</span>
-						</li>
-						<li>
-							<strong>Zheng, A., Sakari, R., Cheng, S.M., et al.</strong> (2009). Effects of a low-frequency sound wave therapy programme on functional capacity, blood circulation and bone metabolism in frail old men and women. <em>Clinical Rehabilitation</em>, 23(10), 897-908.
-							<span class="doi">DOI: 10.1177/0269215509337273</span>
-						</li>
-						<li>
-							<strong>Ingendoh, R.M., Posny, E.S., & Heine, A.</strong> (2023). Binaural beats to entrain the brain? A systematic review of the effects of binaural beat stimulation on brain oscillatory activity. <em>PLoS ONE</em>, 18(5), e0286023.
-							<span class="doi">DOI: 10.1371/journal.pone.0286023</span>
-						</li>
-						<li>
-							<strong>Schmid, W., Marhofer, P., Opfermann, P., et al.</strong> (2020). Brainwave entrainment to minimise sedative drug doses in paediatric surgery: a randomised controlled trial. <em>British Journal of Anaesthesia</em>, 125(3), 330-335.
-							<span class="doi">DOI: 10.1016/j.bja.2020.05.050</span>
-						</li>
-						<li>
-							<strong>Konkayev, A., & Bekniyazova, A.</strong> (2023). Vibroacoustic therapy in the treatment of patients with COVID-19 complicated by respiratory failure: a pilot randomized controlled trial. <em>Frontiers in Medicine</em>, 10, 1225384.
-							<span class="doi">DOI: 10.3389/fmed.2023.1225384</span>
-						</li>
-						<li>
-							<strong>Prakash, P., & Konadath, S.</strong> (2024). Brainwave entrainment using binaural beats stimulation: Exploring the treatment efficacy in individuals with tinnitus. <em>Auris Nasus Larynx</em>, 52(1), 1-11.
-							<span class="doi">DOI: 10.1016/j.anl.2024.11.001</span>
-						</li>
-						<li>
-							<strong>Cidral-Filho, F.J., Porter, P., & Donatello, N.N.</strong> (2025). An Integrative Review of Brainwave Entrainment Benefits for Human Health. <em>Applied Psychophysiology and Biofeedback</em>, 50(1), 3-9.
-							<span class="doi">DOI: 10.1007/s10484-024-09682-x</span>
-						</li>
-						<li>
-							<strong>Punkanen, M., & Ala-Ruona, E.</strong> (2012). Contemporary vibroacoustic therapy: perspectives on clinical practice, research, and training. <em>Music and Medicine</em>, 4(3), 128-135.
-							<span class="doi">DOI: 10.1177/1943862112445324</span>
-						</li>
-						<li>
-							<strong>Spintge, R.</strong> (Various). Music Medicine research on anxiolytic music therapy (50-70 BPM protocols). <em>International Society for Music in Medicine</em>.
-						</li>
-					</ol>
-				</article>
-
-				<!-- Aviso de Pesquisa -->
-				<article class="research-notice">
-					<div class="notice-content">
-						<i class="fa-solid fa-triangle-exclamation"></i>
-						<div>
-							<h4>Nota Importante sobre Evidências</h4>
-							<p>Embora existam evidências promissoras para terapia vibroacústica e batimentos binaurais, a revisão de Kantor et al. (2022) observa que a pesquisa ainda é esparsa para identificar propriedades ideais de VAT. <strong>Ensaios clínicos randomizados adicionais são necessários</strong> para estabelecer prova científica confiável tanto para dor aguda quanto crônica. Esta aplicação é uma <strong>ferramenta educacional</strong> e não substitui orientação médica profissional.</p>
+					<details class="ref-section">
+						<summary><i class="fa-solid fa-brain"></i> Batimentos Binaurais</summary>
+						<div class="ref-content">
+							<p><strong>Gerald Oster (1973)</strong> descreveu o fenômeno de percepção de pulsação quando frequências diferentes são apresentadas a cada ouvido.</p>
+							<ul class="ref-highlights">
+								<li><strong>Entrainment:</strong> Sincronização cerebral confirmada em revisão sistemática (Ingendoh, 2023)</li>
+								<li><strong>Anestesia pediátrica:</strong> Redução de sedativos necessários em RCT (Schmid, 2020)</li>
+								<li><strong>Tinnitus:</strong> Redução do handicap do zumbido (Prakash, 2024)</li>
+							</ul>
 						</div>
-					</div>
-				</article>
+					</details>
+
+					<details class="ref-section">
+						<summary><i class="fa-solid fa-sliders"></i> Presets Baseados em Evidências</summary>
+						<div class="ref-content">
+							<table class="ref-table-compact">
+								<tr><td><strong>Delta 2Hz</strong></td><td>Sono, analgesia, regeneração</td><td>Skille, Wigram</td></tr>
+								<tr><td><strong>Teta 6Hz</strong></td><td>Meditação, criatividade</td><td>Oster, Ingendoh</td></tr>
+								<tr><td><strong>Alfa 10Hz</strong></td><td>Relaxamento, ansiolítico</td><td>Oster, Spintge</td></tr>
+								<tr><td><strong>Beta 18Hz</strong></td><td>Concentração, foco</td><td>Wigram</td></tr>
+							</table>
+						</div>
+					</details>
+
+					<details class="ref-section">
+						<summary><i class="fa-solid fa-book"></i> Bibliografia Completa (15 referências)</summary>
+						<div class="ref-content ref-bibliography">
+							<ol class="ref-list-compact">
+								<li><strong>Naghdi et al.</strong> (2015) Pain Res Manag. DOI: 10.1155/2015/375174</li>
+								<li><strong>Skille, O.</strong> (1989) Music Therapy, 8(1). DOI: 10.1093/mt/8.1.61</li>
+								<li><strong>Oster, G.</strong> (1973) Scientific American, 229(4)</li>
+								<li><strong>Wigram, T.</strong> (1995) PhD Thesis, London University</li>
+								<li><strong>Kantor et al.</strong> (2022) BMJ Open. DOI: 10.1136/bmjopen-2020-046591</li>
+								<li><strong>Ingendoh et al.</strong> (2023) PLoS ONE. DOI: 10.1371/journal.pone.0286023</li>
+								<li><strong>Schmid et al.</strong> (2020) Br J Anaesth. DOI: 10.1016/j.bja.2020.05.050</li>
+								<li><strong>Konkayev et al.</strong> (2023) Front Med. DOI: 10.3389/fmed.2023.1225384</li>
+								<li><strong>Prakash & Konadath</strong> (2024) Auris Nasus Larynx</li>
+								<li><strong>Zheng et al.</strong> (2009) Clin Rehabil. DOI: 10.1177/0269215509337273</li>
+								<li><strong>Boyd-Brewer & McCaffrey</strong> (2004) Holist Nurs Pract</li>
+								<li><strong>Punkanen & Ala-Ruona</strong> (2012) Music Med</li>
+								<li><strong>Cidral-Filho et al.</strong> (2025) Appl Psychophysiol Biofeedback</li>
+								<li><strong>Spintge, R.</strong> ISMM - Music Medicine research</li>
+								<li><strong>Blauert, J.</strong> (1997) Spatial Hearing, MIT Press</li>
+							</ol>
+						</div>
+					</details>
+				</div>
+
+				<!-- Aviso Compacto -->
+				<div class="research-notice-compact">
+					<i class="fa-solid fa-triangle-exclamation"></i>
+					<span>Ferramenta educacional. A pesquisa ainda está em evolução (Kantor, 2022). Não substitui orientação médica.</span>
+				</div>
 			</section>
 		</main>
 
 		<footer class="site-footer">
 			<div class="footer-content">
-				<!-- Informações Legais -->
-				<div class="footer-legal">
-					<div class="footer-legal__badges">
-						<span class="legal-badge"><i class="fa-solid fa-shield-halved"></i> LGPD</span>
-						<span class="legal-badge"><i class="fa-solid fa-user-shield"></i> GDPR</span>
-						<span class="legal-badge"><i class="fa-solid fa-lock"></i> Dados Locais</span>
+				<!-- Grid compacto do footer -->
+				<div class="footer-grid">
+					<div class="footer-legal">
+						<div class="footer-legal__badges">
+							<span class="legal-badge"><i class="fa-solid fa-shield-halved"></i> LGPD</span>
+							<span class="legal-badge"><i class="fa-solid fa-user-shield"></i> GDPR</span>
+							<span class="legal-badge"><i class="fa-solid fa-lock"></i> Local</span>
+						</div>
+						<p class="footer-legal__text">Dados armazenados <strong>exclusivamente no dispositivo</strong>.</p>
 					</div>
-					<p class="footer-legal__text">
-						<i class="fa-solid fa-circle-info"></i>
-						Este aplicativo armazena dados <strong>exclusivamente no seu dispositivo</strong>. 
-						Nenhuma informação é transmitida para servidores externos. 
-						Em conformidade com a <strong>LGPD</strong> (Lei nº 13.709/2018 - Brasil) e <strong>GDPR</strong> (Regulamento UE 2016/679 - Europa).
-					</p>
-				</div>
 
-				<!-- Contato -->
-				<div class="footer-contact">
-					<h4><i class="fa-solid fa-headset"></i> Suporte Terra Eletrônica</h4>
-					<div class="footer-contact__links">
+					<div class="footer-contact">
 						<a href="mailto:terra@terraeletronica.com.br" class="contact-link" title="E-mail">
-							<i class="fa-solid fa-envelope"></i>
-							<span>terra@terraeletronica.com.br</span>
+							<i class="fa-solid fa-envelope"></i> terra@terraeletronica.com.br
 						</a>
 						<a href="https://wa.me/5512991653176" class="contact-link contact-link--whatsapp" target="_blank" rel="noopener" title="WhatsApp">
-							<i class="fa-brands fa-whatsapp"></i>
-							<span>(12) 99165-3176</span>
+							<i class="fa-brands fa-whatsapp"></i> (12) 99165-3176
 						</a>
+					</div>
+
+					<div class="footer-actions">
+						<button type="button" id="repeatTutorialBtn" class="footer-btn" title="Tutorial">
+							<i class="fa-solid fa-graduation-cap"></i>
+						</button>
+						<button type="button" id="showTermsBtn" class="footer-btn" title="Termos">
+							<i class="fa-solid fa-file-contract"></i>
+						</button>
 					</div>
 				</div>
 
-				<!-- Ações Rápidas -->
-				<div class="footer-actions">
-					<button type="button" id="repeatTutorialBtn" class="footer-btn" title="Repetir o tutorial guiado">
-						<i class="fa-solid fa-graduation-cap"></i> Ver Tutorial
-					</button>
-					<button type="button" id="showTermsBtn" class="footer-btn" title="Ver termos de uso">
-						<i class="fa-solid fa-file-contract"></i> Termos de Uso
-					</button>
-				</div>
-
-				<!-- Copyright -->
 				<div class="footer-copyright">
-					<p>© <span id="year"></span> Terra Sensory Musical — ferramenta auxiliar para profissionais qualificados clientes da Terra Eletrônica.</p>
+					<p>© <span id="year"></span> Terra Sensory Musical — Terra Eletrônica</p>
 				</div>
 			</div>
 		</footer>
