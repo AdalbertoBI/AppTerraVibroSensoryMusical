@@ -1378,6 +1378,17 @@ function registerServiceWorker() {
 		return;
 	}
 
+	// Flag para evitar múltiplos reloads
+	let refreshing = false;
+	
+	// Listener CRÍTICO: quando um novo SW assume o controle, recarrega a página
+	navigator.serviceWorker.addEventListener('controllerchange', () => {
+		if (refreshing) return;
+		refreshing = true;
+		console.log('[App] Novo Service Worker assumiu - recarregando página...');
+		window.location.reload();
+	});
+
 	state.wb = new Workbox('sw.js');
 
 	// Quando há uma nova versão esperando
@@ -1398,8 +1409,8 @@ function registerServiceWorker() {
 	// Quando o SW é ativado
 	state.wb.addEventListener('activated', (event) => {
 		if (event.isUpdate) {
-			console.log('[App] Nova versão ativada - recarregando...');
-			window.location.reload();
+			console.log('[App] Nova versão ativada');
+			// O reload será feito pelo controllerchange listener
 		}
 	});
 
@@ -1480,9 +1491,9 @@ function showUpdateNotification(waitingSW = null) {
 
 	// Botão "Atualizar agora" - ativa o novo SW
 	banner.querySelector('.update-banner__btn--update').addEventListener('click', () => {
-		banner.querySelector('.update-banner__btn--update').innerHTML = 
-			'<i class="fa-solid fa-spinner fa-spin"></i> Atualizando...';
-		banner.querySelector('.update-banner__btn--update').disabled = true;
+		const updateBtn = banner.querySelector('.update-banner__btn--update');
+		updateBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Atualizando...';
+		updateBtn.disabled = true;
 		banner.querySelector('.update-banner__btn--later').disabled = true;
 
 		if (waitingSW) {
@@ -1490,6 +1501,12 @@ function showUpdateNotification(waitingSW = null) {
 		} else if (state.wb) {
 			state.wb.messageSkipWaiting();
 		}
+		
+		// Fallback: se após 3 segundos não recarregou, força o reload
+		setTimeout(() => {
+			console.log('[App] Fallback: forçando reload...');
+			window.location.reload();
+		}, 3000);
 	});
 }
 

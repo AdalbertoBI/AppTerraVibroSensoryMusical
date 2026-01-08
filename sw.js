@@ -15,7 +15,7 @@ importScripts('https://storage.googleapis.com/workbox-cdn/releases/6.5.4/workbox
  * IMPORTANTE: Incremente APP_VERSION a cada deploy!
  */
 
-const APP_VERSION = '1.0.1.5';
+const APP_VERSION = '1.0.1.6';
 const CACHE_PREFIX = 'terra-sensory';
 const CACHE_NAME = `${CACHE_PREFIX}-v${APP_VERSION}`;
 
