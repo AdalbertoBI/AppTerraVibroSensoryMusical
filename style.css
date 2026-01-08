@@ -5021,7 +5021,7 @@ fieldset:focus-within {
 	box-shadow: 
 		0 20px 50px rgba(0, 0, 0, 0.5),
 		0 0 30px rgba(139, 92, 246, 0.2);
-	z-index: 10002;
+	z-index: 10010;
 	pointer-events: auto;
 	transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 	overflow: hidden;
@@ -5215,6 +5215,11 @@ fieldset:focus-within {
 	position: relative;
 	z-index: 10001 !important;
 	pointer-events: auto !important;
+}
+
+/* Tooltip SEMPRE sobre tudo */
+.guided-tutorial__tooltip {
+	z-index: 10010 !important;
 }
 
 /* Responsivo */
