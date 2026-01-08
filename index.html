@@ -354,19 +354,19 @@
 											<option value="classical">Clássica</option>
 										</select>
 										<button type="button" id="archiveSearchBtn" class="secondary"><i class="fa-solid fa-search"></i></button>
-									</div>
-									<div id="archiveResults" class="archive-results"></div>
+							</div>
+							<div id="archiveResults" class="archive-results"></div>
 									<div id="archiveStatus" class="archive-status"></div>
 								</div>
 							</details>
 							
-							<!-- Lista de Músicas -->
-							<ul id="musicList" class="list music-list"></ul>
-							
-							<!-- Playlist -->
-							<div class="playlist-selector">
-								<label for="playlistSelect"><i class="fa-solid fa-list-music"></i> Playlist da sessão</label>
-								<select id="playlistSelect" multiple></select>
+							<!-- Playlist Unificada -->
+							<div class="playlist-unified">
+								<div class="playlist-header">
+									<label id="playlistLabel"><i class="fa-solid fa-list-music"></i> Playlist da Sessão</label>
+									<span class="playlist-count" id="playlistCount">0 selecionadas</span>
+								</div>
+								<ul id="playlistSelect" class="playlist-list" role="listbox" aria-multiselectable="true" aria-labelledby="playlistLabel"></ul>
 								<div id="musicSuggestions" class="suggestions"></div>
 							</div>
 						</div>

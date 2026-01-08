@@ -3,7 +3,7 @@
  * TERRA SENSORY MUSICAL - Aplicação Principal
  * =============================================================================
  * 
- * Versão: 1.2.2.0
+ * Versão: 1.0.0.0.1
  * 
  * Ponto de entrada principal que inicializa e conecta todos os módulos:
  * - Audio: binaurais, 8D, player, enhancer

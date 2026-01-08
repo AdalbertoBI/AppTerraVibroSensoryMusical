@@ -7,6 +7,7 @@ const state = {
 	presets: [],
 	musicMeta: [],
 	playlistQueue: [],
+	selectedPlaylist: [],
 	currentTrackIndex: 0,
 	currentHowl: null,
 	mixRatio: 0.7,
@@ -24,6 +25,21 @@ const state = {
 	patients: [],
 	currentPatient: null,
 	patientFormStep: 0,
+	// Audio 8D
+	audio8D: {
+		enabled: false,
+		speed: 50,
+		intensity: 80,
+		pattern: 'circular',
+		angle: 0,
+		animationId: null,
+		targetPan: 0,
+		lastPan: 0
+	},
+	// Enhancer
+	enhancer: {
+		enabled: false
+	},
 	// Monitor de Áudio
 	audioMonitor: {
 		isOpen: false,
@@ -418,11 +434,11 @@ function cacheDom() {
 	ui.lowPass = document.getElementById('lowPass');
 	ui.lowPassValue = document.getElementById('lowPassValue');
 	ui.playlistSelect = document.getElementById('playlistSelect');
+	ui.playlistCount = document.getElementById('playlistCount');
 	ui.musicSuggestions = document.getElementById('musicSuggestions');
 	ui.startSessionBtn = document.getElementById('startSessionBtn');
 	ui.audioUpload = document.getElementById('audioUpload');
 	ui.dropZone = document.getElementById('dropZone');
-	ui.musicList = document.getElementById('musicList');
 	ui.playBtn = document.getElementById('playBtn');
 	ui.pauseBtn = document.getElementById('pauseBtn');
 	ui.stopBtn = document.getElementById('stopBtn');
@@ -555,6 +571,13 @@ function cacheDom() {
 	ui.audio8dIntensity = document.getElementById('audio8dIntensity');
 	ui.audio8dIntensityValue = document.getElementById('audio8dIntensityValue');
 	ui.enhancerPreset = document.getElementById('enhancerPreset');
+	
+	// EQ controls
+	ui.eqLow = document.getElementById('eqLow');
+	ui.eqMid = document.getElementById('eqMid');
+	ui.eqHigh = document.getElementById('eqHigh');
+	ui.compressorRatio = document.getElementById('compressorRatio');
+	ui.compressorValue = document.getElementById('compressorValue');
 }
 
 function attachListeners() {
@@ -603,7 +626,8 @@ function attachListeners() {
 	['dragover', 'drop', 'dragleave'].forEach((evt) => {
 		ui.dropZone.addEventListener(evt, handleDropZone, false);
 	});
-	ui.musicList.addEventListener('click', handleMusicActions);
+	ui.playlistSelect.addEventListener('click', handlePlaylistActions);
+	ui.playlistSelect.addEventListener('change', handlePlaylistSelectionChange);
 	ui.presetList.addEventListener('click', handlePresetActions);
 	window.addEventListener('online', updateConnectivity);
 	window.addEventListener('offline', updateConnectivity);
@@ -772,6 +796,28 @@ function attachListeners() {
 	}
 	if (ui.enhancerPreset) {
 		ui.enhancerPreset.addEventListener('change', updateEnhancerSettings);
+	}
+	
+	// EQ Sliders
+	if (ui.eqLow) {
+		ui.eqLow.addEventListener('input', updateEQFromSliders);
+	}
+	if (ui.eqMid) {
+		ui.eqMid.addEventListener('input', updateEQFromSliders);
+	}
+	if (ui.eqHigh) {
+		ui.eqHigh.addEventListener('input', updateEQFromSliders);
+	}
+	if (ui.compressorRatio) {
+		ui.compressorRatio.addEventListener('input', () => {
+			const ratio = parseFloat(ui.compressorRatio.value);
+			if (ui.compressorValue) {
+				ui.compressorValue.textContent = `${ratio}:1`;
+			}
+			if (state.enhancer.enabled && state.enhancer.nodes.compressor) {
+				state.enhancer.nodes.compressor.ratio.value = ratio;
+			}
+		});
 	}
 }
 
@@ -1076,9 +1122,10 @@ function loadPresetToForm(preset) {
 }
 
 function selectPlaylistOptions(ids) {
-	[...ui.playlistSelect.options].forEach((option) => {
-		option.selected = ids.includes(option.value);
-	});
+	// Update selected playlist state
+	state.selectedPlaylist = [...ids];
+	// Re-render to reflect changes
+	renderPlaylistUnified();
 }
 
 async function handlePresetSave(event) {
@@ -1097,7 +1144,8 @@ async function handlePresetSave(event) {
 }
 
 function collectPresetFromForm() {
-	const playlist = [...ui.playlistSelect.selectedOptions].map((opt) => opt.value);
+	// Get selected tracks from state
+	const playlist = state.selectedPlaylist || [];
 	return {
 		id: ui.form.dataset.editingId || uuid(),
 		name: ui.form.presetName.value.trim() || 'Preset sem nome',
@@ -1418,15 +1466,55 @@ async function playCurrentTrack() {
 	}
 	const objectUrl = URL.createObjectURL(blob);
 	state.musicObjectUrls.push(objectUrl);
+	
+	// Detecta o formato do áudio baseado no MIME type
+	const mimeType = blob.type || 'audio/mpeg';
+	const format = getAudioFormat(mimeType);
+	
 	state.currentHowl = new Howl({
 		src: [objectUrl],
+		format: [format],
 		loop: true,
-		html5: true,
+		html5: false, // IMPORTANTE: usar Web Audio API para suportar stereo panning (8D)
 		volume: 1 - state.mixRatio,
-		stereo: state.currentPan,
-		onplay: () => console.log('Howler reproduzindo', trackId)
+		onplay: () => {
+			console.log('Howler reproduzindo', trackId, 'formato:', format);
+			// Aplica 8D se estiver ativo
+			if (state.audio8D.enabled) {
+				// Howler.stereo() funciona nativamente com html5: false
+				console.log('Audio 8D: Ativo na sessão');
+			}
+		},
+		onloaderror: (id, err) => console.error('Erro ao carregar áudio:', err, 'formato:', format, 'tipo:', mimeType),
+		onplayerror: (id, err) => {
+			console.error('Erro ao reproduzir áudio:', err);
+			state.currentHowl.once('unlock', () => {
+				state.currentHowl.play();
+			});
+		}
 	});
 	state.currentHowl.play();
+}
+
+/**
+ * Detecta o formato de áudio a partir do MIME type
+ */
+function getAudioFormat(mimeType) {
+	const formatMap = {
+		'audio/mpeg': 'mp3',
+		'audio/mp3': 'mp3',
+		'audio/mp4': 'm4a',
+		'audio/m4a': 'm4a',
+		'audio/aac': 'aac',
+		'audio/ogg': 'ogg',
+		'audio/wav': 'wav',
+		'audio/wave': 'wav',
+		'audio/webm': 'webm',
+		'audio/flac': 'flac',
+		'audio/x-wav': 'wav',
+		'audio/x-m4a': 'm4a'
+	};
+	return formatMap[mimeType] || 'mp3';
 }
 
 function stopCurrentTrack() {
@@ -1596,8 +1684,24 @@ function computeLowEnergyPercent(data, sampleRate) {
 	return totalEnergy === 0 ? 0 : (lowEnergy / totalEnergy) * 100;
 }
 
+// Preview state tracking
+let currentPreview = null;
+let currentPreviewId = null;
+
 function renderMusicList() {
-	ui.musicList.innerHTML = '';
+	renderPlaylistUnified();
+}
+
+function updatePlaylistSelect() {
+	renderPlaylistUnified();
+}
+
+function renderPlaylistUnified() {
+	ui.playlistSelect.innerHTML = '';
+	
+	// Get previously selected tracks
+	const selectedTracks = state.selectedPlaylist || [];
+	
 	state.musicMeta.forEach((track) => {
 		let originLabel = 'Upload';
 		let originClass = 'badge user';
@@ -1608,69 +1712,215 @@ function renderMusicList() {
 			originLabel = 'Archive';
 			originClass = 'badge archive';
 		}
+		
+		const isSelected = selectedTracks.includes(track.id);
+		const isPlaying = currentPreviewId === track.id;
+		
 		const li = document.createElement('li');
+		li.className = `playlist-item${isSelected ? ' selected' : ''}${isPlaying ? ' playing' : ''}`;
 		li.dataset.id = track.id;
+		li.setAttribute('role', 'option');
+		li.setAttribute('aria-selected', isSelected);
+		
+		const sizeMB = ((track.size || 0) / 1024 / 1024).toFixed(2);
+		
 		li.innerHTML = `
-			<div>
+			<input type="checkbox" class="playlist-checkbox" ${isSelected ? 'checked' : ''} data-action="select" aria-label="Selecionar ${track.name}">
+			<div class="playlist-info" data-action="toggle">
 				<strong>${track.name}</strong>
-				<p class="helper">${((track.size || 0) / 1024 / 1024).toFixed(2)} MB • ${track.lowEnergyPct ?? '--'}% graves</p>
-				${track.description ? `<small class="helper subtle">${track.description}</small>` : ''}
+				<div class="playlist-meta">
+					<span class="tag">${track.tag}</span>
+					<span class="${originClass}">${originLabel}</span>
+					<span class="size">${sizeMB} MB • ${track.lowEnergyPct ?? '--'}% graves</span>
+				</div>
 			</div>
-			<div class="actions">
-				<span class="tag">${track.tag}</span>
-				<span class="${originClass}">${originLabel}</span>
-				<button class="ghost" data-action="preview">Preview</button>
-				<button class="secondary" data-action="delete">Excluir</button>
+			<div class="playlist-actions">
+				<button class="btn-preview${isPlaying ? ' playing' : ''}" data-action="preview" title="${isPlaying ? 'Parar' : 'Preview'}">
+					<i class="fa-solid ${isPlaying ? 'fa-stop' : 'fa-play'}"></i>
+					<span>${isPlaying ? 'Stop' : 'Preview'}</span>
+				</button>
+				<button class="btn-delete" data-action="delete" title="Excluir">
+					<i class="fa-solid fa-trash"></i>
+				</button>
 			</div>
 		`;
-		ui.musicList.append(li);
+		ui.playlistSelect.append(li);
 	});
+	
+	// Update counter
+	updatePlaylistCounter();
 }
 
-async function handleMusicActions(event) {
-	const button = event.target.closest('button');
-	if (!button) return;
-	const li = button.closest('li');
-	const trackId = li.dataset.id;
-	if (button.dataset.action === 'delete') {
-		await removeTrack(trackId);
+function updatePlaylistCounter() {
+	const selectedCount = (state.selectedPlaylist || []).length;
+	if (ui.playlistCount) {
+		ui.playlistCount.textContent = `${selectedCount} selecionada${selectedCount !== 1 ? 's' : ''}`;
 	}
-	if (button.dataset.action === 'preview') {
-		previewTrack(trackId);
+}
+
+function handlePlaylistSelectionChange(event) {
+	const checkbox = event.target.closest('.playlist-checkbox');
+	if (!checkbox) return;
+	
+	const li = checkbox.closest('.playlist-item');
+	const trackId = li.dataset.id;
+	
+	if (!state.selectedPlaylist) {
+		state.selectedPlaylist = [];
+	}
+	
+	if (checkbox.checked) {
+		if (!state.selectedPlaylist.includes(trackId)) {
+			state.selectedPlaylist.push(trackId);
+		}
+		li.classList.add('selected');
+	} else {
+		state.selectedPlaylist = state.selectedPlaylist.filter(id => id !== trackId);
+		li.classList.remove('selected');
+	}
+	
+	li.setAttribute('aria-selected', checkbox.checked);
+	updatePlaylistCounter();
+}
+
+async function handlePlaylistActions(event) {
+	const button = event.target.closest('button');
+	const info = event.target.closest('.playlist-info');
+	
+	if (info) {
+		// Click on info area toggles checkbox
+		const li = info.closest('.playlist-item');
+		const checkbox = li.querySelector('.playlist-checkbox');
+		checkbox.checked = !checkbox.checked;
+		checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+		return;
+	}
+	
+	if (!button) return;
+	
+	const li = button.closest('.playlist-item');
+	const trackId = li.dataset.id;
+	const action = button.dataset.action;
+	
+	if (action === 'delete') {
+		await removeTrack(trackId);
+	} else if (action === 'preview') {
+		togglePreview(trackId, button, li);
 	}
 }
 
 async function removeTrack(trackId) {
+	// Stop preview if playing this track
+	if (currentPreviewId === trackId) {
+		stopPreview();
+	}
+	
 	await stores.music.removeItem(trackId);
 	state.musicMeta = state.musicMeta.filter((track) => track.id !== trackId);
+	
+	// Remove from selected playlist
+	if (state.selectedPlaylist) {
+		state.selectedPlaylist = state.selectedPlaylist.filter(id => id !== trackId);
+	}
+	
 	await stores.data.setItem(STORAGE_KEYS.MUSIC_META, state.musicMeta);
-	renderMusicList();
-	updatePlaylistSelect();
+	renderPlaylistUnified();
 	console.log('Track removida', trackId);
 }
 
-async function previewTrack(trackId) {
+async function togglePreview(trackId, button, li) {
+	// If same track is playing, stop it
+	if (currentPreviewId === trackId && currentPreview) {
+		stopPreview();
+		return;
+	}
+	
+	// Stop any existing preview
+	stopPreview();
+	
 	const blob = await stores.music.getItem(trackId);
 	if (!blob) return;
+	
 	const url = URL.createObjectURL(blob);
-	const preview = new Howl({ src: [url], volume: 0.4, stereo: state.currentPan });
-	preview.play();
+	currentPreviewId = trackId;
+	
+	// Update UI
+	button.classList.add('playing');
+	button.innerHTML = '<i class="fa-solid fa-stop"></i><span>Stop</span>';
+	button.title = 'Parar';
+	li.classList.add('playing');
+	
+	// Detectar formato do áudio a partir do MIME type do blob
+	const mimeToFormat = {
+		'audio/mpeg': 'mp3',
+		'audio/mp3': 'mp3',
+		'audio/wav': 'wav',
+		'audio/wave': 'wav',
+		'audio/ogg': 'ogg',
+		'audio/webm': 'webm',
+		'audio/aac': 'aac',
+		'audio/mp4': 'm4a',
+		'audio/x-m4a': 'm4a',
+		'audio/flac': 'flac'
+	};
+	const format = mimeToFormat[blob.type] || 'mp3';
+	
+	currentPreview = new Howl({
+		src: [url],
+		format: [format],
+		html5: false, // IMPORTANTE: usar Web Audio API para suportar stereo panning (8D)
+		volume: 0.4,
+		stereo: state.currentPan,
+		onend: () => {
+			stopPreview();
+			URL.revokeObjectURL(url);
+		},
+		onstop: () => {
+			URL.revokeObjectURL(url);
+		},
+		onloaderror: (id, err) => console.error('Preview: erro ao carregar:', err, 'formato:', format, 'tipo:', blob.type)
+	});
+	
+	currentPreview.play();
+	
+	// Auto-stop after 10 seconds
 	setTimeout(() => {
-		preview.stop();
-		preview.unload();
-		URL.revokeObjectURL(url);
-	}, 4000);
+		if (currentPreviewId === trackId) {
+			stopPreview();
+		}
+	}, 10000);
 }
 
-function updatePlaylistSelect() {
-	ui.playlistSelect.innerHTML = '';
-	state.musicMeta.forEach((track) => {
-		const option = document.createElement('option');
-		option.value = track.id;
-		const originSuffix = track.origin === 'textura-nativa' ? 'nativo' : 'upload';
-		option.textContent = `${track.name} (${track.tag} • ${originSuffix})`;
-		ui.playlistSelect.append(option);
-	});
+function stopPreview() {
+	if (currentPreview) {
+		currentPreview.stop();
+		currentPreview.unload();
+		currentPreview = null;
+	}
+	
+	if (currentPreviewId) {
+		// Update UI for the stopped track
+		const li = ui.playlistSelect.querySelector(`[data-id="${currentPreviewId}"]`);
+		if (li) {
+			li.classList.remove('playing');
+			const btn = li.querySelector('.btn-preview');
+			if (btn) {
+				btn.classList.remove('playing');
+				btn.innerHTML = '<i class="fa-solid fa-play"></i><span>Preview</span>';
+				btn.title = 'Preview';
+			}
+		}
+		currentPreviewId = null;
+	}
+}
+
+// Legacy function kept for compatibility
+async function previewTrack(trackId) {
+	const li = ui.playlistSelect.querySelector(`[data-id="${trackId}"]`);
+	const button = li?.querySelector('.btn-preview');
+	if (li && button) {
+		togglePreview(trackId, button, li);
+	}
 }
 
 function logSession(preset) {
@@ -4190,10 +4440,17 @@ function stopAudio8D() {
 	if (state.currentHowl) {
 		state.currentHowl.stereo(state.currentPan);
 	}
+	
+	// Reseta também o preview
+	if (currentPreview) {
+		currentPreview.stereo(state.currentPan);
+	}
 }
 
 /**
- * Anima o pan do Audio 8D usando Howler.stereo()
+ * Anima o pan do Audio 8D
+ * Usa Web Audio API StereoPannerNode quando disponível, 
+ * fallback para Howler.stereo() quando não
  */
 function startAudio8DAnimation() {
 	let lastTime = performance.now();
@@ -4238,19 +4495,18 @@ function startAudio8DAnimation() {
 					state.audio8D.targetPan = (Math.random() * 2 - 1) * intensity;
 				}
 				// Interpola suavemente para o target
-				const currentPan = state.audio8D.lastPan || 0;
+				const currPan = state.audio8D.lastPan || 0;
 				const target = state.audio8D.targetPan || 0;
-				panValue = currentPan + (target - currentPan) * 0.05;
+				panValue = currPan + (target - currPan) * 0.05;
 				state.audio8D.lastPan = panValue;
 				break;
 			default:
 				panValue = Math.sin(state.audio8D.angle) * intensity;
 		}
 		
-		// Aplica o pan ao Howler (stereo aceita -1 a 1)
-		if (state.currentHowl) {
-			state.currentHowl.stereo(panValue);
-		}
+		// Aplica o pan - tenta via Web Audio API primeiro, fallback para Howler
+		applyPanToHowl(state.currentHowl, panValue);
+		applyPanToHowl(currentPreview, panValue);
 		
 		// Continua a animação
 		state.audio8D.animationId = requestAnimationFrame(animate);
@@ -4258,6 +4514,21 @@ function startAudio8DAnimation() {
 	
 	// Inicia a animação
 	state.audio8D.animationId = requestAnimationFrame(animate);
+}
+
+/**
+ * Aplica pan a um Howl usando Howler.stereo()
+ * Com html5: false, isso funciona nativamente via Web Audio API
+ */
+function applyPanToHowl(howl, panValue) {
+	if (!howl) return;
+	
+	try {
+		// Com html5: false, Howler.stereo() usa Web Audio API nativamente
+		howl.stereo(panValue);
+	} catch (e) {
+		console.warn('Erro ao aplicar pan:', e);
+	}
 }
 
 /**
@@ -4313,15 +4584,21 @@ function toggleEnhancer() {
 
 /**
  * Inicializa o Enhancer com EQ e compressão
+ * Funciona interceptando o Howler.masterGain
  */
 function initEnhancer() {
-	if (!state.audioCtx) return;
+	// Usa o AudioContext do Howler (criado quando html5: false)
+	const ctx = Howler.ctx;
+	if (!ctx) {
+		console.warn('Enhancer: AudioContext não disponível');
+		return;
+	}
 	
 	try {
 		// Cria nós se não existirem
 		if (!state.enhancer.nodes.compressor) {
 			// Compressor dinâmico
-			state.enhancer.nodes.compressor = state.audioCtx.createDynamicsCompressor();
+			state.enhancer.nodes.compressor = ctx.createDynamicsCompressor();
 			state.enhancer.nodes.compressor.threshold.value = -24;
 			state.enhancer.nodes.compressor.knee.value = 12;
 			state.enhancer.nodes.compressor.ratio.value = 4;
@@ -4329,70 +4606,103 @@ function initEnhancer() {
 			state.enhancer.nodes.compressor.release.value = 0.25;
 			
 			// EQ básico (3 bandas)
-			state.enhancer.nodes.lowShelf = state.audioCtx.createBiquadFilter();
+			state.enhancer.nodes.lowShelf = ctx.createBiquadFilter();
 			state.enhancer.nodes.lowShelf.type = 'lowshelf';
 			state.enhancer.nodes.lowShelf.frequency.value = 200;
 			state.enhancer.nodes.lowShelf.gain.value = 2;
 			
-			state.enhancer.nodes.midPeaking = state.audioCtx.createBiquadFilter();
+			state.enhancer.nodes.midPeaking = ctx.createBiquadFilter();
 			state.enhancer.nodes.midPeaking.type = 'peaking';
 			state.enhancer.nodes.midPeaking.frequency.value = 1000;
 			state.enhancer.nodes.midPeaking.Q.value = 1;
 			state.enhancer.nodes.midPeaking.gain.value = 1;
 			
-			state.enhancer.nodes.highShelf = state.audioCtx.createBiquadFilter();
+			state.enhancer.nodes.highShelf = ctx.createBiquadFilter();
 			state.enhancer.nodes.highShelf.type = 'highshelf';
 			state.enhancer.nodes.highShelf.frequency.value = 3000;
 			state.enhancer.nodes.highShelf.gain.value = 2;
 		}
 		
-		// Conecta a cadeia se houver áudio
-		if (state.currentHowl && state.howlSource) {
-			// Se 8D estiver ativo, conecta após o panner
-			const inputNode = state.audio8D.enabled && state.audio8D.pannerNode 
-				? state.audio8D.pannerNode 
-				: state.howlSource;
-			
+		// Conecta a cadeia interceptando o Howler.masterGain
+		// Howler: masterGain -> destination
+		// Com Enhancer: masterGain -> lowShelf -> mid -> high -> compressor -> destination
+		if (Howler.masterGain) {
 			try {
-				inputNode.disconnect();
-				inputNode.connect(state.enhancer.nodes.lowShelf);
+				// Desconecta masterGain do destination
+				Howler.masterGain.disconnect();
+				
+				// Conecta a cadeia de efeitos
+				Howler.masterGain.connect(state.enhancer.nodes.lowShelf);
 				state.enhancer.nodes.lowShelf.connect(state.enhancer.nodes.midPeaking);
 				state.enhancer.nodes.midPeaking.connect(state.enhancer.nodes.highShelf);
 				state.enhancer.nodes.highShelf.connect(state.enhancer.nodes.compressor);
-				state.enhancer.nodes.compressor.connect(state.masterGain);
+				state.enhancer.nodes.compressor.connect(ctx.destination);
+				
+				state.enhancer.connected = true;
+				console.log('Enhancer: Conectado ao Howler.masterGain');
 			} catch (e) {
-				console.warn('Enhancer: não foi possível conectar', e);
+				console.warn('Enhancer: Erro ao conectar:', e);
 			}
 		}
 		
 		applyEnhancerPreset();
+		updateEQFromSliders();
 	} catch (error) {
 		console.error('Erro ao inicializar Enhancer:', error);
 	}
 }
 
 /**
- * Para o Enhancer
+ * Para o Enhancer e reconecta o áudio direto
  */
 function stopEnhancer() {
-	// Reconecta direto ao master
-	if (state.currentHowl && state.howlSource) {
-		try {
-			// Desconecta tudo primeiro
-			if (state.enhancer.nodes.compressor) {
-				state.enhancer.nodes.compressor.disconnect();
-			}
-			
-			// Reconecta baseado no estado do 8D
-			const inputNode = state.audio8D.enabled && state.audio8D.pannerNode 
-				? state.audio8D.pannerNode 
-				: state.howlSource;
-			
-			inputNode.disconnect();
-			inputNode.connect(state.masterGain);
-		} catch (e) {
-			console.warn('Enhancer: não foi possível desconectar', e);
+	const ctx = Howler.ctx;
+	if (!ctx || !Howler.masterGain) return;
+	
+	try {
+		// Desconecta a cadeia de efeitos
+		if (state.enhancer.nodes.compressor) {
+			state.enhancer.nodes.compressor.disconnect();
 		}
+		if (state.enhancer.nodes.highShelf) {
+			state.enhancer.nodes.highShelf.disconnect();
+		}
+		if (state.enhancer.nodes.midPeaking) {
+			state.enhancer.nodes.midPeaking.disconnect();
+		}
+		if (state.enhancer.nodes.lowShelf) {
+			state.enhancer.nodes.lowShelf.disconnect();
+		}
+		
+		// Reconecta masterGain direto ao destination
+		Howler.masterGain.disconnect();
+		Howler.masterGain.connect(ctx.destination);
+		
+		state.enhancer.connected = false;
+		console.log('Enhancer: Desconectado');
+	} catch (e) {
+		console.warn('Enhancer: Erro ao desconectar:', e);
+	}
+}
+
+/**
+ * Atualiza EQ a partir dos sliders
+ */
+function updateEQFromSliders() {
+	if (!state.enhancer.enabled) return;
+	
+	const lowValue = ui.eqLow ? parseFloat(ui.eqLow.value) : 0;
+	const midValue = ui.eqMid ? parseFloat(ui.eqMid.value) : 0;
+	const highValue = ui.eqHigh ? parseFloat(ui.eqHigh.value) : 0;
+	
+	if (state.enhancer.nodes.lowShelf) {
+		state.enhancer.nodes.lowShelf.gain.value = lowValue;
+	}
+	if (state.enhancer.nodes.midPeaking) {
+		state.enhancer.nodes.midPeaking.gain.value = midValue;
+	}
+	if (state.enhancer.nodes.highShelf) {
+		state.enhancer.nodes.highShelf.gain.value = highValue;
 	}
 }
 
