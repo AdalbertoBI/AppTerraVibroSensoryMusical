@@ -416,7 +416,7 @@ async function initApp() {
 	setFooterYear();
 	initScientificTicker();
 	updatePatientBar();
-	console.log('Terra Sensory Musical pronto. Presets carregados:', state.presets.length);
+	console.log('Terra Vibro Sensory Musical pronto. Presets carregados:', state.presets.length);
 }
 
 function cacheDom() {
@@ -1986,7 +1986,7 @@ function setupMediaSession(preset) {
 	
 	navigator.mediaSession.metadata = new MediaMetadata({
 		title: preset.name || 'Sessão Binaural',
-		artist: 'Terra Sensory Musical',
+		artist: 'Terra Vibro Sensory Musical',
 		album: `${preset.diffHz}Hz ${describeDiffBand(preset.diffHz).label}`,
 		artwork: [
 			{ src: 'icons/terra-sensory.svg', sizes: '512x512', type: 'image/svg+xml' }

@@ -1,6 +1,6 @@
 /**
  * =============================================================================
- * TERRA SENSORY MUSICAL - Contexto de Áudio Principal
+ * TERRA VIBRO SENSORY MUSICAL - Contexto de Áudio Principal
  * =============================================================================
  * 
  * Gerencia o AudioContext e o grafo de áudio principal.

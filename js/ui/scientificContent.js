@@ -1,6 +1,6 @@
 /**
  * =============================================================================
- * TERRA SENSORY MUSICAL - Gerenciador de Conteúdo Científico
+ * TERRA VIBRO SENSORY MUSICAL - Gerenciador de Conteúdo Científico
  * =============================================================================
  * 
  * Versão: 1.2.1.0

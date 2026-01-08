@@ -1,6 +1,6 @@
 /**
  * =============================================================================
- * TERRA SENSORY MUSICAL - Módulo de Ondas Binaurais
+ * TERRA VIBRO SENSORY MUSICAL - Módulo de Ondas Binaurais
  * =============================================================================
  * 
  * Geração de batidas binaurais para sincronização cerebral.

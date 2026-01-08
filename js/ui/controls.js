@@ -1,6 +1,6 @@
 /**
  * =============================================================================
- * TERRA SENSORY MUSICAL - Controles de UI
+ * TERRA VIBRO SENSORY MUSICAL - Controles de UI
  * =============================================================================
  * 
  * Gerencia os controles do formulário principal:

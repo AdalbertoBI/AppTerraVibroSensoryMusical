@@ -1,6 +1,6 @@
 /**
  * =============================================================================
- * TERRA SENSORY MUSICAL - Armazenamento e Persistência
+ * TERRA VIBRO SENSORY MUSICAL - Armazenamento e Persistência
  * =============================================================================
  * 
  * Gerenciamento de dados com LocalForage (IndexedDB).

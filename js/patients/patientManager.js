@@ -1,6 +1,6 @@
 /**
  * =============================================================================
- * TERRA SENSORY MUSICAL - Gerenciador de Pacientes
+ * TERRA VIBRO SENSORY MUSICAL - Gerenciador de Pacientes
  * =============================================================================
  * 
  * Sistema de gestão de pacientes e sessões:
@@ -192,7 +192,7 @@ async function savePatientToFile(patientsFolder, patient) {
 		const data = {
 			...patient,
 			exportedAt: new Date().toISOString(),
-			app: 'Terra Sensory Musical'
+			app: 'Terra Vibro Sensory Musical'
 		};
 		
 		await writable.write(JSON.stringify(data, null, 2));
@@ -213,7 +213,7 @@ async function saveIndexFile(rootFolder) {
 		
 		const index = {
 			updatedAt: new Date().toISOString(),
-			app: 'Terra Sensory Musical',
+			app: 'Terra Vibro Sensory Musical',
 			version: '1.0',
 			patientsCount: state.patients.length,
 			patients: state.patients.map(p => ({
@@ -833,7 +833,7 @@ export function exportPatientData(patientId) {
 	const exportData = {
 		...patient,
 		exportedAt: new Date().toISOString(),
-		exportedFrom: 'Terra Sensory Musical'
+		exportedFrom: 'Terra Vibro Sensory Musical'
 	};
 	
 	const json = JSON.stringify(exportData, null, 2);
@@ -859,7 +859,7 @@ export async function exportAllData() {
 		sessionHistory: state.sessionHistory,
 		exportedAt: new Date().toISOString(),
 		version: '1.0',
-		app: 'Terra Sensory Musical'
+		app: 'Terra Vibro Sensory Musical'
 	};
 	
 	const json = JSON.stringify(backup, null, 2);

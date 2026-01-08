@@ -1,6 +1,6 @@
 /**
  * =============================================================================
- * TERRA SENSORY MUSICAL - Monitor de Áudio
+ * TERRA VIBRO SENSORY MUSICAL - Monitor de Áudio
  * =============================================================================
  * 
  * Visualização em tempo real do áudio:

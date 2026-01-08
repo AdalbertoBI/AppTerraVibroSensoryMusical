@@ -1,6 +1,6 @@
 /**
  * =============================================================================
- * TERRA SENSORY MUSICAL - Aprimoramento de Áudio
+ * TERRA VIBRO SENSORY MUSICAL - Aprimoramento de Áudio
  * =============================================================================
  * 
  * Processamento DSP para melhorar qualidade sonora em fones tradicionais:

@@ -1,6 +1,6 @@
 /**
  * =============================================================================
- * TERRA SENSORY MUSICAL - Aplicação Principal
+ * TERRA VIBRO SENSORY MUSICAL - Aplicação Principal
  * =============================================================================
  * 
  * Versão: 1.0.0.0.1
@@ -123,7 +123,7 @@ const ui = {
  * Inicializa a aplicação
  */
 async function init() {
-	console.log('Terra Sensory Musical v1.2.2.0 - Iniciando...');
+	console.log('Terra Vibro Sensory Musical v1.2.2.0 - Iniciando...');
 	
 	try {
 		// 1. Coleta referências de UI
@@ -161,7 +161,7 @@ async function init() {
 		// 11. Inicializa conteúdo científico
 		await initScientificContent('#scientificSection');
 		
-		console.log('Terra Sensory Musical - Pronto!');
+		console.log('Terra Vibro Sensory Musical - Pronto!');
 		
 	} catch (error) {
 		console.error('Erro na inicialização:', error);

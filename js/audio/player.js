@@ -1,6 +1,6 @@
 /**
  * =============================================================================
- * TERRA SENSORY MUSICAL - Player de Música
+ * TERRA VIBRO SENSORY MUSICAL - Player de Música
  * =============================================================================
  * 
  * Gerencia a reprodução de músicas com integração:

@@ -1,6 +1,6 @@
 /**
  * =============================================================================
- * TERRA SENSORY MUSICAL - Módulo de Áudio 8D / Espacial
+ * TERRA VIBRO SENSORY MUSICAL - Módulo de Áudio 8D / Espacial
  * =============================================================================
  * 
  * Implementação de áudio 8D usando Web Audio API.

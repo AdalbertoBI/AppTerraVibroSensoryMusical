@@ -1,6 +1,6 @@
 /**
  * =============================================================================
- * TERRA SENSORY MUSICAL - Sistema de Tutorial
+ * TERRA VIBRO SENSORY MUSICAL - Sistema de Tutorial
  * =============================================================================
  * 
  * Onboarding interativo para novos usuários:
@@ -32,7 +32,7 @@ export function injectUIReferences(uiRefs) {
 const WELCOME_SLIDES = [
 	{
 		icon: 'fa-solid fa-spa',
-		title: 'Bem-vindo ao Terra Sensory Musical',
+		title: 'Bem-vindo ao Terra Vibro Sensory Musical',
 		content: `
 			<p>Esta aplicação utiliza <strong>batimentos binaurais</strong> e 
 			<strong>áudio 8D espacial</strong> para promover bem-estar através 

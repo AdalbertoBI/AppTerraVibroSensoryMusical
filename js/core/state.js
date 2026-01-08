@@ -1,6 +1,6 @@
 /**
  * =============================================================================
- * TERRA SENSORY MUSICAL - Estado Global da Aplicação
+ * TERRA VIBRO SENSORY MUSICAL - Estado Global da Aplicação
  * =============================================================================
  * 
  * Gerenciamento centralizado do estado da aplicação.

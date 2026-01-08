@@ -1,4 +1,4 @@
-# Terra Sensory Musical (VibroTerapia)
+# Terra Vibro Sensory Musical (VibroTerapia)
 
 Progressive Web App 100% client-side para terapeutas de vibroacústica e musicoterapia. Reproduz tons binaurais reais, integra playlists locais via howler.js, funciona offline e oferece referências científicas de Skille, Oster, Wigram e Spintge.
 
