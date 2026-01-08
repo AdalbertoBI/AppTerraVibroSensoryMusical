@@ -493,6 +493,11 @@ function cacheDom() {
 	ui.drawerContents = document.querySelectorAll('.drawer-content');
 	ui.scientificFoundations = document.getElementById('scientificFoundations');
 	ui.scientificReferences = document.getElementById('scientificReferences');
+	
+	// Session Tabs (Unified Panel)
+	ui.sessionTabs = document.querySelectorAll('.session-tab');
+	ui.sessionTabContents = document.querySelectorAll('.session-tab-content');
+	ui.accordionHeaders = document.querySelectorAll('.accordion-header');
 }
 
 function attachListeners() {
@@ -502,6 +507,14 @@ function attachListeners() {
 	ui.mainDrawerOverlay.addEventListener('click', closeMainDrawer);
 	ui.drawerTabs.forEach(tab => {
 		tab.addEventListener('click', () => switchDrawerTab(tab.dataset.tab));
+	});
+	// Session Tabs (Unified Panel)
+	ui.sessionTabs.forEach(tab => {
+		tab.addEventListener('click', () => switchSessionTab(tab.dataset.tab));
+	});
+	// Accordions
+	ui.accordionHeaders.forEach(header => {
+		header.addEventListener('click', () => toggleAccordion(header));
 	});
 	document.addEventListener('keydown', (ev) => {
 		if (ev.key === 'Escape' && ui.mainDrawer.classList.contains('open')) {
@@ -794,6 +807,35 @@ function switchDrawerTab(tabName) {
 	if ((tabName === 'scientific' || tabName === 'references') && !scientificDataLoaded) {
 		loadScientificContent();
 	}
+}
+
+// ============================================================================
+// SESSION TABS (Unified Panel)
+// ============================================================================
+
+function switchSessionTab(tabName) {
+	// Atualiza abas ativas
+	ui.sessionTabs.forEach(tab => {
+		const isActive = tab.dataset.tab === tabName;
+		tab.classList.toggle('active', isActive);
+		tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
+	});
+	
+	// Mostra/esconde conteúdos de abas
+	ui.sessionTabContents.forEach(content => {
+		const isActive = content.dataset.tabContent === tabName;
+		content.classList.toggle('active', isActive);
+	});
+}
+
+function toggleAccordion(header) {
+	const isExpanded = header.classList.contains('expanded');
+	
+	// Toggle do accordion clicado
+	header.classList.toggle('expanded', !isExpanded);
+	
+	// Atualiza aria-expanded
+	header.setAttribute('aria-expanded', !isExpanded ? 'true' : 'false');
 }
 
 async function loadScientificContent() {

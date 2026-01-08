@@ -2708,3 +2708,325 @@
 		padding: 0.35rem;
 	}
 }
+
+/* ============================================================================
+   SESSION UNIFIED PANEL - ABAS DE SESSÃO
+   ============================================================================ */
+
+.unified-session {
+	padding: 0;
+	overflow: hidden;
+}
+
+.unified-session .panel-header {
+	background: linear-gradient(135deg, rgba(0, 208, 255, 0.1), rgba(0, 208, 255, 0.05));
+	padding: 1rem 1.25rem;
+	margin-bottom: 0;
+	border-bottom: 1px solid rgba(0, 208, 255, 0.15);
+}
+
+.unified-session .panel-header h2 {
+	font-size: 1.1rem;
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+}
+
+.unified-session .panel-header h2 i {
+	color: var(--primary);
+}
+
+/* Session Tabs Navigation */
+.session-tabs {
+	display: flex;
+	background: var(--bg-secondary);
+	border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+	overflow-x: auto;
+	scrollbar-width: none;
+	-ms-overflow-style: none;
+}
+
+.session-tabs::-webkit-scrollbar {
+	display: none;
+}
+
+.session-tab {
+	flex: 1;
+	min-width: 100px;
+	padding: 0.875rem 1rem;
+	background: transparent;
+	border: none;
+	color: var(--text-secondary);
+	font-size: 0.85rem;
+	font-weight: 500;
+	cursor: pointer;
+	transition: all 0.25s ease;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.35rem;
+	position: relative;
+}
+
+.session-tab i {
+	font-size: 1.1rem;
+	opacity: 0.7;
+	transition: all 0.25s ease;
+}
+
+.session-tab:hover {
+	background: rgba(255, 255, 255, 0.05);
+	color: var(--text-primary);
+}
+
+.session-tab:hover i {
+	opacity: 1;
+	color: var(--primary);
+}
+
+.session-tab.active {
+	color: var(--primary);
+	background: rgba(0, 208, 255, 0.08);
+}
+
+.session-tab.active i {
+	opacity: 1;
+}
+
+.session-tab.active::after {
+	content: '';
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	height: 3px;
+	background: linear-gradient(90deg, var(--primary), var(--secondary));
+	border-radius: 3px 3px 0 0;
+}
+
+/* Tab Content */
+.session-tab-content {
+	display: none;
+	padding: 1.25rem;
+	animation: fadeInTab 0.3s ease;
+}
+
+.session-tab-content.active {
+	display: block;
+}
+
+@keyframes fadeInTab {
+	from {
+		opacity: 0;
+		transform: translateY(10px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+/* Session Form inside tab */
+.session-tab-content #sessionForm {
+	display: flex;
+	flex-direction: column;
+	gap: 1.25rem;
+}
+
+/* Accordion Styles for Tabs */
+.session-accordion {
+	border: 1px solid rgba(255, 255, 255, 0.08);
+	border-radius: 12px;
+	overflow: hidden;
+	margin-bottom: 1rem;
+}
+
+.session-accordion:last-child {
+	margin-bottom: 0;
+}
+
+.accordion-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 1rem 1.25rem;
+	background: linear-gradient(135deg, rgba(255, 255, 255, 0.03), transparent);
+	cursor: pointer;
+	transition: all 0.25s ease;
+	user-select: none;
+}
+
+.accordion-header:hover {
+	background: linear-gradient(135deg, rgba(0, 208, 255, 0.08), rgba(0, 208, 255, 0.03));
+}
+
+.accordion-title {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+}
+
+.accordion-title i {
+	color: var(--primary);
+	font-size: 1.1rem;
+}
+
+.accordion-title h4 {
+	margin: 0;
+	font-size: 0.95rem;
+	font-weight: 500;
+	color: var(--text-primary);
+}
+
+.accordion-title span {
+	font-size: 0.8rem;
+	color: var(--text-secondary);
+	margin-left: 0.5rem;
+}
+
+.accordion-icon {
+	color: var(--text-secondary);
+	font-size: 0.85rem;
+	transition: transform 0.3s ease;
+}
+
+.accordion-header.expanded .accordion-icon {
+	transform: rotate(180deg);
+}
+
+.accordion-content {
+	max-height: 0;
+	overflow: hidden;
+	transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+	background: rgba(0, 0, 0, 0.2);
+}
+
+.accordion-header.expanded + .accordion-content {
+	max-height: 2000px;
+}
+
+.accordion-body {
+	padding: 1.25rem;
+}
+
+/* Section Header inside accordions */
+.section-header {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	margin-bottom: 1rem;
+	padding-bottom: 0.75rem;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.section-header i {
+	color: var(--primary);
+	font-size: 1rem;
+}
+
+.section-header h4 {
+	margin: 0;
+	font-size: 0.9rem;
+	font-weight: 500;
+	color: var(--text-primary);
+}
+
+/* Sub-sections */
+.sub-section {
+	margin-bottom: 1.5rem;
+}
+
+.sub-section:last-child {
+	margin-bottom: 0;
+}
+
+.sub-section-title {
+	font-size: 0.85rem;
+	font-weight: 600;
+	color: var(--text-primary);
+	margin-bottom: 0.75rem;
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+.sub-section-title i {
+	color: var(--secondary);
+	font-size: 0.9rem;
+}
+
+/* Enhancement Cards in Processing Tab */
+.enhancement-card {
+	background: rgba(255, 255, 255, 0.02);
+	border: 1px solid rgba(255, 255, 255, 0.06);
+	border-radius: 10px;
+	padding: 1rem;
+	margin-bottom: 1rem;
+}
+
+.enhancement-card:last-child {
+	margin-bottom: 0;
+}
+
+.enhancement-card-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 0.75rem;
+}
+
+.enhancement-card-title {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	font-size: 0.85rem;
+	font-weight: 500;
+	color: var(--text-primary);
+}
+
+.enhancement-card-title i {
+	color: var(--secondary);
+}
+
+/* Responsive for Session Tabs */
+@media (max-width: 600px) {
+	.session-tab {
+		padding: 0.75rem 0.5rem;
+		min-width: 80px;
+	}
+	
+	.session-tab span {
+		font-size: 0.7rem;
+	}
+	
+	.session-tab i {
+		font-size: 1rem;
+	}
+	
+	.session-tab-content {
+		padding: 1rem;
+	}
+	
+	.accordion-header {
+		padding: 0.875rem 1rem;
+	}
+	
+	.accordion-body {
+		padding: 1rem;
+	}
+}
+
+@media (max-width: 400px) {
+	.session-tab span {
+		display: none;
+	}
+	
+	.session-tab i {
+		font-size: 1.25rem;
+	}
+	
+	.session-tab {
+		min-width: 60px;
+		padding: 1rem 0.75rem;
+	}
+}

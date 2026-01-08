@@ -137,15 +137,39 @@
 		</section>
 
 		<main class="grid">
-			<section class="panel wide" id="sessionBuilder">
+			<!-- SEÇÃO UNIFICADA: Sessão Terapêutica Completa -->
+			<section class="panel wide unified-session" id="sessionBuilder">
 				<div class="panel-header">
-					<h2><i class="fa-solid fa-wand-magic-sparkles"></i> Nova sessão guiada</h2>
-					<p class="subtitle">Configure frequências binaurais, mixer e playlist. Sugestões automáticas baseadas em análise espectral.</p>
+					<h2><i class="fa-solid fa-wand-magic-sparkles"></i> Sessão Terapêutica</h2>
+					<p class="subtitle">Configure, processe e controle sua sessão vibroacústica em um único lugar.</p>
 				</div>
-				<form id="sessionForm">
-					<div class="form-group">
-						<label for="presetName">Nome do preset</label>
-						<input type="text" id="presetName" name="presetName" placeholder="Ex: Alfa relax profundo" required />
+				
+				<!-- Navegação por Abas -->
+				<nav class="session-tabs" role="tablist">
+					<button class="session-tab active" data-tab="config" role="tab" aria-selected="true" type="button">
+						<i class="fa-solid fa-sliders"></i>
+						<span>Configuração</span>
+					</button>
+					<button class="session-tab" data-tab="library" role="tab" aria-selected="false" type="button">
+						<i class="fa-solid fa-music"></i>
+						<span>Biblioteca</span>
+					</button>
+					<button class="session-tab" data-tab="processing" role="tab" aria-selected="false" type="button">
+						<i class="fa-solid fa-waveform-lines"></i>
+						<span>Efeitos</span>
+					</button>
+					<button class="session-tab" data-tab="control" role="tab" aria-selected="false" type="button">
+						<i class="fa-solid fa-spa"></i>
+						<span>Controle</span>
+					</button>
+				</nav>
+				
+				<!-- TAB 1: Configuração da Sessão -->
+				<div class="session-tab-content active" id="tabConfig" data-tab-content="config" role="tabpanel">
+					<form id="sessionForm">
+						<div class="form-group">
+							<label for="presetName">Nome do preset</label>
+							<input type="text" id="presetName" name="presetName" placeholder="Ex: Alfa relax profundo" required />
 					</div>
 
 					<!-- Seletor de Protocolo Terapêutico -->
@@ -274,12 +298,13 @@
 						<button type="button" id="startSessionBtn" class="secondary"><i class="fa-solid fa-play"></i> Iniciar sessão agora</button>
 					</div>
 				</form>
-			</section>
-
-			<section class="panel wide" id="musicLibrary">
-				<div class="panel-header">
-					<h2>Biblioteca de Áudio</h2>
-					<p class="subtitle">Seus arquivos MP3/WAV ou músicas do Internet Archive.</p>
+			</div>
+			
+			<!-- TAB 2: Biblioteca de Áudio -->
+			<div class="session-tab-content" id="tabLibrary" data-tab-content="library" role="tabpanel">
+				<div class="tab-section-header">
+					<h3><i class="fa-solid fa-music"></i> Biblioteca de Áudio</h3>
+					<p class="helper">Seus arquivos MP3/WAV ou músicas do Internet Archive.</p>
 				</div>
 				<p class="helper"><i class="fa-solid fa-lightbulb"></i> Dica: você pode tocar a frequência binaural aqui e ouvir música em outro app simultaneamente.</p>
 				<div class="upload-zone" id="dropZone">
@@ -289,12 +314,12 @@
 					<input type="file" id="audioUpload" accept="audio/*" multiple />
 				</div>
 				<ul id="musicList" class="list music-list"></ul>
-			</section>
-
-			<!-- Seção Processamento de Áudio Avançado (8D + Enhancer Unificados) -->
-			<section class="panel wide audio-processing-section" id="audioProcessingSection">
-				<div class="panel-header">
-					<h2><i class="fa-solid fa-waveform-lines"></i> Processamento de Áudio Avançado</h2>
+			</div>
+			
+			<!-- TAB 3: Processamento de Áudio Avançado -->
+			<div class="session-tab-content" id="tabProcessing" data-tab-content="processing" role="tabpanel">
+				<div class="tab-section-header">
+					<h3><i class="fa-solid fa-waveform-lines"></i> Processamento de Áudio Avançado</h3>
 				</div>
 				
 				<!-- Grid com dois cards lado a lado -->
@@ -399,7 +424,7 @@
 					</div>
 				</div>
 				
-				<!-- Base Científica Unificada e Colapsada -->
+				<!-- Base Científica Colapsada -->
 				<details class="scientific-info-unified">
 					<summary><i class="fa-solid fa-microscope"></i> Base Científica do Processamento</summary>
 					<div class="scientific-content-grid">
@@ -421,11 +446,12 @@
 						</div>
 					</div>
 				</details>
-			</section>
-
-			<section class="panel wide" id="playerSection">
-				<div class="panel-header">
-					<h2><i class="fa-solid fa-spa"></i> Centro de Controle Terapêutico</h2>
+			</div>
+			
+			<!-- TAB 4: Centro de Controle Terapêutico -->
+			<div class="session-tab-content" id="tabControl" data-tab-content="control" role="tabpanel">
+				<div class="tab-section-header">
+					<h3><i class="fa-solid fa-spa"></i> Centro de Controle Terapêutico</h3>
 					<div class="session-status" id="sessionStatus">
 						<span class="status-indicator"></span>
 						<span class="status-text">Aguardando sessão</span>
@@ -547,7 +573,10 @@
 						<output id="panValue">Centralizado</output>
 					</div>
 				</div>
-			</section>
+			</div>
+			
+		</section>
+		<!-- FIM DA SEÇÃO UNIFICADA -->
 		</main>
 
 		<footer class="site-footer">
