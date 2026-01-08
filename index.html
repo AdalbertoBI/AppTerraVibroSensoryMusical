@@ -49,21 +49,68 @@
 			</div>
 		</header>
 
-		<!-- Drawer Menu de Presets -->
-		<div id="presetsDrawerOverlay" class="drawer-overlay"></div>
-		<aside id="presetsDrawer" class="presets-drawer" aria-label="Menu de presets terapêuticos">
+		<!-- Drawer Menu Principal -->
+		<div id="mainDrawerOverlay" class="drawer-overlay"></div>
+		<aside id="mainDrawer" class="main-drawer" aria-label="Menu principal">
 			<div class="drawer-header">
-				<h2><i class="fa-solid fa-bookmark"></i> Presets Terapêuticos</h2>
+				<h2><i class="fa-solid fa-bars"></i> Menu</h2>
 				<button id="closeDrawerBtn" class="ghost drawer-close" type="button" aria-label="Fechar menu">
 					<i class="fa-solid fa-xmark"></i>
 				</button>
 			</div>
-			<div class="drawer-actions">
-				<button id="loadDefaultPresets" class="ghost" type="button">
-					<i class="fa-solid fa-seedling"></i> Recarregar científicos
+			
+			<!-- Navegação por Abas -->
+			<nav class="drawer-tabs">
+				<button class="drawer-tab active" data-tab="presets" type="button">
+					<i class="fa-solid fa-bookmark"></i>
+					<span>Presets</span>
 				</button>
+				<button class="drawer-tab" data-tab="scientific" type="button">
+					<i class="fa-solid fa-flask"></i>
+					<span>Ciência</span>
+				</button>
+				<button class="drawer-tab" data-tab="references" type="button">
+					<i class="fa-solid fa-book"></i>
+					<span>Artigos</span>
+				</button>
+			</nav>
+			
+			<!-- Conteúdo: Presets -->
+			<div class="drawer-content" id="drawerPresets" data-tab-content="presets">
+				<div class="drawer-section-header">
+					<h3><i class="fa-solid fa-bookmark"></i> Presets Terapêuticos</h3>
+					<button id="loadDefaultPresets" class="ghost small" type="button">
+						<i class="fa-solid fa-seedling"></i> Recarregar
+					</button>
+				</div>
+				<ul id="presetList" class="drawer-list"></ul>
 			</div>
-			<ul id="presetList" class="drawer-list"></ul>
+			
+			<!-- Conteúdo: Base Científica -->
+			<div class="drawer-content hidden" id="drawerScientific" data-tab-content="scientific">
+				<div class="drawer-section-header">
+					<h3><i class="fa-solid fa-flask"></i> Base Científica</h3>
+				</div>
+				<div id="scientificFoundations" class="drawer-scientific">
+					<div class="sci-loading">
+						<i class="fa-solid fa-spinner fa-spin"></i>
+						<span>Carregando...</span>
+					</div>
+				</div>
+			</div>
+			
+			<!-- Conteúdo: Artigos/Referências -->
+			<div class="drawer-content hidden" id="drawerReferences" data-tab-content="references">
+				<div class="drawer-section-header">
+					<h3><i class="fa-solid fa-book"></i> Artigos Científicos</h3>
+				</div>
+				<div id="scientificReferences" class="drawer-references">
+					<div class="sci-loading">
+						<i class="fa-solid fa-spinner fa-spin"></i>
+						<span>Carregando...</span>
+					</div>
+				</div>
+			</div>
 		</aside>
 
 		<section id="connectivity" class="connectivity" aria-live="polite">
@@ -499,15 +546,6 @@
 						<input type="range" id="panSlider" min="-1" max="1" step="0.1" value="0" />
 						<output id="panValue">Centralizado</output>
 					</div>
-				</div>
-			</section>
-
-			<!-- Seção Científica - Renderizada dinamicamente -->
-			<section class="panel wide" id="scientificSection">
-				<!-- Conteúdo será carregado pelo módulo scientificContent.js -->
-				<div class="sci-loading-initial">
-					<i class="fa-solid fa-spinner fa-spin"></i>
-					<span>Carregando base científica...</span>
 				</div>
 			</section>
 		</main>

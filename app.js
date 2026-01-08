@@ -484,21 +484,28 @@ function cacheDom() {
 	ui.monitorSessionTime = document.getElementById('monitorSessionTime');
 	ui.monitorBrainwave = document.getElementById('monitorBrainwave');
 	
-	// Menu Drawer de Presets
+	// Menu Drawer Principal
 	ui.menuToggle = document.getElementById('menuToggle');
-	ui.presetsDrawer = document.getElementById('presetsDrawer');
-	ui.presetsDrawerOverlay = document.getElementById('presetsDrawerOverlay');
+	ui.mainDrawer = document.getElementById('mainDrawer');
+	ui.mainDrawerOverlay = document.getElementById('mainDrawerOverlay');
 	ui.closeDrawerBtn = document.getElementById('closeDrawerBtn');
+	ui.drawerTabs = document.querySelectorAll('.drawer-tab');
+	ui.drawerContents = document.querySelectorAll('.drawer-content');
+	ui.scientificFoundations = document.getElementById('scientificFoundations');
+	ui.scientificReferences = document.getElementById('scientificReferences');
 }
 
 function attachListeners() {
-	// Menu Drawer de Presets
-	ui.menuToggle.addEventListener('click', openPresetsDrawer);
-	ui.closeDrawerBtn.addEventListener('click', closePresetsDrawer);
-	ui.presetsDrawerOverlay.addEventListener('click', closePresetsDrawer);
+	// Menu Drawer Principal
+	ui.menuToggle.addEventListener('click', openMainDrawer);
+	ui.closeDrawerBtn.addEventListener('click', closeMainDrawer);
+	ui.mainDrawerOverlay.addEventListener('click', closeMainDrawer);
+	ui.drawerTabs.forEach(tab => {
+		tab.addEventListener('click', () => switchDrawerTab(tab.dataset.tab));
+	});
 	document.addEventListener('keydown', (ev) => {
-		if (ev.key === 'Escape' && ui.presetsDrawer.classList.contains('open')) {
-			closePresetsDrawer();
+		if (ev.key === 'Escape' && ui.mainDrawer.classList.contains('open')) {
+			closeMainDrawer();
 		}
 	});
 	
@@ -751,18 +758,131 @@ async function hydrateHistory() {
 // MENU DRAWER DE PRESETS
 // ============================================================================
 
-function openPresetsDrawer() {
-	ui.presetsDrawer.classList.add('open');
-	ui.presetsDrawerOverlay.classList.add('active');
+// ============================================================================
+// MENU DRAWER PRINCIPAL
+// ============================================================================
+
+let scientificDataLoaded = false;
+
+function openMainDrawer() {
+	ui.mainDrawer.classList.add('open');
+	ui.mainDrawerOverlay.classList.add('active');
 	ui.menuToggle.setAttribute('aria-expanded', 'true');
 	document.body.style.overflow = 'hidden';
 }
 
-function closePresetsDrawer() {
-	ui.presetsDrawer.classList.remove('open');
-	ui.presetsDrawerOverlay.classList.remove('active');
+function closeMainDrawer() {
+	ui.mainDrawer.classList.remove('open');
+	ui.mainDrawerOverlay.classList.remove('active');
 	ui.menuToggle.setAttribute('aria-expanded', 'false');
 	document.body.style.overflow = '';
+}
+
+function switchDrawerTab(tabName) {
+	// Atualiza abas ativas
+	ui.drawerTabs.forEach(tab => {
+		tab.classList.toggle('active', tab.dataset.tab === tabName);
+	});
+	
+	// Mostra/esconde conteúdos
+	ui.drawerContents.forEach(content => {
+		const isActive = content.dataset.tabContent === tabName;
+		content.classList.toggle('hidden', !isActive);
+	});
+	
+	// Carrega dados científicos na primeira vez que acessar
+	if ((tabName === 'scientific' || tabName === 'references') && !scientificDataLoaded) {
+		loadScientificContent();
+	}
+}
+
+async function loadScientificContent() {
+	if (scientificDataLoaded) return;
+	
+	try {
+		// Carrega fundamentos científicos
+		const foundationsRes = await fetch('./data/scientific_foundations.json');
+		const foundations = await foundationsRes.json();
+		renderScientificFoundations(foundations);
+		
+		// Carrega bibliografia
+		const bibliographyRes = await fetch('./data/bibliography.json');
+		const bibliography = await bibliographyRes.json();
+		renderScientificReferences(bibliography);
+		
+		scientificDataLoaded = true;
+	} catch (error) {
+		console.error('Erro ao carregar conteúdo científico:', error);
+		ui.scientificFoundations.innerHTML = '<p class="error">Erro ao carregar dados</p>';
+		ui.scientificReferences.innerHTML = '<p class="error">Erro ao carregar dados</p>';
+	}
+}
+
+function renderScientificFoundations(data) {
+	const html = Object.entries(data).map(([key, foundation]) => `
+		<div class="sci-foundation-card" data-foundation="${key}">
+			<div class="sci-foundation-header" onclick="this.parentElement.classList.toggle('expanded')">
+				<h4><i class="fa-solid fa-${getFoundationIcon(key)}"></i> ${foundation.title}</h4>
+				<i class="fa-solid fa-chevron-down toggle-icon"></i>
+			</div>
+			<div class="sci-foundation-body">
+				<p><strong>Pioneiro:</strong> ${foundation.pioneer} (${foundation.year})</p>
+				<p>${foundation.description}</p>
+				<p><strong>Mecanismo:</strong> ${foundation.mechanism}</p>
+				${foundation.keyFindings ? `
+					<div class="evidence-tag">
+						<i class="fa-solid fa-check-circle"></i> ${foundation.keyFindings.length} descobertas-chave documentadas
+					</div>
+				` : ''}
+			</div>
+		</div>
+	`).join('');
+	
+	ui.scientificFoundations.innerHTML = html;
+}
+
+function getFoundationIcon(key) {
+	const icons = {
+		vibroacoustic: 'wave-square',
+		binaural: 'headphones',
+		neurological: 'brain'
+	};
+	return icons[key] || 'flask';
+}
+
+function renderScientificReferences(data) {
+	let html = '';
+	
+	Object.entries(data.categories).forEach(([category, refs]) => {
+		html += `<div class="reference-category">
+			<h4 class="reference-category-title">${getCategoryTitle(category)}</h4>
+		`;
+		
+		refs.forEach(ref => {
+			html += `
+				<div class="reference-item">
+					<div class="ref-authors">${ref.authors} (${ref.year})</div>
+					<div class="ref-title">${ref.title}</div>
+					<div class="ref-journal">${ref.journal}</div>
+					${ref.doi ? `<a href="https://doi.org/${ref.doi}" target="_blank" rel="noopener" class="ref-doi">DOI: ${ref.doi}</a>` : ''}
+				</div>
+			`;
+		});
+		
+		html += '</div>';
+	});
+	
+	ui.scientificReferences.innerHTML = html;
+}
+
+function getCategoryTitle(category) {
+	const titles = {
+		vibroacoustic: '🔊 Terapia Vibroacústica',
+		binaural: '🎧 Batimentos Binaurais',
+		clinical: '🏥 Estudos Clínicos',
+		music_medicine: '🎵 Musicoterapia Médica'
+	};
+	return titles[category] || category;
 }
 
 function renderPresetList() {
@@ -797,10 +917,10 @@ function handlePresetActions(event) {
 	if (!preset) return;
 	if (button.dataset.action === 'load') {
 		loadPresetToForm(preset);
-		closePresetsDrawer();
+		closeMainDrawer();
 	}
 	if (button.dataset.action === 'start') {
-		closePresetsDrawer();
+		closeMainDrawer();
 		startSession(preset);
 	}
 }
