@@ -1897,12 +1897,6 @@ body.zen-mode .breath-circle {
 	height: 150px;
 }
 
-#zenModeBtn.active {
-	background: var(--color-accent);
-	color: #fff;
-	border: none;
-}
-
 /* ==========================================
    Sliders com Feedback de Zona Terapêutica
    ========================================== */

@@ -472,7 +472,6 @@ function cacheDom() {
 	ui.breathingGuide = document.getElementById('breathingGuide');
 	ui.breathCircle = document.getElementById('breathCircle');
 	ui.breathText = document.getElementById('breathText');
-	ui.zenModeBtn = document.getElementById('zenModeBtn');
 	ui.masterVolume = document.getElementById('masterVolume');
 	ui.masterVolumeValue = document.getElementById('masterVolumeValue');
 	// Protocolo terapêutico
@@ -635,7 +634,6 @@ function attachListeners() {
 	});
 	ui.archiveResults.addEventListener('click', handleArchiveActions);
 	// Novos controles terapêuticos
-	ui.zenModeBtn.addEventListener('click', toggleZenMode);
 	ui.masterVolume.addEventListener('input', handleMasterVolumeChange);
 	// Protocolo terapêutico
 	ui.therapeuticProtocol.addEventListener('change', handleProtocolChange);
@@ -2928,19 +2926,6 @@ function stopBreathingGuide() {
 	}
 	ui.breathCircle.classList.remove('inhale', 'exhale', 'active');
 	ui.breathText.textContent = 'Inspire';
-}
-
-function toggleZenMode() {
-	const isActive = document.body.classList.toggle('zen-mode');
-	ui.zenModeBtn.classList.toggle('active', isActive);
-	ui.zenModeBtn.innerHTML = isActive 
-		? '<i class="fa-solid fa-compress"></i> Sair Zen'
-		: '<i class="fa-solid fa-moon"></i> Modo Zen';
-	
-	// Exibir dica apenas na primeira vez
-	if (isActive && !localStorage.getItem('ts-zen-shown')) {
-		localStorage.setItem('ts-zen-shown', 'true');
-	}
 }
 
 function handleMasterVolumeChange(event) {
