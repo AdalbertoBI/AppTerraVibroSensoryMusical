@@ -747,9 +747,8 @@ function renderPresetList() {
 				<small><i class="fa-solid fa-wave-square"></i> ${preset.baseHz}Hz base • ${preset.diffHz}Hz diff • ${preset.duration}min</small>
 			</div>
 			<div class="preset-actions">
-				<button class="secondary" data-action="load"><i class="fa-solid fa-pen"></i> Editar</button>
+				<button class="secondary" data-action="load"><i class="fa-solid fa-download"></i> Carregar</button>
 				<button class="primary" data-action="start"><i class="fa-solid fa-play"></i> Iniciar</button>
-				<button class="ghost" data-action="delete" title="Excluir preset"><i class="fa-solid fa-trash"></i></button>
 			</div>
 		`;
 		ui.presetList.append(li);
@@ -768,24 +767,6 @@ function handlePresetActions(event) {
 	if (button.dataset.action === 'start') {
 		startSession(preset);
 	}
-	if (button.dataset.action === 'delete') {
-		deletePreset(preset.id);
-	}
-}
-
-async function deletePreset(presetId) {
-	const preset = state.presets.find((p) => p.id === presetId);
-	if (!preset) return;
-	
-	// Confirmação simples
-	if (!confirm(`Excluir o preset "${preset.name}"?`)) {
-		return;
-	}
-	
-	state.presets = state.presets.filter((p) => p.id !== presetId);
-	renderPresetList();
-	await stores.data.setItem(STORAGE_KEYS.PRESETS, state.presets);
-	console.log('Preset excluído:', preset.name);
 }
 
 function loadPresetToForm(preset) {
