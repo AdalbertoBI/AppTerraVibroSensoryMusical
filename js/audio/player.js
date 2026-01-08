@@ -22,11 +22,22 @@ import Audio8DProcessor from './audio8d.js';
 // Referências de UI
 let ui = {};
 
+// Referência ao AudioEnhancer
+let audioEnhancer = null;
+
 /**
  * Injeta referências de UI
  */
 export function injectUIReferences(uiRefs) {
 	ui = uiRefs;
+}
+
+/**
+ * Define o AudioEnhancer para processamento de áudio
+ */
+export function setEnhancer(enhancer) {
+	audioEnhancer = enhancer;
+	console.log('Player: AudioEnhancer configurado');
 }
 
 // ============================================================================
@@ -264,8 +275,33 @@ function connect8D() {
 		state.audio8D.connect(node);
 		console.log('Player: Conectado ao processador 8D');
 		
+		// Se há enhancer, conecta 8D ao enhancer que vai para o destino
+		if (audioEnhancer && audioEnhancer.enabled) {
+			connectEnhancerTo8D();
+		}
+		
 	} catch (error) {
 		console.warn('Player: Erro ao conectar 8D:', error);
+	}
+}
+
+/**
+ * Conecta o AudioEnhancer à cadeia de processamento
+ * Fluxo: Source -> 8D (se ativo) -> Enhancer -> Destination
+ */
+function connectEnhancerTo8D() {
+	if (!audioEnhancer || !state.audio8D) return;
+	
+	try {
+		// Obtém output do 8D
+		const output8D = state.audio8D.getOutputNode?.();
+		if (output8D) {
+			// Conecta 8D -> Enhancer -> Destination
+			audioEnhancer.connectSource(output8D);
+			console.log('Player: Enhancer conectado após 8D');
+		}
+	} catch (error) {
+		console.warn('Player: Erro ao conectar enhancer:', error);
 	}
 }
 
@@ -673,6 +709,7 @@ export default {
 	set8DPattern,
 	set8DSpeed,
 	set8DIntensity,
+	setEnhancer,
 	addMusic,
 	removeTrack,
 	clearAll: clearAllMusic

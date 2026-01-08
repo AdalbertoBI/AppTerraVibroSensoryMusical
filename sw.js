@@ -15,7 +15,7 @@ importScripts('https://storage.googleapis.com/workbox-cdn/releases/6.5.4/workbox
  * IMPORTANTE: Incremente APP_VERSION a cada deploy!
  */
 
-const APP_VERSION = '1.1.0.0';
+const APP_VERSION = '1.2.0.0';
 const CACHE_PREFIX = 'terra-sensory';
 const CACHE_NAME = `${CACHE_PREFIX}-v${APP_VERSION}`;
 
@@ -48,6 +48,7 @@ if (workbox) {
 		{ url: './js/audio/binaural.js', revision: APP_VERSION },
 		{ url: './js/audio/audio8d.js', revision: APP_VERSION },
 		{ url: './js/audio/player.js', revision: APP_VERSION },
+		{ url: './js/audio/audioEnhancer.js', revision: APP_VERSION },
 		{ url: './js/monitor/audioMonitor.js', revision: APP_VERSION },
 		{ url: './js/patients/patientManager.js', revision: APP_VERSION },
 		{ url: './js/ui/controls.js', revision: APP_VERSION },

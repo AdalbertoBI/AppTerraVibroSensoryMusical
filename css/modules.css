@@ -670,4 +670,317 @@
 	.pattern-selector {
 		justify-content: center;
 	}
+	
+	.enhancer-controls {
+		grid-template-columns: 1fr;
+	}
+}
+
+/* ============================================================================
+   AUDIO ENHANCER SECTION
+   ============================================================================ */
+
+.audio-enhancer-section {
+	background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(14, 165, 233, 0.1));
+	border: 1px solid rgba(34, 197, 94, 0.3);
+	border-radius: 12px;
+	padding: 1.5rem;
+	margin-top: 1.5rem;
+}
+
+.audio-enhancer-section .panel-header h2 {
+	color: #4ade80;
+}
+
+.audio-enhancer-section .panel-header h2 i {
+	color: #22c55e;
+}
+
+.enhancer-toggle {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+	padding: 0.75rem 1rem;
+	background: rgba(34, 197, 94, 0.15);
+	border: 1px solid rgba(34, 197, 94, 0.3);
+	border-radius: 8px;
+	cursor: pointer;
+	transition: all 0.3s ease;
+}
+
+.enhancer-toggle:hover {
+	background: rgba(34, 197, 94, 0.25);
+}
+
+.enhancer-toggle.active {
+	background: linear-gradient(135deg, #22c55e, #0ea5e9);
+	border-color: transparent;
+}
+
+.enhancer-toggle .toggle-switch {
+	width: 48px;
+	height: 26px;
+	background: rgba(255, 255, 255, 0.1);
+	border-radius: 13px;
+	position: relative;
+	transition: background 0.3s ease;
+	flex-shrink: 0;
+}
+
+.enhancer-toggle.active .toggle-switch {
+	background: rgba(255, 255, 255, 0.3);
+}
+
+.enhancer-toggle .toggle-switch::after {
+	content: '';
+	position: absolute;
+	width: 20px;
+	height: 20px;
+	background: white;
+	border-radius: 50%;
+	top: 3px;
+	left: 3px;
+	transition: transform 0.3s ease;
+}
+
+.enhancer-toggle.active .toggle-switch::after {
+	transform: translateX(22px);
+}
+
+.toggle-info {
+	display: flex;
+	flex-direction: column;
+	gap: 0.2rem;
+}
+
+.toggle-label {
+	font-weight: 600;
+	color: var(--text-primary, #e8e8e8);
+}
+
+.toggle-desc {
+	font-size: 0.85rem;
+	color: var(--text-secondary, #a0a0a0);
+}
+
+.enhancer-controls {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+	gap: 1.25rem;
+	margin-top: 1.25rem;
+	padding: 1rem;
+	background: rgba(0, 0, 0, 0.2);
+	border-radius: 8px;
+}
+
+.enhancer-control {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+}
+
+.enhancer-control.full-width {
+	grid-column: 1 / -1;
+}
+
+.enhancer-control label {
+	font-size: 0.9rem;
+	color: var(--text-primary, #e8e8e8);
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+.enhancer-control label i {
+	color: #22c55e;
+	width: 1.25rem;
+	text-align: center;
+}
+
+.enhancer-control label output {
+	margin-left: auto;
+	font-weight: 600;
+	color: #4ade80;
+	font-family: 'Space Grotesk', monospace;
+}
+
+.enhancer-control input[type="range"] {
+	width: 100%;
+	height: 6px;
+	background: rgba(34, 197, 94, 0.2);
+	border-radius: 3px;
+	appearance: none;
+	cursor: pointer;
+}
+
+.enhancer-control input[type="range"]::-webkit-slider-thumb {
+	appearance: none;
+	width: 18px;
+	height: 18px;
+	background: linear-gradient(135deg, #22c55e, #0ea5e9);
+	border-radius: 50%;
+	cursor: pointer;
+	box-shadow: 0 2px 8px rgba(34, 197, 94, 0.4);
+	transition: transform 0.2s ease;
+}
+
+.enhancer-control input[type="range"]::-webkit-slider-thumb:hover {
+	transform: scale(1.15);
+}
+
+.enhancer-control input[type="range"]::-moz-range-thumb {
+	width: 18px;
+	height: 18px;
+	background: linear-gradient(135deg, #22c55e, #0ea5e9);
+	border-radius: 50%;
+	cursor: pointer;
+	border: none;
+	box-shadow: 0 2px 8px rgba(34, 197, 94, 0.4);
+}
+
+.control-hint {
+	font-size: 0.75rem;
+	color: var(--text-tertiary, #666);
+	font-style: italic;
+}
+
+.enhancer-select {
+	width: 100%;
+	padding: 0.75rem 1rem;
+	background: rgba(34, 197, 94, 0.1);
+	border: 1px solid rgba(34, 197, 94, 0.3);
+	border-radius: 6px;
+	color: var(--text-primary, #e8e8e8);
+	font-size: 0.95rem;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.enhancer-select:hover {
+	background: rgba(34, 197, 94, 0.2);
+	border-color: rgba(34, 197, 94, 0.5);
+}
+
+.enhancer-select:focus {
+	outline: none;
+	border-color: #22c55e;
+	box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
+}
+
+.enhancer-select option {
+	background: var(--bg-secondary, #1a1a2e);
+	color: var(--text-primary, #e8e8e8);
+}
+
+/* EQ Controls Group */
+.enhancer-control-group {
+	display: flex;
+	flex-direction: column;
+	gap: 0.75rem;
+	padding: 1rem;
+	background: rgba(34, 197, 94, 0.08);
+	border: 1px solid rgba(34, 197, 94, 0.2);
+	border-radius: 8px;
+	grid-column: span 2;
+}
+
+.group-label {
+	font-size: 0.95rem;
+	font-weight: 600;
+	color: var(--text-primary, #e8e8e8);
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	margin-bottom: 0.5rem;
+}
+
+.group-label i {
+	color: #22c55e;
+}
+
+.eq-band {
+	display: flex;
+	flex-direction: column;
+	gap: 0.35rem;
+}
+
+.eq-band label {
+	font-size: 0.85rem;
+	color: var(--text-secondary, #a0a0a0);
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.eq-band label output {
+	font-weight: 600;
+	color: #4ade80;
+	font-family: 'Space Grotesk', monospace;
+}
+
+.eq-slider {
+	width: 100%;
+	height: 6px;
+	background: linear-gradient(to right, 
+		rgba(239, 68, 68, 0.3) 0%, 
+		rgba(34, 197, 94, 0.2) 50%, 
+		rgba(59, 130, 246, 0.3) 100%
+	);
+	border-radius: 3px;
+	appearance: none;
+	cursor: pointer;
+}
+
+/* Scientific Info in Enhancer */
+.audio-enhancer-section .scientific-info {
+	margin-top: 1rem;
+	border: 1px solid rgba(34, 197, 94, 0.2);
+	border-radius: 8px;
+}
+
+.audio-enhancer-section .scientific-info summary {
+	padding: 0.75rem 1rem;
+	background: rgba(34, 197, 94, 0.08);
+	cursor: pointer;
+	color: #4ade80;
+	font-weight: 500;
+}
+
+.audio-enhancer-section .scientific-info summary:hover {
+	background: rgba(34, 197, 94, 0.15);
+}
+
+.audio-enhancer-section .scientific-content {
+	padding: 1rem;
+	font-size: 0.9rem;
+	line-height: 1.6;
+}
+
+.audio-enhancer-section .scientific-content ul {
+	margin: 0.75rem 0;
+	padding-left: 1.5rem;
+}
+
+.audio-enhancer-section .scientific-content li {
+	margin-bottom: 0.5rem;
+}
+
+/* Disabled state for controls when enhancer is off */
+.enhancer-controls.disabled {
+	opacity: 0.5;
+	pointer-events: none;
+}
+
+/* Animation for processing indicator */
+@keyframes pulse-enhancer {
+	0%, 100% { 
+		box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
+	}
+	50% { 
+		box-shadow: 0 0 0 10px rgba(34, 197, 94, 0);
+	}
+}
+
+.enhancer-toggle.active.processing {
+	animation: pulse-enhancer 2s infinite;
 }

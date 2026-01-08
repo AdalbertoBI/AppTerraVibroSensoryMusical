@@ -290,6 +290,132 @@
 				</details>
 			</section>
 
+			<!-- Seção Aprimoramento de Áudio -->
+			<section class="panel wide audio-enhancer-section" id="audioEnhancerSection">
+				<div class="panel-header">
+					<h2><i class="fa-solid fa-sliders"></i> Aprimoramento de Áudio</h2>
+					<p class="subtitle">Melhoria de qualidade sonora com redução de ruído e equalização profissional</p>
+				</div>
+				
+				<div class="enhancer-toggle" id="enhancer-toggle" role="switch" aria-checked="false" tabindex="0">
+					<div class="toggle-switch"></div>
+					<div class="toggle-info">
+						<span class="toggle-label">Ativar Aprimoramento</span>
+						<span class="toggle-desc">Remove ruídos, chiados e melhora a clareza do áudio</span>
+					</div>
+				</div>
+				
+				<div class="enhancer-controls" id="enhancerControls">
+					<!-- Preset Selector -->
+					<div class="enhancer-control full-width">
+						<label for="enhancerPreset"><i class="fa-solid fa-wand-magic-sparkles"></i> Preset Rápido</label>
+						<select id="enhancerPreset" class="enhancer-select">
+							<option value="default">Padrão (Balanceado)</option>
+							<option value="noise_reduction">Redução de Ruído</option>
+							<option value="music">Música (Hi-Fi)</option>
+							<option value="voice">Voz/Podcast</option>
+							<option value="bass_boost">Realce de Graves</option>
+							<option value="treble_boost">Realce de Agudos</option>
+							<option value="phone_quality">Compensar Fone Simples</option>
+						</select>
+					</div>
+					
+					<!-- Noise Gate -->
+					<div class="enhancer-control">
+						<label for="noiseGateThreshold">
+							<i class="fa-solid fa-volume-xmark"></i> Noise Gate
+							<output id="noiseGateValue">-50 dB</output>
+						</label>
+						<input type="range" id="noiseGateThreshold" min="-80" max="-20" value="-50" step="1" />
+						<span class="control-hint">Remove silêncios com ruído de fundo</span>
+					</div>
+					
+					<!-- De-Hiss Filter -->
+					<div class="enhancer-control">
+						<label for="deHissAmount">
+							<i class="fa-solid fa-wind"></i> Remoção de Chiado
+							<output id="deHissValue">-6 dB</output>
+						</label>
+						<input type="range" id="deHissAmount" min="-24" max="0" value="-6" step="1" />
+						<span class="control-hint">Atenua frequências altas indesejadas</span>
+					</div>
+					
+					<!-- 3-Band EQ -->
+					<div class="enhancer-control-group">
+						<label class="group-label"><i class="fa-solid fa-chart-area"></i> Equalizador 3 Bandas</label>
+						
+						<div class="eq-band">
+							<label for="eqLow">Graves (200Hz) <output id="eqLowValue">0 dB</output></label>
+							<input type="range" id="eqLow" min="-12" max="12" value="0" step="1" class="eq-slider" />
+						</div>
+						
+						<div class="eq-band">
+							<label for="eqMid">Médios (1kHz) <output id="eqMidValue">0 dB</output></label>
+							<input type="range" id="eqMid" min="-12" max="12" value="0" step="1" class="eq-slider" />
+						</div>
+						
+						<div class="eq-band">
+							<label for="eqHigh">Agudos (4kHz) <output id="eqHighValue">0 dB</output></label>
+							<input type="range" id="eqHigh" min="-12" max="12" value="0" step="1" class="eq-slider" />
+						</div>
+					</div>
+					
+					<!-- Compressor -->
+					<div class="enhancer-control">
+						<label for="compressorRatio">
+							<i class="fa-solid fa-compress"></i> Compressão Dinâmica
+							<output id="compressorValue">4:1</output>
+						</label>
+						<input type="range" id="compressorRatio" min="1" max="20" value="4" step="0.5" />
+						<span class="control-hint">Uniformiza volume (mais = mais uniforme)</span>
+					</div>
+					
+					<!-- Bass Enhancer -->
+					<div class="enhancer-control">
+						<label for="bassEnhance">
+							<i class="fa-solid fa-drum"></i> Realce de Graves
+							<output id="bassEnhanceValue">0 dB</output>
+						</label>
+						<input type="range" id="bassEnhance" min="0" max="12" value="0" step="1" />
+						<span class="control-hint">Aumenta presença de frequências baixas</span>
+					</div>
+					
+					<!-- Stereo Width -->
+					<div class="enhancer-control">
+						<label for="stereoWidth">
+							<i class="fa-solid fa-arrows-left-right-to-line"></i> Largura Estéreo
+							<output id="stereoWidthValue">100%</output>
+						</label>
+						<input type="range" id="stereoWidth" min="50" max="150" value="100" step="5" />
+						<span class="control-hint">Expansão do campo sonoro</span>
+					</div>
+					
+					<!-- Output Gain -->
+					<div class="enhancer-control">
+						<label for="outputGain">
+							<i class="fa-solid fa-volume-high"></i> Ganho de Saída
+							<output id="outputGainValue">0 dB</output>
+						</label>
+						<input type="range" id="outputGain" min="-12" max="6" value="0" step="0.5" />
+						<span class="control-hint">Volume final após processamento</span>
+					</div>
+				</div>
+				
+				<details class="scientific-info">
+					<summary><i class="fa-solid fa-microscope"></i> Base Científica</summary>
+					<div class="scientific-content">
+						<p>O processamento de áudio utiliza técnicas de DSP (Digital Signal Processing) fundamentadas em psicoacústica:</p>
+						<ul>
+							<li><strong>Noise Gate:</strong> Técnica padrão de produção de áudio que elimina ruído durante silêncios, baseada em threshold de amplitude (Katz, 2002).</li>
+							<li><strong>Curvas de Fletcher-Munson (1933):</strong> A equalização compensa a sensibilidade variável do ouvido humano em diferentes frequências e volumes.</li>
+							<li><strong>Compressão Dinâmica:</strong> Reduz a faixa dinâmica para melhor audibilidade, especialmente em ambientes ruidosos (Giannoulis et al., 2012).</li>
+							<li><strong>De-Essing/De-Hissing:</strong> Filtros high-shelf atenuam frequências acima de 6kHz onde ruído de fita e chiados predominam (Owsinski, 2014).</li>
+						</ul>
+						<p><strong>Ideal para:</strong> Melhorar áudio de baixa qualidade, fones simples, ou gravações com ruído de fundo.</p>
+					</div>
+				</details>
+			</section>
+
 			<section class="panel wide" id="playerSection">
 				<div class="panel-header">
 					<h2><i class="fa-solid fa-spa"></i> Centro de Controle Terapêutico</h2>

@@ -3,10 +3,10 @@
  * TERRA SENSORY MUSICAL - Aplicação Principal
  * =============================================================================
  * 
- * Versão: 1.1.0.0
+ * Versão: 1.2.0.0
  * 
  * Ponto de entrada principal que inicializa e conecta todos os módulos:
- * - Audio: binaurais, 8D, player
+ * - Audio: binaurais, 8D, player, enhancer
  * - UI: controles, tutorial, modais
  * - Dados: pacientes, presets, histórico
  * 
@@ -23,6 +23,7 @@ import { stores, uuid } from './utils/storage.js';
 import { setupAudioContext, resumeAudioContext, suspendAudioContext } from './audio/audioContext.js';
 import { buildBinauralChain, stopBinaural, connectMonitorToBinaural, updateBinauralFrequencies, updateBinauralVolume } from './audio/binaural.js';
 import Audio8DProcessor from './audio/audio8d.js';
+import { AudioEnhancer } from './audio/audioEnhancer.js';
 import player from './audio/player.js';
 
 // Monitor
@@ -191,6 +192,7 @@ function collectUIReferences() {
 	ui.stopBtn = document.getElementById('stop-session-btn');
 	ui.audioMonitorBtn = document.getElementById('audio-monitor-btn');
 	ui.audio8DToggle = document.getElementById('audio-8d-toggle');
+	ui.enhancerToggle = document.getElementById('enhancer-toggle');
 	
 	// Player
 	ui.playBtn = document.getElementById('play-btn');
@@ -291,6 +293,10 @@ function setupEventListeners() {
 	// 8D Toggle
 	ui.audio8DToggle?.addEventListener('click', toggle8DAudio);
 	
+	// Audio Enhancer Toggle e controles
+	ui.enhancerToggle?.addEventListener('click', toggleAudioEnhancer);
+	setupEnhancerControls();
+	
 	// Eventos de teclado
 	document.addEventListener('keydown', handleKeyboard);
 	
@@ -327,6 +333,163 @@ function toggle8DAudio() {
 	ui.audio8DToggle?.classList.toggle('active', enabled);
 	
 	showNotification(enabled ? 'Áudio 8D ativado' : 'Áudio 8D desativado');
+}
+
+// ============================================================================
+// AUDIO ENHANCER
+// ============================================================================
+
+/**
+ * Instância do AudioEnhancer
+ */
+let audioEnhancer = null;
+
+/**
+ * Toggle do aprimoramento de áudio
+ */
+function toggleAudioEnhancer() {
+	if (!audioEnhancer && state.audioContext) {
+		audioEnhancer = new AudioEnhancer(state.audioContext);
+		player.setEnhancer(audioEnhancer);
+	}
+	
+	if (!audioEnhancer) {
+		showError('AudioContext não disponível. Inicie uma sessão primeiro.');
+		return;
+	}
+	
+	const enabled = !audioEnhancer.enabled;
+	audioEnhancer.toggle(enabled);
+	
+	ui.enhancerToggle?.classList.toggle('active', enabled);
+	
+	const controls = document.getElementById('enhancerControls');
+	controls?.classList.toggle('disabled', !enabled);
+	
+	showNotification(enabled ? 'Aprimoramento de áudio ativado' : 'Aprimoramento de áudio desativado');
+}
+
+/**
+ * Configura eventos dos controles do Audio Enhancer
+ */
+function setupEnhancerControls() {
+	// Preset selector
+	const presetSelect = document.getElementById('enhancerPreset');
+	presetSelect?.addEventListener('change', (e) => {
+		if (audioEnhancer) {
+			audioEnhancer.applyPreset(e.target.value);
+			updateEnhancerUIFromPreset();
+			showNotification(`Preset "${e.target.options[e.target.selectedIndex].text}" aplicado`);
+		}
+	});
+	
+	// Noise Gate
+	const noiseGate = document.getElementById('noiseGateThreshold');
+	const noiseGateValue = document.getElementById('noiseGateValue');
+	noiseGate?.addEventListener('input', (e) => {
+		const value = parseFloat(e.target.value);
+		if (noiseGateValue) noiseGateValue.textContent = `${value} dB`;
+		if (audioEnhancer) audioEnhancer.setNoiseGateThreshold(value);
+	});
+	
+	// De-Hiss
+	const deHiss = document.getElementById('deHissAmount');
+	const deHissValue = document.getElementById('deHissValue');
+	deHiss?.addEventListener('input', (e) => {
+		const value = parseFloat(e.target.value);
+		if (deHissValue) deHissValue.textContent = `${value} dB`;
+		if (audioEnhancer) audioEnhancer.setDeHiss(value);
+	});
+	
+	// EQ Low
+	const eqLow = document.getElementById('eqLow');
+	const eqLowValue = document.getElementById('eqLowValue');
+	eqLow?.addEventListener('input', (e) => {
+		const value = parseFloat(e.target.value);
+		if (eqLowValue) eqLowValue.textContent = `${value} dB`;
+		if (audioEnhancer) audioEnhancer.setEQ('low', value);
+	});
+	
+	// EQ Mid
+	const eqMid = document.getElementById('eqMid');
+	const eqMidValue = document.getElementById('eqMidValue');
+	eqMid?.addEventListener('input', (e) => {
+		const value = parseFloat(e.target.value);
+		if (eqMidValue) eqMidValue.textContent = `${value} dB`;
+		if (audioEnhancer) audioEnhancer.setEQ('mid', value);
+	});
+	
+	// EQ High
+	const eqHigh = document.getElementById('eqHigh');
+	const eqHighValue = document.getElementById('eqHighValue');
+	eqHigh?.addEventListener('input', (e) => {
+		const value = parseFloat(e.target.value);
+		if (eqHighValue) eqHighValue.textContent = `${value} dB`;
+		if (audioEnhancer) audioEnhancer.setEQ('high', value);
+	});
+	
+	// Compressor
+	const compressor = document.getElementById('compressorRatio');
+	const compressorValue = document.getElementById('compressorValue');
+	compressor?.addEventListener('input', (e) => {
+		const value = parseFloat(e.target.value);
+		if (compressorValue) compressorValue.textContent = `${value}:1`;
+		if (audioEnhancer) audioEnhancer.setCompression(value);
+	});
+	
+	// Bass Enhancer
+	const bassEnhance = document.getElementById('bassEnhance');
+	const bassEnhanceValue = document.getElementById('bassEnhanceValue');
+	bassEnhance?.addEventListener('input', (e) => {
+		const value = parseFloat(e.target.value);
+		if (bassEnhanceValue) bassEnhanceValue.textContent = `${value} dB`;
+		if (audioEnhancer) audioEnhancer.setBassEnhance(value);
+	});
+	
+	// Stereo Width
+	const stereoWidth = document.getElementById('stereoWidth');
+	const stereoWidthValue = document.getElementById('stereoWidthValue');
+	stereoWidth?.addEventListener('input', (e) => {
+		const value = parseFloat(e.target.value);
+		if (stereoWidthValue) stereoWidthValue.textContent = `${value}%`;
+		if (audioEnhancer) audioEnhancer.setStereoWidth(value / 100);
+	});
+	
+	// Output Gain
+	const outputGain = document.getElementById('outputGain');
+	const outputGainValue = document.getElementById('outputGainValue');
+	outputGain?.addEventListener('input', (e) => {
+		const value = parseFloat(e.target.value);
+		if (outputGainValue) outputGainValue.textContent = `${value} dB`;
+		if (audioEnhancer) audioEnhancer.setOutputGain(value);
+	});
+}
+
+/**
+ * Atualiza a UI com valores do preset aplicado
+ */
+function updateEnhancerUIFromPreset() {
+	if (!audioEnhancer) return;
+	
+	const settings = audioEnhancer.getCurrentSettings();
+	
+	// Atualiza sliders e outputs
+	const updateControl = (id, valueId, value, suffix = '') => {
+		const slider = document.getElementById(id);
+		const output = document.getElementById(valueId);
+		if (slider) slider.value = value;
+		if (output) output.textContent = `${value}${suffix}`;
+	};
+	
+	updateControl('noiseGateThreshold', 'noiseGateValue', settings.noiseGateThreshold, ' dB');
+	updateControl('deHissAmount', 'deHissValue', settings.deHiss, ' dB');
+	updateControl('eqLow', 'eqLowValue', settings.eqLow, ' dB');
+	updateControl('eqMid', 'eqMidValue', settings.eqMid, ' dB');
+	updateControl('eqHigh', 'eqHighValue', settings.eqHigh, ' dB');
+	updateControl('compressorRatio', 'compressorValue', settings.compressorRatio, ':1');
+	updateControl('bassEnhance', 'bassEnhanceValue', settings.bassEnhance, ' dB');
+	updateControl('stereoWidth', 'stereoWidthValue', Math.round(settings.stereoWidth * 100), '%');
+	updateControl('outputGain', 'outputGainValue', settings.outputGain, ' dB');
 }
 
 /**
