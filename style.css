@@ -4956,7 +4956,7 @@ fieldset:focus-within {
 .guided-tutorial {
 	position: fixed;
 	inset: 0;
-	z-index: 10000;
+	z-index: 99999;
 	pointer-events: none;
 }
 
@@ -4974,11 +4974,12 @@ fieldset:focus-within {
 	inset: 0;
 	background: rgba(0, 0, 0, 0.75);
 	pointer-events: auto;
+	z-index: 99999;
 }
 
 /* Spotlight (buraco no overlay) */
 .guided-tutorial__spotlight {
-	position: absolute;
+	position: fixed;
 	border-radius: 8px;
 	box-shadow: 
 		0 0 0 9999px rgba(0, 0, 0, 0.75),
@@ -4986,7 +4987,7 @@ fieldset:focus-within {
 		inset 0 0 0 2px rgba(139, 92, 246, 0.8);
 	transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 	pointer-events: none;
-	z-index: 10001;
+	z-index: 100000;
 }
 
 /* Animação de pulso no spotlight */
@@ -5012,7 +5013,7 @@ fieldset:focus-within {
 
 /* Tooltip */
 .guided-tutorial__tooltip {
-	position: absolute;
+	position: fixed;
 	width: 340px;
 	max-width: calc(100vw - 32px);
 	background: linear-gradient(145deg, rgba(30, 41, 59, 0.98), rgba(15, 23, 42, 0.98));
@@ -5021,9 +5022,9 @@ fieldset:focus-within {
 	box-shadow: 
 		0 20px 50px rgba(0, 0, 0, 0.5),
 		0 0 30px rgba(139, 92, 246, 0.2);
-	z-index: 10010;
+	z-index: 100001;
 	pointer-events: auto;
-	transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+	transition: top 0.3s ease, left 0.3s ease;
 	overflow: hidden;
 }
 
@@ -5212,14 +5213,22 @@ fieldset:focus-within {
 
 /* Elemento destacado */
 .tutorial-highlight {
-	position: relative;
+	position: relative !important;
 	z-index: 10001 !important;
-	pointer-events: auto !important;
 }
 
-/* Tooltip SEMPRE sobre tudo */
+/* Container do tutorial - deve estar acima de TUDO */
+.guided-tutorial {
+	position: fixed;
+	inset: 0;
+	z-index: 99999;
+	pointer-events: none;
+}
+
+/* Tooltip SEMPRE sobre tudo - z-index máximo */
 .guided-tutorial__tooltip {
-	z-index: 10010 !important;
+	z-index: 999999 !important;
+	position: fixed !important;
 }
 
 /* Responsivo */
