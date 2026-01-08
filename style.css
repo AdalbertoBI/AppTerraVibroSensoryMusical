@@ -5984,3 +5984,336 @@ fieldset:focus-within {
 	animation: monitorSlideIn 0.3s ease-out;
 }
 
+/* =============================================================================
+   MONITOR DE ÁUDIO INTEGRADO NO VISUALIZADOR
+   ============================================================================= */
+
+/* Tabs do Visualizador */
+.visualizer-tabs {
+	display: flex;
+	justify-content: center;
+	gap: 0.5rem;
+	margin-bottom: 1rem;
+	padding: 0.25rem;
+	background: rgba(15, 23, 42, 0.05);
+	border-radius: 0.75rem;
+	width: fit-content;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+body.dark .visualizer-tabs {
+	background: rgba(255, 255, 255, 0.05);
+}
+
+.visualizer-tab {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	padding: 0.5rem 1rem;
+	border: none;
+	background: transparent;
+	color: var(--color-text-secondary);
+	font-size: 0.875rem;
+	font-weight: 500;
+	border-radius: 0.5rem;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.visualizer-tab:hover {
+	background: rgba(37, 99, 235, 0.1);
+	color: var(--color-primary);
+}
+
+.visualizer-tab.active {
+	background: var(--color-primary);
+	color: white;
+}
+
+.visualizer-tab i {
+	font-size: 1rem;
+}
+
+/* Tab Content */
+.visualizer-tab-content {
+	display: none;
+	width: 100%;
+	animation: fadeIn 0.3s ease;
+}
+
+.visualizer-tab-content.active {
+	display: block;
+}
+
+@keyframes fadeIn {
+	from { opacity: 0; transform: translateY(10px); }
+	to { opacity: 1; transform: translateY(0); }
+}
+
+/* Monitor Integrado */
+.audio-monitor-integrated {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 1rem;
+	padding: 1rem;
+	background: rgba(15, 23, 42, 0.03);
+	border-radius: 0.75rem;
+	max-width: 100%;
+}
+
+body.dark .audio-monitor-integrated {
+	background: rgba(255, 255, 255, 0.03);
+}
+
+@media (min-width: 768px) {
+	.audio-monitor-integrated {
+		grid-template-columns: repeat(2, 1fr);
+	}
+}
+
+@media (min-width: 1200px) {
+	.audio-monitor-integrated {
+		grid-template-columns: repeat(3, 1fr);
+	}
+}
+
+/* Seções do Monitor Integrado */
+.monitor-section {
+	background: rgba(255, 255, 255, 0.5);
+	border-radius: 0.75rem;
+	padding: 0.75rem;
+	border: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+body.dark .monitor-section {
+	background: rgba(30, 41, 59, 0.5);
+	border-color: rgba(255, 255, 255, 0.08);
+}
+
+.monitor-section h4 {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	font-size: 0.75rem;
+	font-weight: 600;
+	color: var(--color-text-secondary);
+	margin-bottom: 0.75rem;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+}
+
+.monitor-section h4 i {
+	color: var(--color-primary);
+	font-size: 0.875rem;
+}
+
+.monitor-section--info {
+	grid-column: 1 / -1;
+}
+
+/* Indicadores de Frequência no Monitor Integrado */
+.audio-monitor-integrated .frequency-indicators {
+	display: flex;
+	justify-content: space-between;
+	gap: 0.5rem;
+}
+
+.audio-monitor-integrated .freq-channel {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.25rem;
+	padding: 0.5rem;
+	background: rgba(15, 23, 42, 0.05);
+	border-radius: 0.5rem;
+}
+
+body.dark .audio-monitor-integrated .freq-channel {
+	background: rgba(255, 255, 255, 0.05);
+}
+
+.audio-monitor-integrated .freq-channel__label {
+	font-size: 0.625rem;
+	font-weight: 700;
+	padding: 0.125rem 0.375rem;
+	border-radius: 0.25rem;
+	text-transform: uppercase;
+}
+
+.audio-monitor-integrated .freq-channel--left .freq-channel__label {
+	background: rgba(59, 130, 246, 0.2);
+	color: #3b82f6;
+}
+
+.audio-monitor-integrated .freq-channel--right .freq-channel__label {
+	background: rgba(168, 85, 247, 0.2);
+	color: #a855f7;
+}
+
+.audio-monitor-integrated .freq-channel--diff .freq-channel__label {
+	background: rgba(34, 197, 94, 0.2);
+	color: #22c55e;
+}
+
+.audio-monitor-integrated .freq-channel__info {
+	text-align: center;
+}
+
+.audio-monitor-integrated .freq-channel__value {
+	display: block;
+	font-size: 0.875rem;
+	font-weight: 600;
+	color: var(--color-text-primary);
+	font-variant-numeric: tabular-nums;
+}
+
+.audio-monitor-integrated .freq-channel__desc {
+	font-size: 0.625rem;
+	color: var(--color-text-tertiary);
+}
+
+/* Analisador de Espectro no Monitor Integrado */
+.audio-monitor-integrated .spectrum-analyzer {
+	position: relative;
+}
+
+.audio-monitor-integrated .spectrum-analyzer canvas {
+	width: 100%;
+	height: 80px;
+	border-radius: 0.5rem;
+	background: linear-gradient(180deg, rgba(15, 23, 42, 0.1) 0%, rgba(15, 23, 42, 0.05) 100%);
+}
+
+body.dark .audio-monitor-integrated .spectrum-analyzer canvas {
+	background: linear-gradient(180deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.1) 100%);
+}
+
+.audio-monitor-integrated .spectrum-labels {
+	display: flex;
+	justify-content: space-between;
+	margin-top: 0.25rem;
+	font-size: 0.5rem;
+	color: var(--color-text-tertiary);
+}
+
+/* Medidores de Volume no Monitor Integrado */
+.audio-monitor-integrated .volume-meters {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+}
+
+.audio-monitor-integrated .volume-meter {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+.audio-monitor-integrated .volume-meter__label {
+	font-size: 0.625rem;
+	font-weight: 700;
+	width: 1rem;
+	text-align: center;
+	color: var(--color-text-secondary);
+}
+
+.audio-monitor-integrated .volume-meter__bar {
+	flex: 1;
+	height: 8px;
+	background: rgba(15, 23, 42, 0.1);
+	border-radius: 4px;
+	position: relative;
+	overflow: hidden;
+}
+
+body.dark .audio-monitor-integrated .volume-meter__bar {
+	background: rgba(255, 255, 255, 0.1);
+}
+
+.audio-monitor-integrated .volume-meter__fill {
+	height: 100%;
+	background: linear-gradient(90deg, #22c55e 0%, #84cc16 50%, #eab308 75%, #ef4444 100%);
+	border-radius: 4px;
+	transition: width 0.05s ease;
+}
+
+.audio-monitor-integrated .volume-meter__peak {
+	position: absolute;
+	top: 0;
+	width: 2px;
+	height: 100%;
+	background: #ef4444;
+	transition: left 0.1s ease;
+}
+
+.audio-monitor-integrated .volume-meter__value {
+	font-size: 0.625rem;
+	font-weight: 500;
+	width: 3rem;
+	text-align: right;
+	color: var(--color-text-secondary);
+	font-variant-numeric: tabular-nums;
+}
+
+.audio-monitor-integrated .volume-meter--master .volume-meter__label {
+	color: var(--color-primary);
+}
+
+/* Forma de Onda no Monitor Integrado */
+.audio-monitor-integrated .waveform-display canvas {
+	width: 100%;
+	height: 60px;
+	border-radius: 0.5rem;
+	background: linear-gradient(180deg, rgba(15, 23, 42, 0.1) 0%, rgba(15, 23, 42, 0.05) 100%);
+}
+
+body.dark .audio-monitor-integrated .waveform-display canvas {
+	background: linear-gradient(180deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.1) 100%);
+}
+
+/* Info Grid no Monitor Integrado */
+.audio-monitor-integrated .session-info-grid {
+	display: flex;
+	justify-content: center;
+	flex-wrap: wrap;
+	gap: 1.5rem;
+}
+
+.audio-monitor-integrated .session-info-item {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	font-size: 0.8125rem;
+	color: var(--color-text-secondary);
+}
+
+.audio-monitor-integrated .session-info-item i {
+	color: var(--color-primary);
+}
+
+/* Responsivo - Mobile */
+@media (max-width: 599px) {
+	.visualizer-tab span {
+		display: none;
+	}
+	
+	.visualizer-tab {
+		padding: 0.5rem 0.75rem;
+	}
+	
+	.audio-monitor-integrated {
+		padding: 0.75rem;
+		gap: 0.75rem;
+	}
+	
+	.monitor-section {
+		padding: 0.5rem;
+	}
+	
+	.monitor-section h4 {
+		font-size: 0.625rem;
+		margin-bottom: 0.5rem;
+	}
+}

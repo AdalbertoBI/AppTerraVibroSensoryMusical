@@ -526,9 +526,6 @@ function cacheDom() {
 	
 	// Monitor de Áudio
 	ui.audioMonitorBtn = document.getElementById('audioMonitorBtn');
-	ui.audioMonitorWindow = document.getElementById('audioMonitorWindow');
-	ui.audioMonitorClose = document.getElementById('audioMonitorClose');
-	ui.audioMonitorMinimize = document.getElementById('audioMonitorMinimize');
 	ui.spectrumCanvas = document.getElementById('spectrumCanvas');
 	ui.waveformCanvas = document.getElementById('waveformCanvas');
 	ui.monitorFreqLeft = document.getElementById('monitorFreqLeft');
@@ -546,6 +543,11 @@ function cacheDom() {
 	ui.monitorMusicStatus = document.getElementById('monitorMusicStatus');
 	ui.monitorSessionTime = document.getElementById('monitorSessionTime');
 	ui.monitorBrainwave = document.getElementById('monitorBrainwave');
+	
+	// Tabs do Visualizador
+	ui.visualizerTabs = document.querySelectorAll('.visualizer-tab');
+	ui.tabVisualizer = document.getElementById('tabVisualizer');
+	ui.tabMonitor = document.getElementById('tabMonitor');
 	
 	// Menu Drawer Principal
 	ui.menuToggle = document.getElementById('menuToggle');
@@ -746,18 +748,18 @@ function attachListeners() {
 		ui.showTermsBtn.addEventListener('click', showTermsModal);
 	}
 	
-	// Monitor de Áudio
+	// Monitor de Áudio - Agora integrado como tab
 	if (ui.audioMonitorBtn) {
-		ui.audioMonitorBtn.addEventListener('click', toggleAudioMonitor);
+		ui.audioMonitorBtn.addEventListener('click', () => switchVisualizerTab('monitor'));
 	}
-	if (ui.audioMonitorClose) {
-		ui.audioMonitorClose.addEventListener('click', closeAudioMonitor);
-	}
-	if (ui.audioMonitorMinimize) {
-		ui.audioMonitorMinimize.addEventListener('click', minimizeAudioMonitor);
-	}
-	// Arrastar janela do monitor
-	setupAudioMonitorDrag();
+	
+	// Tabs do Visualizador
+	ui.visualizerTabs.forEach(tab => {
+		tab.addEventListener('click', () => {
+			const tabName = tab.dataset.tab;
+			switchVisualizerTab(tabName);
+		});
+	});
 	
 	// Audio 8D Toggle
 	if (ui.audio8DToggle) {
@@ -4263,28 +4265,43 @@ function handlePatientsListClick(e) {
 }
 
 // =============================================================================
-// MONITOR DE ÁUDIO - ANALISADOR EM TEMPO REAL
+// MONITOR DE ÁUDIO - INTEGRADO NO VISUALIZADOR
 // =============================================================================
 
 /**
- * Alterna a visibilidade do monitor de áudio
+ * Alterna entre as tabs do visualizador (Visual/Monitor)
  */
-function toggleAudioMonitor() {
-	if (!ui.audioMonitorWindow) return;
+function switchVisualizerTab(tabName) {
+	// Atualiza tabs
+	ui.visualizerTabs.forEach(tab => {
+		tab.classList.toggle('active', tab.dataset.tab === tabName);
+	});
 	
-	if (state.audioMonitor.isOpen) {
-		closeAudioMonitor();
-	} else {
+	// Atualiza conteúdo
+	const allContents = document.querySelectorAll('.visualizer-tab-content');
+	allContents.forEach(content => {
+		content.classList.toggle('active', content.dataset.tabContent === tabName);
+	});
+	
+	// Se for tab do monitor, inicia análise
+	if (tabName === 'monitor') {
 		openAudioMonitor();
+	} else {
+		// Fecha monitor mas mantém os analysers
+		state.audioMonitor.isOpen = false;
+		stopAudioMonitorAnimation();
+	}
+	
+	// Atualiza botão externo se existir
+	if (ui.audioMonitorBtn) {
+		ui.audioMonitorBtn.classList.toggle('active', tabName === 'monitor');
 	}
 }
 
 /**
- * Abre o monitor de áudio
+ * Abre o monitor de áudio (inicia análise)
  */
 function openAudioMonitor() {
-	if (!ui.audioMonitorWindow) return;
-	
 	// Garante que o contexto de áudio existe
 	if (!state.audioCtx) {
 		setupAudioGraph();
@@ -4295,10 +4312,7 @@ function openAudioMonitor() {
 		setupAudioAnalysers();
 	}
 	
-	// Mostra a janela (remove hidden)
-	ui.audioMonitorWindow.classList.remove('hidden');
 	state.audioMonitor.isOpen = true;
-	state.audioMonitor.isMinimized = false;
 	
 	// Marca início da sessão se não estiver rodando
 	if (!state.audioMonitor.sessionStartTime) {
@@ -4307,57 +4321,6 @@ function openAudioMonitor() {
 	
 	// Inicia a animação
 	startAudioMonitorAnimation();
-	
-	// Atualiza o botão
-	if (ui.audioMonitorBtn) {
-		ui.audioMonitorBtn.classList.add('active');
-	}
-}
-
-/**
- * Fecha o monitor de áudio
- */
-function closeAudioMonitor() {
-	if (!ui.audioMonitorWindow) return;
-	
-	ui.audioMonitorWindow.classList.add('hidden');
-	state.audioMonitor.isOpen = false;
-	
-	// Para a animação
-	stopAudioMonitorAnimation();
-	
-	// Atualiza o botão
-	if (ui.audioMonitorBtn) {
-		ui.audioMonitorBtn.classList.remove('active');
-	}
-}
-
-/**
- * Minimiza/restaura o monitor de áudio
- */
-function minimizeAudioMonitor() {
-	if (!ui.audioMonitorWindow) return;
-	
-	state.audioMonitor.isMinimized = !state.audioMonitor.isMinimized;
-	ui.audioMonitorWindow.classList.toggle('minimized', state.audioMonitor.isMinimized);
-	
-	if (ui.audioMonitorMinimize) {
-		const icon = ui.audioMonitorMinimize.querySelector('i');
-		if (icon) {
-			if (state.audioMonitor.isMinimized) {
-				icon.className = 'fa-solid fa-window-maximize';
-			} else {
-				icon.className = 'fa-solid fa-minus';
-			}
-		}
-	}
-	
-	// Pausa/retoma animação baseado no estado
-	if (state.audioMonitor.isMinimized) {
-		stopAudioMonitorAnimation();
-	} else {
-		startAudioMonitorAnimation();
-	}
 }
 
 // ============================================================================
@@ -5221,105 +5184,3 @@ function updateSessionInfo() {
 	}
 }
 
-/**
- * Configura o arraste da janela do monitor
- */
-function setupAudioMonitorDrag() {
-	const monitor = ui.audioMonitorWindow;
-	if (!monitor) return;
-	
-	const header = monitor.querySelector('.audio-monitor__header');
-	if (!header) return;
-	
-	let isDragging = false;
-	let startX, startY, initialX, initialY;
-	
-	header.addEventListener('mousedown', (e) => {
-		// Ignora cliques nos botões
-		if (e.target.closest('.audio-monitor__close') || e.target.closest('.audio-monitor__minimize')) {
-			return;
-		}
-		
-		isDragging = true;
-		startX = e.clientX;
-		startY = e.clientY;
-		
-		const rect = monitor.getBoundingClientRect();
-		initialX = rect.left;
-		initialY = rect.top;
-		
-		header.style.cursor = 'grabbing';
-		e.preventDefault();
-	});
-	
-	document.addEventListener('mousemove', (e) => {
-		if (!isDragging) return;
-		
-		const dx = e.clientX - startX;
-		const dy = e.clientY - startY;
-		
-		let newX = initialX + dx;
-		let newY = initialY + dy;
-		
-		// Limites da tela
-		const maxX = window.innerWidth - monitor.offsetWidth;
-		const maxY = window.innerHeight - monitor.offsetHeight;
-		
-		newX = Math.max(0, Math.min(newX, maxX));
-		newY = Math.max(0, Math.min(newY, maxY));
-		
-		monitor.style.left = `${newX}px`;
-		monitor.style.top = `${newY}px`;
-		monitor.style.right = 'auto';
-		monitor.style.bottom = 'auto';
-	});
-	
-	document.addEventListener('mouseup', () => {
-		if (isDragging) {
-			isDragging = false;
-			header.style.cursor = 'grab';
-		}
-	});
-	
-	// Suporte a touch
-	header.addEventListener('touchstart', (e) => {
-		if (e.target.closest('.audio-monitor__close') || e.target.closest('.audio-monitor__minimize')) {
-			return;
-		}
-		
-		isDragging = true;
-		const touch = e.touches[0];
-		startX = touch.clientX;
-		startY = touch.clientY;
-		
-		const rect = monitor.getBoundingClientRect();
-		initialX = rect.left;
-		initialY = rect.top;
-	}, { passive: true });
-	
-	document.addEventListener('touchmove', (e) => {
-		if (!isDragging) return;
-		
-		const touch = e.touches[0];
-		const dx = touch.clientX - startX;
-		const dy = touch.clientY - startY;
-		
-		let newX = initialX + dx;
-		let newY = initialY + dy;
-		
-		const maxX = window.innerWidth - monitor.offsetWidth;
-		const maxY = window.innerHeight - monitor.offsetHeight;
-		
-		newX = Math.max(0, Math.min(newX, maxX));
-		newY = Math.max(0, Math.min(newY, maxY));
-		
-		monitor.style.left = `${newX}px`;
-		monitor.style.top = `${newY}px`;
-		monitor.style.right = 'auto';
-		monitor.style.bottom = 'auto';
-	}, { passive: true });
-	
-	document.addEventListener('touchend', () => {
-		isDragging = false;
-	});
-}
