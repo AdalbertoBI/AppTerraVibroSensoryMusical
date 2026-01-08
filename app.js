@@ -442,6 +442,10 @@ function cacheDom() {
 	ui.patientsList = document.getElementById('patientList');
 	ui.noPatientsMessage = document.getElementById('noPatients');
 	ui.newPatientFromListBtn = document.getElementById('newPatientFromListBtn');
+	
+	// Footer Actions
+	ui.repeatTutorialBtn = document.getElementById('repeatTutorialBtn');
+	ui.showTermsBtn = document.getElementById('showTermsBtn');
 }
 
 function attachListeners() {
@@ -578,6 +582,14 @@ function attachListeners() {
 			e.preventDefault();
 			saveCurrentPatient();
 		});
+	}
+	
+	// Footer Actions - Repetir Tutorial e Ver Termos
+	if (ui.repeatTutorialBtn) {
+		ui.repeatTutorialBtn.addEventListener('click', resetAndStartGuidedTutorial);
+	}
+	if (ui.showTermsBtn) {
+		ui.showTermsBtn.addEventListener('click', showTermsModal);
 	}
 }
 
@@ -1611,7 +1623,7 @@ const GUIDED_TUTORIAL_KEY = 'ts-guided-tutorial-completed';
 
 const TUTORIAL_STEPS = [
 	{
-		selector: '.patient-bar',
+		selector: '#patientBar',
 		title: '👤 Barra de Pacientes',
 		text: 'Aqui você visualiza o paciente selecionado e pode cadastrar novos pacientes ou acessar a lista de pacientes já cadastrados.',
 		position: 'bottom'
@@ -1623,57 +1635,57 @@ const TUTORIAL_STEPS = [
 		position: 'bottom'
 	},
 	{
-		selector: '.control-group:has(#baseFreq)',
-		title: '🎵 Frequência Base',
-		text: 'Ajuste a frequência portadora (carrier) do tom binaural. Valores entre 100Hz e 500Hz são mais comuns na prática terapêutica.',
-		position: 'right'
-	},
-	{
-		selector: '.control-group:has(#binauralFreq)',
-		title: '🧠 Frequência Binaural',
-		text: 'Define a diferença de frequência entre os canais esquerdo e direito, criando o efeito binaural. Delta (0.5-4Hz), Theta (4-8Hz), Alpha (8-13Hz), Beta (13-30Hz), Gamma (30-40Hz).',
-		position: 'right'
-	},
-	{
-		selector: '.control-group:has(#volume)',
-		title: '🔊 Volume',
-		text: 'Controle o volume do tom binaural. Recomendamos manter em níveis confortáveis, sempre abaixo de 80dB.',
-		position: 'right'
-	},
-	{
-		selector: '.control-group:has(#therapeuticProtocol)',
+		selector: '#therapeuticProtocol',
 		title: '📋 Protocolos Terapêuticos',
 		text: 'Selecione protocolos pré-definidos baseados em evidências científicas para diferentes objetivos terapêuticos.',
-		position: 'left'
+		position: 'bottom'
 	},
 	{
-		selector: '.control-group:has(#timer)',
-		title: '⏱️ Timer da Sessão',
-		text: 'Configure a duração da sessão. O sistema irá parar automaticamente quando o tempo acabar.',
-		position: 'left'
+		selector: '#baseFreq',
+		title: '🎵 Frequência Base',
+		text: 'Ajuste a frequência portadora vibroacústica. Valores entre 40Hz e 68Hz são mais comuns na prática terapêutica (Skille 1991).',
+		position: 'bottom'
 	},
 	{
-		selector: '#playBtn',
-		title: '▶️ Controle de Reprodução',
-		text: 'Inicie ou pause a sessão de terapia. O tom binaural será reproduzido nos fones de ouvido.',
+		selector: '#diffFreq',
+		title: '🧠 Diferença Binaural',
+		text: 'Define a diferença de frequência entre os canais esquerdo e direito, criando o efeito binaural. Delta (0.5-4Hz), Theta (4-8Hz), Alpha (8-13Hz), Beta (13-30Hz), Gamma (30-40Hz).',
+		position: 'bottom'
+	},
+	{
+		selector: '#duration',
+		title: '⏱️ Duração da Sessão',
+		text: 'Configure a duração da sessão. Mínimo recomendado: 20 minutos (Wigram 1995). O sistema irá parar automaticamente.',
+		position: 'bottom'
+	},
+	{
+		selector: '#binauralVolume',
+		title: '🔊 Intensidade',
+		text: 'Controle a intensidade vibroacústica. Recomendamos manter entre 50-75% para segurança.',
+		position: 'bottom'
+	},
+	{
+		selector: '#playerSection',
+		title: '▶️ Centro de Controle',
+		text: 'Aqui você controla a sessão terapêutica: play, pause, volume e visualizador em tempo real.',
 		position: 'top'
 	},
 	{
-		selector: '.section:has(#presetList)',
-		title: '📁 Presets',
-		text: 'Salve suas configurações favoritas como presets para reutilizar em sessões futuras. Você também pode exportar e importar presets.',
+		selector: '#presetList',
+		title: '📁 Presets Salvos',
+		text: 'Salve suas configurações favoritas como presets para reutilizar em sessões futuras.',
 		position: 'top'
 	},
 	{
-		selector: '.section:has(#musicList)',
+		selector: '#musicLibrary',
 		title: '🎶 Biblioteca de Músicas',
-		text: 'Importe músicas para combinar com as frequências binaurais. A música é mixada com o tom para uma experiência terapêutica mais agradável.',
+		text: 'Importe músicas para combinar com as frequências binaurais. A música é mixada com o tom para uma experiência mais agradável.',
 		position: 'top'
 	},
 	{
-		selector: '.section:has(#historyList)',
-		title: '📊 Histórico de Sessões',
-		text: 'Todas as sessões são registradas automaticamente. Visualize o histórico para acompanhar a evolução dos tratamentos.',
+		selector: '#references',
+		title: '📊 Referências Científicas',
+		text: 'Consulte as evidências científicas que fundamentam os protocolos e configurações disponíveis no sistema.',
 		position: 'top'
 	}
 ];
@@ -1882,6 +1894,37 @@ function endGuidedTutorial() {
 	
 	// Marca como concluído
 	localStorage.setItem(GUIDED_TUTORIAL_KEY, 'true');
+}
+
+// Resetar e reiniciar o tutorial guiado (chamado pelo botão do rodapé)
+function resetAndStartGuidedTutorial() {
+	// Remove a flag de tutorial concluído
+	localStorage.removeItem(GUIDED_TUTORIAL_KEY);
+	
+	// Scroll para o topo
+	window.scrollTo({ top: 0, behavior: 'smooth' });
+	
+	// Inicia o tutorial
+	setTimeout(() => {
+		currentGuidedStep = 0;
+		ui.guidedTutorial.classList.remove('hidden');
+		ui.guidedTutorial.classList.add('active');
+		showGuidedStep(currentGuidedStep);
+	}, 300);
+}
+
+// Mostrar o modal de termos de uso (chamado pelo botão do rodapé)
+function showTermsModal() {
+	// Resetar para o primeiro slide
+	currentTutorialSlide = 0;
+	const slides = document.querySelectorAll('.tutorial-slide');
+	slides.forEach((slide, i) => {
+		slide.classList.toggle('active', i === 0);
+	});
+	updateTutorialUI();
+	
+	// Mostra o modal
+	ui.termsModal.classList.add('active');
 }
 
 async function verifyHeadphones() {
