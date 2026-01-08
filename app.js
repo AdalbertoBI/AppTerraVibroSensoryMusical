@@ -489,17 +489,25 @@ function attachListeners() {
 	ui.form.addEventListener('submit', handlePresetSave);
 	ui.loadDefaultPresets.addEventListener('click', reloadScientificPresets);
 	ui.startSessionBtn.addEventListener('click', () => startSessionFromForm(false));
-	ui.baseFreq.addEventListener('input', updateRangeOutputs);
+	ui.baseFreq.addEventListener('input', () => {
+		updateRangeOutputs();
+		updateBinauralFrequenciesRealtime();
+	});
 	ui.diffFreq.addEventListener('input', () => {
 		updateRangeOutputs();
 		updateSuggestions();
+		updateBinauralFrequenciesRealtime();
 	});
 	ui.duration.addEventListener('input', updateRangeOutputs);
 	ui.binauralVolume.addEventListener('input', () => {
 		updateRangeOutputs();
 		warnHighVolume();
+		updateBinauralVolumeRealtime();
 	});
-	ui.lowPass.addEventListener('input', updateRangeOutputs);
+	ui.lowPass.addEventListener('input', () => {
+		updateRangeOutputs();
+		updateLowPassRealtime();
+	});
 	ui.playBtn.addEventListener('click', handlePlay);
 	ui.pauseBtn.addEventListener('click', handlePause);
 	ui.stopBtn.addEventListener('click', stopSession);
@@ -1044,6 +1052,58 @@ function buildBinauralChain(preset) {
 	
 	// Conecta os analysers do monitor aos canais L/R se estiverem configurados
 	connectMonitorToBinaural();
+}
+
+/**
+ * Atualiza as frequências dos osciladores binaurais em tempo real
+ * Chamada quando os sliders baseFreq ou diffFreq são alterados
+ */
+function updateBinauralFrequenciesRealtime() {
+	// Se não há sessão ativa, não há o que atualizar nos osciladores
+	// Mas o monitor ainda mostrará os valores dos sliders
+	if (!state.binauralChain?.leftOsc || !state.binauralChain?.rightOsc) {
+		return;
+	}
+	
+	const baseHz = parseFloat(ui.baseFreq?.value) || 200;
+	const diffHz = parseFloat(ui.diffFreq?.value) || 10;
+	const ctx = state.audioCtx;
+	
+	// Atualiza frequências com transição suave para evitar cliques
+	state.binauralChain.leftOsc.frequency.setTargetAtTime(baseHz, ctx.currentTime, 0.05);
+	state.binauralChain.rightOsc.frequency.setTargetAtTime(baseHz + diffHz, ctx.currentTime, 0.05);
+	
+	// Atualiza os valores guardados na cadeia
+	state.binauralChain.freqLeft = baseHz;
+	state.binauralChain.freqRight = baseHz + diffHz;
+	state.binauralChain.freqDiff = diffHz;
+	
+	console.log(`Frequências atualizadas: L=${baseHz}Hz, R=${baseHz + diffHz}Hz, Δ=${diffHz}Hz`);
+}
+
+/**
+ * Atualiza o filtro low-pass em tempo real
+ */
+function updateLowPassRealtime() {
+	if (!state.binauralChain?.lowPass || !state.audioCtx) return;
+	
+	// O valor do slider já é em Hz (30-120)
+	const frequency = parseFloat(ui.lowPass?.value) || 80;
+	
+	state.binauralChain.lowPass.frequency.setTargetAtTime(frequency, state.audioCtx.currentTime, 0.05);
+}
+
+/**
+ * Atualiza o volume do binaural em tempo real
+ */
+function updateBinauralVolumeRealtime() {
+	if (!state.binauralChain?.leftGain || !state.binauralChain?.rightGain || !state.audioCtx) return;
+	
+	const volumePercent = parseFloat(ui.binauralVolume?.value) || 70;
+	const gain = (volumePercent / 100) * 0.5; // Max 0.5 para evitar distorção
+	
+	state.binauralChain.leftGain.gain.setTargetAtTime(gain, state.audioCtx.currentTime, 0.05);
+	state.binauralChain.rightGain.gain.setTargetAtTime(gain, state.audioCtx.currentTime, 0.05);
 }
 
 function stopBinaural() {
