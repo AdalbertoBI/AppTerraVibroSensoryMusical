@@ -525,7 +525,6 @@ function cacheDom() {
 	ui.showTermsBtn = document.getElementById('showTermsBtn');
 	
 	// Monitor de Áudio
-	ui.audioMonitorBtn = document.getElementById('audioMonitorBtn');
 	ui.spectrumCanvas = document.getElementById('spectrumCanvas');
 	ui.waveformCanvas = document.getElementById('waveformCanvas');
 	ui.monitorFreqLeft = document.getElementById('monitorFreqLeft');
@@ -746,11 +745,6 @@ function attachListeners() {
 	}
 	if (ui.showTermsBtn) {
 		ui.showTermsBtn.addEventListener('click', showTermsModal);
-	}
-	
-	// Monitor de Áudio - Agora integrado como tab
-	if (ui.audioMonitorBtn) {
-		ui.audioMonitorBtn.addEventListener('click', () => switchVisualizerTab('monitor'));
 	}
 	
 	// Tabs do Visualizador
@@ -4290,11 +4284,6 @@ function switchVisualizerTab(tabName) {
 		// Fecha monitor mas mantém os analysers
 		state.audioMonitor.isOpen = false;
 		stopAudioMonitorAnimation();
-	}
-	
-	// Atualiza botão externo se existir
-	if (ui.audioMonitorBtn) {
-		ui.audioMonitorBtn.classList.toggle('active', tabName === 'monitor');
 	}
 }
 
