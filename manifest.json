@@ -18,14 +18,14 @@
 		{
 			"src": "icons/baselogo_app.png",
 			"type": "image/png",
-			"sizes": "512x512",
+			"sizes": "any",
 			"purpose": "any"
 		},
 		{
 			"src": "icons/baselogo_app.png",
 			"type": "image/png",
 			"sizes": "512x512",
-			"purpose": "maskable"
+			"purpose": "any maskable"
 		}
 	],
 	"screenshots": [],
