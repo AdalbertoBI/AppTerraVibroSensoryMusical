@@ -65,6 +65,54 @@ const stores = {
 const uuid = () => (crypto?.randomUUID ? crypto.randomUUID() : `ts-${Date.now()}-${Math.floor(Math.random() * 1e6)}`);
 
 // =============================================================================
+// TOAST / NOTIFICAÇÕES VISUAIS
+// =============================================================================
+
+/**
+ * Mostra uma notificação toast temporária
+ * @param {string} message - Mensagem a exibir
+ * @param {string} type - Tipo: 'success', 'error', 'warning', 'info'
+ * @param {number} duration - Duração em ms (padrão: 3000)
+ */
+function showToast(message, type = 'info', duration = 3000) {
+	// Remove toast anterior se existir
+	const existingToast = document.querySelector('.app-toast');
+	if (existingToast) {
+		existingToast.remove();
+	}
+	
+	// Cria o elemento toast
+	const toast = document.createElement('div');
+	toast.className = `app-toast app-toast--${type}`;
+	
+	// Ícone baseado no tipo
+	const icons = {
+		success: 'fa-circle-check',
+		error: 'fa-circle-xmark',
+		warning: 'fa-triangle-exclamation',
+		info: 'fa-circle-info'
+	};
+	
+	toast.innerHTML = `
+		<i class="fa-solid ${icons[type] || icons.info}"></i>
+		<span>${message}</span>
+	`;
+	
+	// Adiciona ao body
+	document.body.appendChild(toast);
+	
+	// Força reflow para animação
+	toast.offsetHeight;
+	toast.classList.add('show');
+	
+	// Remove após duração
+	setTimeout(() => {
+		toast.classList.remove('show');
+		setTimeout(() => toast.remove(), 300);
+	}, duration);
+}
+
+// =============================================================================
 // ESTRUTURA DE DADOS DO PACIENTE E ANAMNESE
 // =============================================================================
 

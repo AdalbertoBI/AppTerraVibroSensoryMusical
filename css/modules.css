@@ -3769,6 +3769,87 @@
 	margin-bottom: 0.75rem;
 }
 
+/* ============================================================================
+   TOAST NOTIFICATIONS
+   ============================================================================ */
+
+.app-toast {
+	position: fixed;
+	bottom: 80px;
+	left: 50%;
+	transform: translateX(-50%) translateY(100px);
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	padding: 0.875rem 1.25rem;
+	background: rgba(30, 30, 40, 0.95);
+	-webkit-backdrop-filter: blur(10px);
+	backdrop-filter: blur(10px);
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	border-radius: 12px;
+	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+	font-size: 0.9rem;
+	color: var(--text-primary);
+	z-index: 10000;
+	opacity: 0;
+	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+	pointer-events: none;
+}
+
+.app-toast.show {
+	opacity: 1;
+	transform: translateX(-50%) translateY(0);
+}
+
+.app-toast i {
+	font-size: 1.1rem;
+}
+
+.app-toast--success {
+	border-color: rgba(74, 222, 128, 0.4);
+}
+
+.app-toast--success i {
+	color: #4ade80;
+}
+
+.app-toast--error {
+	border-color: rgba(248, 113, 113, 0.4);
+}
+
+.app-toast--error i {
+	color: #f87171;
+}
+
+.app-toast--warning {
+	border-color: rgba(251, 191, 36, 0.4);
+}
+
+.app-toast--warning i {
+	color: #fbbf24;
+}
+
+.app-toast--info {
+	border-color: rgba(0, 208, 255, 0.4);
+}
+
+.app-toast--info i {
+	color: var(--primary);
+}
+
+@media (max-width: 600px) {
+	.app-toast {
+		left: 1rem;
+		right: 1rem;
+		transform: translateX(0) translateY(100px);
+		width: auto;
+	}
+	
+	.app-toast.show {
+		transform: translateX(0) translateY(0);
+	}
+}
+
 /* Presets Panel Hidden on Desktop (now in drawer) */
 @media (min-width: 768px) {
 	#presetsPanel {
