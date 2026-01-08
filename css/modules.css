@@ -427,6 +427,34 @@
 	text-decoration: underline;
 }
 
+/* Reference Highlight */
+.reference-item.highlight {
+	border-left: 3px solid var(--success, #22c55e);
+	background: rgba(34, 197, 94, 0.05);
+}
+
+.reference-item .ref-publisher {
+	font-size: 0.75rem;
+	color: var(--text-muted, #94a3b8);
+}
+
+.reference-item .ref-summary {
+	font-size: 0.75rem;
+	color: var(--secondary, #8b5cf6);
+	margin-top: 6px;
+	padding: 6px 10px;
+	background: rgba(139, 92, 246, 0.1);
+	border-radius: 4px;
+	display: flex;
+	align-items: flex-start;
+	gap: 6px;
+}
+
+.reference-item .ref-summary i {
+	margin-top: 2px;
+	flex-shrink: 0;
+}
+
 /* Reference Category Title */
 .reference-category {
 	margin-bottom: 16px;
@@ -439,6 +467,69 @@
 	margin: 0 0 10px;
 	padding-bottom: 6px;
 	border-bottom: 1px solid var(--border, rgba(255, 255, 255, 0.1));
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.reference-category-title .ref-count {
+	font-weight: 400;
+	font-size: 0.75rem;
+	color: var(--text-muted, #94a3b8);
+}
+
+/* Scientific Foundation Body Enhanced */
+.sci-foundation-body .sci-summary {
+	font-style: italic;
+	color: var(--text-secondary);
+	padding-left: 10px;
+	border-left: 2px solid var(--primary);
+}
+
+.sci-foundation-body .sci-pioneer {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	color: var(--text-secondary);
+}
+
+.sci-foundation-body .sci-pioneer i {
+	color: var(--secondary);
+}
+
+.sci-foundation-body .sci-mechanisms {
+	margin-top: 12px;
+	padding: 10px;
+	background: rgba(0, 0, 0, 0.2);
+	border-radius: 8px;
+}
+
+.sci-foundation-body .sci-mechanisms h5 {
+	font-size: 0.8rem;
+	color: var(--primary);
+	margin: 0 0 8px;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.sci-foundation-body .sci-mechanisms ul {
+	margin: 0;
+	padding-left: 18px;
+}
+
+.sci-foundation-body .sci-mechanisms li {
+	font-size: 0.8rem;
+	margin-bottom: 4px;
+	color: var(--text-secondary);
+}
+
+/* Empty state */
+.drawer-content .empty {
+	color: var(--text-muted, #94a3b8);
+	text-align: center;
+	padding: 30px 20px;
+	font-style: italic;
 }
 
 /* Error Message */

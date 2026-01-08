@@ -844,13 +844,13 @@ async function loadScientificContent() {
 	try {
 		// Carrega fundamentos científicos
 		const foundationsRes = await fetch('./data/scientific_foundations.json');
-		const foundations = await foundationsRes.json();
-		renderScientificFoundations(foundations);
+		const foundationsData = await foundationsRes.json();
+		renderScientificFoundations(foundationsData.foundations);
 		
 		// Carrega bibliografia
 		const bibliographyRes = await fetch('./data/bibliography.json');
-		const bibliography = await bibliographyRes.json();
-		renderScientificReferences(bibliography);
+		const bibliographyData = await bibliographyRes.json();
+		renderScientificReferences(bibliographyData.categories);
 		
 		scientificDataLoaded = true;
 	} catch (error) {
@@ -860,27 +860,43 @@ async function loadScientificContent() {
 	}
 }
 
-function renderScientificFoundations(data) {
-	const html = Object.entries(data).map(([key, foundation]) => `
+function renderScientificFoundations(foundations) {
+	if (!foundations) {
+		ui.scientificFoundations.innerHTML = '<p class="error">Dados não encontrados</p>';
+		return;
+	}
+	
+	const html = Object.entries(foundations).map(([key, foundation]) => `
 		<div class="sci-foundation-card" data-foundation="${key}">
 			<div class="sci-foundation-header" onclick="this.parentElement.classList.toggle('expanded')">
-				<h4><i class="fa-solid fa-${getFoundationIcon(key)}"></i> ${foundation.title}</h4>
+				<h4><i class="${foundation.icon || 'fa-solid fa-flask'}"></i> ${foundation.title}</h4>
 				<i class="fa-solid fa-chevron-down toggle-icon"></i>
 			</div>
 			<div class="sci-foundation-body">
-				<p><strong>Pioneiro:</strong> ${foundation.pioneer} (${foundation.year})</p>
-				<p>${foundation.description}</p>
-				<p><strong>Mecanismo:</strong> ${foundation.mechanism}</p>
-				${foundation.keyFindings ? `
+				<p class="sci-summary">${foundation.summary}</p>
+				${foundation.pioneer ? `
+					<p class="sci-pioneer"><i class="fa-solid fa-user-graduate"></i> 
+						<strong>Pioneiro:</strong> ${foundation.pioneer.name} (${foundation.pioneer.period}), ${foundation.pioneer.country}
+					</p>
+				` : ''}
+				${foundation.mechanisms && foundation.mechanisms.length > 0 ? `
+					<div class="sci-mechanisms">
+						<h5><i class="fa-solid fa-cogs"></i> Mecanismos</h5>
+						<ul>
+							${foundation.mechanisms.map(m => `<li><strong>${m.name}:</strong> ${m.description}</li>`).join('')}
+						</ul>
+					</div>
+				` : ''}
+				${foundation.keyStudies && foundation.keyStudies.length > 0 ? `
 					<div class="evidence-tag">
-						<i class="fa-solid fa-check-circle"></i> ${foundation.keyFindings.length} descobertas-chave documentadas
+						<i class="fa-solid fa-check-circle"></i> ${foundation.keyStudies.length} estudos-chave documentados
 					</div>
 				` : ''}
 			</div>
 		</div>
 	`).join('');
 	
-	ui.scientificFoundations.innerHTML = html;
+	ui.scientificFoundations.innerHTML = html || '<p class="empty">Nenhum fundamento encontrado</p>';
 }
 
 function getFoundationIcon(key) {
@@ -892,21 +908,37 @@ function getFoundationIcon(key) {
 	return icons[key] || 'flask';
 }
 
-function renderScientificReferences(data) {
+function renderScientificReferences(categories) {
+	if (!categories) {
+		ui.scientificReferences.innerHTML = '<p class="error">Dados não encontrados</p>';
+		return;
+	}
+	
 	let html = '';
 	
-	Object.entries(data.categories).forEach(([category, refs]) => {
+	Object.entries(categories).forEach(([categoryKey, categoryData]) => {
+		const categoryName = categoryData.name || getCategoryTitle(categoryKey);
+		const categoryIcon = categoryData.icon || 'fa-solid fa-book';
+		const refs = categoryData.references || [];
+		
+		if (refs.length === 0) return;
+		
 		html += `<div class="reference-category">
-			<h4 class="reference-category-title">${getCategoryTitle(category)}</h4>
+			<h4 class="reference-category-title">
+				<i class="${categoryIcon}"></i> ${categoryName}
+				<span class="ref-count">(${refs.length})</span>
+			</h4>
 		`;
 		
 		refs.forEach(ref => {
 			html += `
-				<div class="reference-item">
+				<div class="reference-item ${ref.highlight ? 'highlight' : ''}">
 					<div class="ref-authors">${ref.authors} (${ref.year})</div>
 					<div class="ref-title">${ref.title}</div>
-					<div class="ref-journal">${ref.journal}</div>
-					${ref.doi ? `<a href="https://doi.org/${ref.doi}" target="_blank" rel="noopener" class="ref-doi">DOI: ${ref.doi}</a>` : ''}
+					${ref.journal ? `<div class="ref-journal">${ref.journal}${ref.volume ? `, ${ref.volume}` : ''}${ref.pages ? `, pp. ${ref.pages}` : ''}</div>` : ''}
+					${ref.publisher ? `<div class="ref-publisher">${ref.publisher}</div>` : ''}
+					${ref.summary ? `<div class="ref-summary"><i class="fa-solid fa-info-circle"></i> ${ref.summary}</div>` : ''}
+					${ref.doi ? `<a href="https://doi.org/${ref.doi}" target="_blank" rel="noopener" class="ref-doi"><i class="fa-solid fa-external-link"></i> DOI: ${ref.doi}</a>` : ''}
 				</div>
 			`;
 		});
@@ -914,7 +946,7 @@ function renderScientificReferences(data) {
 		html += '</div>';
 	});
 	
-	ui.scientificReferences.innerHTML = html;
+	ui.scientificReferences.innerHTML = html || '<p class="empty">Nenhuma referência encontrada</p>';
 }
 
 function getCategoryTitle(category) {
