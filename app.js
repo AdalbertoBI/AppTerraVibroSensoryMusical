@@ -4177,26 +4177,13 @@ function toggleAudio8D() {
 
 /**
  * Inicializa o efeito Audio 8D
+ * Usa o método stereo() do Howler.js para criar efeito de rotação espacial
  */
 function initAudio8D() {
-	if (!state.audioCtx) return;
+	console.log('Audio 8D: Iniciando...');
 	
-	// Cria o panner se não existir
-	if (!state.audio8D.pannerNode) {
-		state.audio8D.pannerNode = state.audioCtx.createStereoPanner();
-	}
-	
-	// Conecta ao fluxo de música se houver
-	if (state.currentHowl && state.howlSource) {
-		try {
-			// Desconecta do master e reconecta via panner
-			state.howlSource.disconnect();
-			state.howlSource.connect(state.audio8D.pannerNode);
-			state.audio8D.pannerNode.connect(state.masterGain);
-		} catch (e) {
-			console.warn('Audio 8D: não foi possível conectar ao fluxo', e);
-		}
-	}
+	// Reseta o ângulo
+	state.audio8D.angle = 0;
 	
 	// Inicia animação do panning
 	startAudio8DAnimation();
@@ -4206,40 +4193,41 @@ function initAudio8D() {
  * Para o efeito Audio 8D
  */
 function stopAudio8D() {
+	console.log('Audio 8D: Parando...');
+	
 	// Para a animação
 	if (state.audio8D.animationId) {
 		cancelAnimationFrame(state.audio8D.animationId);
 		state.audio8D.animationId = null;
 	}
 	
-	// Reseta o pan para centro
-	if (state.audio8D.pannerNode) {
-		state.audio8D.pannerNode.pan.value = 0;
-	}
-	
-	// Reconecta direto ao master
-	if (state.currentHowl && state.howlSource) {
-		try {
-			state.howlSource.disconnect();
-			state.howlSource.connect(state.masterGain);
-		} catch (e) {
-			console.warn('Audio 8D: não foi possível reconectar', e);
-		}
+	// Reseta o pan para o valor original
+	if (state.currentHowl) {
+		state.currentHowl.stereo(state.currentPan);
 	}
 }
 
 /**
- * Anima o pan do Audio 8D
+ * Anima o pan do Audio 8D usando Howler.stereo()
  */
 function startAudio8DAnimation() {
-	const animate = () => {
-		if (!state.audio8D.enabled || !state.audio8D.pannerNode) return;
+	let lastTime = performance.now();
+	
+	const animate = (currentTime) => {
+		if (!state.audio8D.enabled) {
+			return;
+		}
 		
-		const speed = state.audio8D.speed / 1000; // velocidade normalizada
+		// Calcula delta time para animação suave independente de FPS
+		const deltaTime = (currentTime - lastTime) / 1000;
+		lastTime = currentTime;
+		
+		// Velocidade: 10-100 mapeado para 0.1-2.0 rad/s
+		const speed = (state.audio8D.speed / 50);
 		const intensity = state.audio8D.intensity / 100;
 		
-		// Incrementa ângulo baseado na velocidade
-		state.audio8D.angle += speed;
+		// Incrementa ângulo baseado na velocidade e delta time
+		state.audio8D.angle += speed * deltaTime * Math.PI;
 		if (state.audio8D.angle > Math.PI * 2) {
 			state.audio8D.angle -= Math.PI * 2;
 		}
@@ -4248,32 +4236,43 @@ function startAudio8DAnimation() {
 		
 		switch (state.audio8D.pattern) {
 			case 'circular':
+				// Movimento suave circular
 				panValue = Math.sin(state.audio8D.angle) * intensity;
 				break;
 			case 'infinity':
-				panValue = Math.sin(state.audio8D.angle * 2) * intensity;
+				// Movimento em forma de 8 (lemniscata)
+				panValue = Math.sin(state.audio8D.angle * 2) * Math.cos(state.audio8D.angle) * intensity;
 				break;
 			case 'pendulum':
+				// Movimento de pêndulo (mais lento nos extremos)
 				panValue = Math.sin(state.audio8D.angle) * intensity;
 				break;
 			case 'random':
+				// Movimento suave com variação aleatória
 				if (Math.random() < 0.02) {
-					panValue = (Math.random() * 2 - 1) * intensity;
-				} else {
-					panValue = state.audio8D.pannerNode.pan.value;
+					state.audio8D.targetPan = (Math.random() * 2 - 1) * intensity;
 				}
+				// Interpola suavemente para o target
+				const currentPan = state.audio8D.lastPan || 0;
+				const target = state.audio8D.targetPan || 0;
+				panValue = currentPan + (target - currentPan) * 0.05;
+				state.audio8D.lastPan = panValue;
 				break;
 			default:
 				panValue = Math.sin(state.audio8D.angle) * intensity;
 		}
 		
-		// Aplica suavização
-		state.audio8D.pannerNode.pan.setTargetAtTime(panValue, state.audioCtx.currentTime, 0.05);
+		// Aplica o pan ao Howler (stereo aceita -1 a 1)
+		if (state.currentHowl) {
+			state.currentHowl.stereo(panValue);
+		}
 		
+		// Continua a animação
 		state.audio8D.animationId = requestAnimationFrame(animate);
 	};
 	
-	animate();
+	// Inicia a animação
+	state.audio8D.animationId = requestAnimationFrame(animate);
 }
 
 /**
