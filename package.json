@@ -1,0 +1,25 @@
+{
+	"name": "terra-vibro-sensory-musical",
+	"version": "1.0.0.0.1",
+	"description": "Aplicativo de terapia sonora com batimentos binaurais e sons terapêuticos",
+	"main": "app.js",
+	"scripts": {
+		"dev": "npx http-server -p 3001 -c-1 --cors",
+		"start": "npx http-server -p 3001 -c-1 --cors",
+		"download-audio": "node scripts/download-audio.js",
+		"serve": "npx http-server -p 8080"
+	},
+	"keywords": [
+		"binaural",
+		"therapy",
+		"sound",
+		"meditation",
+		"pwa"
+	],
+	"author": "Terra Vibro",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/AdalbertoBI/AppTerraVibroSensoryMusical"
+	}
+}

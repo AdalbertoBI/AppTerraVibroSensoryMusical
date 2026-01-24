@@ -1,4 +1,8 @@
 import { Workbox } from 'https://storage.googleapis.com/workbox-cdn/releases/6.5.4/workbox-window.prod.mjs';
+import TherapeuticSoundGenerator from './js/audio/therapeuticSounds.js';
+
+// Instância global do gerador de sons terapêuticos
+const therapeuticGenerator = new TherapeuticSoundGenerator();
 
 const state = {
 	audioCtx: null,
@@ -10,6 +14,8 @@ const state = {
 	selectedPlaylist: [],
 	currentTrackIndex: 0,
 	currentHowl: null,
+	currentPlayingName: null, // Nome da faixa em reprodução (música local ou YouTube)
+	activeHowls: [], // Múltiplas músicas simultâneas
 	mixRatio: 0.7,
 	currentPan: 0,
 	timerId: null,
@@ -21,6 +27,7 @@ const state = {
 	musicObjectUrls: [],
 	history: [],
 	archivePreview: null,
+	defaultSoundsCatalog: null, // Catálogo de sons padrão para streaming
 	// Sistema de Pacientes
 	patients: [],
 	currentPatient: null,
@@ -79,6 +86,74 @@ const stores = {
 };
 
 const uuid = () => (crypto?.randomUUID ? crypto.randomUUID() : `ts-${Date.now()}-${Math.floor(Math.random() * 1e6)}`);
+
+// =============================================================================
+// SISTEMA DE FAVORITOS
+// =============================================================================
+
+const FAVORITES_KEY = 'playlist-favorites';
+
+/**
+ * Carrega lista de IDs favoritos do storage
+ * @returns {Promise<string[]>}
+ */
+async function loadFavorites() {
+	try {
+		const favorites = await stores.data.getItem(FAVORITES_KEY);
+		return favorites || [];
+	} catch (e) {
+		console.warn('Erro ao carregar favoritos:', e);
+		return [];
+	}
+}
+
+/**
+ * Salva lista de favoritos no storage
+ * @param {string[]} favorites
+ */
+async function saveFavorites(favorites) {
+	try {
+		await stores.data.setItem(FAVORITES_KEY, favorites);
+	} catch (e) {
+		console.warn('Erro ao salvar favoritos:', e);
+	}
+}
+
+/**
+ * Alterna favorito de um item
+ * @param {string} trackId - ID da faixa
+ * @returns {Promise<boolean>} - true se agora é favorito, false se removido
+ */
+async function toggleFavorite(trackId) {
+	console.log('[toggleFavorite] trackId:', trackId);
+	const favorites = await loadFavorites();
+	console.log('[toggleFavorite] favorites antes:', favorites);
+	const index = favorites.indexOf(trackId);
+	
+	if (index === -1) {
+		favorites.push(trackId);
+		await saveFavorites(favorites);
+		console.log('[toggleFavorite] favorites depois (adicionado):', favorites);
+		showToast('Adicionado aos favoritos ⭐', 'success', 2000);
+		return true;
+	} else {
+		favorites.splice(index, 1);
+		await saveFavorites(favorites);
+		console.log('[toggleFavorite] favorites depois (removido):', favorites);
+		showToast('Removido dos favoritos', 'info', 2000);
+		return false;
+	}
+}
+
+/**
+ * Verifica se um item é favorito
+ * @param {string} trackId
+ * @param {string[]} favorites - Lista de favoritos (para evitar múltiplas leituras)
+ * @returns {boolean}
+ */
+function isFavorite(trackId, favorites) {
+	return favorites.includes(trackId);
+}
 
 // =============================================================================
 // TOAST / NOTIFICAÇÕES VISUAIS
@@ -398,9 +473,11 @@ window.addEventListener('DOMContentLoaded', initApp);
 async function initApp() {
 	cacheDom();
 	attachListeners();
+	initPlaylistManager(); // Inicializa o gerenciador de playlist ANTES de carregar dados
 	await hydratePresetStore();
 	await hydrateMusicStore();
 	await ensureStockTextures();
+	await loadBundledAudio(); // Carrega áudios pré-incluídos
 	await hydrateHistory();
 	await hydratePatients();
 	setupAudioGraph();
@@ -408,7 +485,7 @@ async function initApp() {
 	updateConnectivity();
 	updateMixOutput(state.mixRatio * 100);
 	updatePanOutput(0);
-	updatePlaylistSelect();
+	await PlaylistManager.render(); // Renderiza playlist via novo módulo
 	updateSuggestions();
 	registerServiceWorker();
 	checkTermsModal();
@@ -419,6 +496,31 @@ async function initApp() {
 	console.log('Terra Vibro Sensory Musical pronto. Presets carregados:', state.presets.length);
 }
 
+/**
+ * Inicializa o PlaylistManager com as configurações necessárias
+ */
+function initPlaylistManager() {
+	if (typeof PlaylistManager !== 'undefined') {
+		PlaylistManager.init({
+			container: ui.playlistSelect,
+			countEl: ui.playlistCount,
+			state: state,
+			stores: stores,
+			onPreviewToggle: togglePreview,
+			onTrackRemove: async (trackId, isYoutube) => {
+				if (isYoutube) {
+					await removeUserYoutubeVideo(trackId);
+				} else {
+					await removeTrack(trackId);
+				}
+			},
+			onFavoriteToggle: handleFavoriteToggle,
+			onShowToast: showToast,
+			onShowSoundEvidence: showSoundEvidence
+		});
+	}
+}
+
 function cacheDom() {
 	ui.presetList = document.getElementById('presetList');
 	ui.loadDefaultPresets = document.getElementById('loadDefaultPresets');
@@ -427,6 +529,7 @@ function cacheDom() {
 	ui.baseFreqValue = document.getElementById('baseFreqValue');
 	ui.diffFreq = document.getElementById('diffFreq');
 	ui.diffFreqValue = document.getElementById('diffFreqValue');
+	ui.protocolQuickSelector = document.getElementById('protocolQuickSelector');
 	ui.duration = document.getElementById('duration');
 	ui.durationValue = document.getElementById('durationValue');
 	ui.binauralVolume = document.getElementById('binauralVolume');
@@ -438,6 +541,12 @@ function cacheDom() {
 	ui.musicSuggestions = document.getElementById('musicSuggestions');
 	ui.audioUpload = document.getElementById('audioUpload');
 	ui.dropZone = document.getElementById('dropZone');
+	// Upload validation elements
+	ui.uploadValidationArea = document.getElementById('uploadValidationArea');
+	ui.uploadValidationList = document.getElementById('uploadValidationList');
+	ui.uploadConfirmBtn = document.getElementById('uploadConfirmBtn');
+	ui.uploadCancelBtn = document.getElementById('uploadCancelBtn');
+	ui.uploadStatus = document.getElementById('uploadStatus');
 	ui.playBtn = document.getElementById('playBtn');
 	ui.pauseBtn = document.getElementById('pauseBtn');
 	ui.stopBtn = document.getElementById('stopBtn');
@@ -471,12 +580,13 @@ function cacheDom() {
 	ui.skipTutorialBtn = document.getElementById('skipTutorialBtn');
 	ui.tutorialPrevBtn = document.getElementById('tutorialPrevBtn');
 	ui.tutorialNextBtn = document.getElementById('tutorialNextBtn');
-	// Internet Archive
-	ui.archiveQuery = document.getElementById('archiveQuery');
-	ui.archiveCategory = document.getElementById('archiveCategory');
-	ui.archiveSearchBtn = document.getElementById('archiveSearchBtn');
-	ui.archiveResults = document.getElementById('archiveResults');
-	ui.archiveStatus = document.getElementById('archiveStatus');
+	// YouTube Add Panel
+	ui.youtubeUrlInput = document.getElementById('youtubeUrlInput');
+	ui.youtubeNameInput = document.getElementById('youtubeNameInput');
+	ui.youtubeTagInput = document.getElementById('youtubeTagInput');
+	ui.youtubePreviewBtn = document.getElementById('youtubePreviewBtn');
+	ui.youtubeAddBtn = document.getElementById('youtubeAddBtn');
+	ui.youtubeAddStatus = document.getElementById('youtubeAddStatus');
 	// Novos elementos do Centro de Controle Terapêutico
 	ui.sessionStatus = document.getElementById('sessionStatus');
 	ui.sessionVisualizer = document.getElementById('sessionVisualizer');
@@ -487,10 +597,6 @@ function cacheDom() {
 	ui.breathingGuide = document.getElementById('breathingGuide');
 	ui.breathCircle = document.getElementById('breathCircle');
 	ui.breathText = document.getElementById('breathText');
-	ui.masterVolume = document.getElementById('masterVolume');
-	ui.masterVolumeValue = document.getElementById('masterVolumeValue');
-	// Protocolo terapêutico
-	ui.therapeuticProtocol = document.getElementById('therapeuticProtocol');
 	// Ticker de dicas científicas
 	ui.tickerText = document.getElementById('tickerText');
 	ui.tickerPrev = document.getElementById('tickerPrev');
@@ -520,6 +626,7 @@ function cacheDom() {
 	ui.newPatientFromListBtn = document.getElementById('newPatientFromListBtn');
 	ui.selectPatientFolderBtn = document.getElementById('selectStorageFolderBtn');
 	ui.exportPatientsBtn = document.getElementById('exportPatientsBtn');
+	ui.exportTerraMidiBtn = document.getElementById('exportTerraMidiBtn');
 	ui.importPatientsBtn = document.getElementById('importPatientsBtn');
 	ui.importPatientsInput = document.getElementById('importPatientsInput');
 	
@@ -527,24 +634,11 @@ function cacheDom() {
 	ui.repeatTutorialBtn = document.getElementById('repeatTutorialBtn');
 	ui.showTermsBtn = document.getElementById('showTermsBtn');
 	
-	// Monitor de Áudio
-	ui.spectrumCanvas = document.getElementById('spectrumCanvas');
-	ui.waveformCanvas = document.getElementById('waveformCanvas');
+	// Painel de Sessão (Frequências)
 	ui.monitorFreqLeft = document.getElementById('monitorFreqLeft');
 	ui.monitorFreqRight = document.getElementById('monitorFreqRight');
 	ui.monitorFreqDiff = document.getElementById('monitorFreqDiff');
-	ui.volumeMeterLeft = document.getElementById('volumeMeterLeft');
-	ui.volumeMeterRight = document.getElementById('volumeMeterRight');
-	ui.volumeMeterMaster = document.getElementById('volumeMeterMaster');
-	ui.volumePeakLeft = document.getElementById('volumePeakLeft');
-	ui.volumePeakRight = document.getElementById('volumePeakRight');
-	ui.volumePeakMaster = document.getElementById('volumePeakMaster');
-	ui.volumeValueLeft = document.getElementById('volumeValueLeft');
-	ui.volumeValueRight = document.getElementById('volumeValueRight');
-	ui.volumeValueMaster = document.getElementById('volumeValueMaster');
-	ui.monitorMusicStatus = document.getElementById('monitorMusicStatus');
-	ui.monitorSessionTime = document.getElementById('monitorSessionTime');
-	ui.monitorBrainwave = document.getElementById('monitorBrainwave');
+	ui.monitorBrainwaveBadge = document.getElementById('monitorBrainwaveBadge');
 	
 	// Menu Drawer Principal
 	ui.menuToggle = document.getElementById('menuToggle');
@@ -604,7 +698,11 @@ function attachListeners() {
 		updateRangeOutputs();
 		updateSuggestions();
 		updateBinauralFrequenciesRealtime();
+		// Remove estado ativo dos botões de protocolo quando slider é movido manualmente
+		ui.protocolQuickSelector?.querySelectorAll('.protocol-chip').forEach(b => b.classList.remove('active'));
 	});
+	// Seletor rápido de protocolos - clique para aplicar configuração completa
+	ui.protocolQuickSelector?.addEventListener('click', handleProtocolQuickSelect);
 	ui.duration.addEventListener('input', updateRangeOutputs);
 	ui.binauralVolume.addEventListener('input', () => {
 		updateRangeOutputs();
@@ -620,12 +718,14 @@ function attachListeners() {
 	ui.stopBtn.addEventListener('click', stopSession);
 	ui.mixSlider.addEventListener('input', handleMixChange);
 	ui.panSlider.addEventListener('input', handlePanChange);
-	ui.audioUpload.addEventListener('change', (ev) => handleFiles(ev.target.files));
+	// Upload com validação
+	ui.audioUpload.addEventListener('change', (ev) => handleFilesWithValidation(ev.target.files));
+	ui.uploadConfirmBtn?.addEventListener('click', confirmValidatedUploads);
+	ui.uploadCancelBtn?.addEventListener('click', cancelUploadValidation);
 	['dragover', 'drop', 'dragleave'].forEach((evt) => {
 		ui.dropZone.addEventListener(evt, handleDropZone, false);
 	});
-	ui.playlistSelect.addEventListener('click', handlePlaylistActions);
-	ui.playlistSelect.addEventListener('change', handlePlaylistSelectionChange);
+	// Nota: event listeners do playlist são gerenciados pelo PlaylistManager
 	ui.presetList.addEventListener('click', handlePresetActions);
 	window.addEventListener('online', updateConnectivity);
 	window.addEventListener('offline', updateConnectivity);
@@ -646,19 +746,16 @@ function attachListeners() {
 	ui.tutorialPrevBtn.addEventListener('click', guidedTutorialPrev);
 	ui.tutorialNextBtn.addEventListener('click', guidedTutorialNext);
 	window.addEventListener('resize', repositionTutorialTooltip);
-	// Internet Archive
-	ui.archiveSearchBtn.addEventListener('click', searchInternetArchive);
-	ui.archiveQuery.addEventListener('keydown', (ev) => {
+	// YouTube Add Panel
+	ui.youtubePreviewBtn.addEventListener('click', handleYoutubePreviewToggle);
+	ui.youtubeAddBtn.addEventListener('click', handleConfirmAddYoutubeVideo);
+	ui.youtubeUrlInput.addEventListener('keydown', (ev) => {
 		if (ev.key === 'Enter') {
 			ev.preventDefault();
-			searchInternetArchive();
+			handleYoutubePreviewToggle();
 		}
 	});
-	ui.archiveResults.addEventListener('click', handleArchiveActions);
-	// Novos controles terapêuticos
-	ui.masterVolume.addEventListener('input', handleMasterVolumeChange);
-	// Protocolo terapêutico
-	ui.therapeuticProtocol.addEventListener('change', handleProtocolChange);
+	ui.youtubeUrlInput.addEventListener('input', resetYoutubeAddForm);
 	
 	// Ticker de dicas científicas
 	if (ui.tickerPrev) {
@@ -729,6 +826,14 @@ function attachListeners() {
 		ui.exportPatientsBtn.addEventListener('click', async () => {
 			const { exportAllData } = await import('./js/patients/patientManager.js');
 			await exportAllData();
+		});
+	}
+	// Exportar para TerraMidi
+	if (ui.exportTerraMidiBtn) {
+		ui.exportTerraMidiBtn.addEventListener('click', async () => {
+			const { downloadTerraMidiExport } = await import('./js/patients/terraMidiCompat.js');
+			const data = downloadTerraMidiExport();
+			alert(`${data.patients.length} paciente(s) exportado(s) no formato TerraMidi.\n\nO arquivo pode ser importado no TerraMidi para compartilhar o prontuário.`);
 		});
 	}
 	// Importar pacientes
@@ -836,6 +941,14 @@ function setupAudioGraph() {
 	state.masterGain.gain.value = 0.9;
 	state.masterGain.connect(state.audioCtx.destination);
 	state.audioCtx.suspend();
+	
+	// Configura o Howler para usar o mesmo AudioContext
+	if (typeof Howler !== 'undefined') {
+		Howler.ctx = state.audioCtx;
+		Howler.masterGain = state.masterGain;
+		Howler.autoUnlock = true;
+		console.log('Howler configurado para usar AudioContext compartilhado');
+	}
 }
 
 async function hydratePresetStore() {
@@ -864,7 +977,7 @@ async function reloadScientificPresets() {
 async function hydrateMusicStore() {
 	const meta = await stores.data.getItem(STORAGE_KEYS.MUSIC_META);
 	state.musicMeta = Array.isArray(meta) ? meta : [];
-	renderMusicList();
+	// Nota: PlaylistManager.render() será chamado no initApp()
 }
 
 async function ensureStockTextures() {
@@ -902,6 +1015,622 @@ async function ensureStockTextures() {
 		renderMusicList();
 		updatePlaylistSelect();
 	}
+}
+
+// =============================================================================
+// ÁUDIOS PRÉ-CARREGADOS (Biblioteca Inicial)
+// =============================================================================
+
+/**
+ * Carrega os áudios padrão da pasta audio/default para a biblioteca do usuário
+ * Esses áudios são incluídos no repositório e carregados na primeira execução
+ */
+async function loadBundledAudio() {
+	try {
+		const response = await fetch('./audio/default/manifest.json');
+		if (!response.ok) {
+			console.log('Nenhum áudio pré-carregado encontrado');
+			return;
+		}
+		
+		const manifest = await response.json();
+		if (!manifest.tracks || !manifest.tracks.length) {
+			return;
+		}
+		
+		const added = [];
+		
+		for (const track of manifest.tracks) {
+			// Verifica se já foi adicionado (pelo ID único)
+			const exists = state.musicMeta.some(m => m.bundledId === track.id);
+			if (exists) continue;
+			
+			try {
+				// Baixa o arquivo de áudio
+				const audioResponse = await fetch(`./audio/default/${track.filename}`);
+				if (!audioResponse.ok) {
+					console.warn(`Falha ao carregar áudio: ${track.filename}`);
+					continue;
+				}
+				
+				const blob = await audioResponse.blob();
+				const trackId = `bundled-${track.id}-${Date.now()}`;
+				
+				// Salva o blob no IndexedDB
+				await stores.music.setItem(trackId, blob);
+				
+				// Cria metadados
+				const meta = {
+					id: trackId,
+					bundledId: track.id,
+					name: track.name,
+					size: blob.size,
+					type: blob.type || 'audio/mpeg',
+					tag: track.tag || 'alpha',
+					lowEnergyPct: track.lowEnergyPct || 50,
+					addedAt: Date.now(),
+					origin: 'bundled',
+					category: track.category,
+					therapeuticUse: track.therapeuticUse || [],
+					description: track.description || '',
+					source: track.source || '',
+					sourceUrl: track.sourceUrl || '',
+					archiveId: track.archiveId || null
+				};
+				
+				state.musicMeta.push(meta);
+				added.push(meta);
+				
+				console.log(`✓ Áudio pré-carregado: ${track.name}`);
+			} catch (err) {
+				console.warn(`Erro ao carregar ${track.filename}:`, err);
+			}
+		}
+		
+		if (added.length) {
+			await stores.data.setItem(STORAGE_KEYS.MUSIC_META, state.musicMeta);
+			renderMusicList();
+			updatePlaylistSelect();
+			console.log(`${added.length} áudio(s) pré-carregado(s) na biblioteca`);
+		}
+	} catch (error) {
+		console.log('Erro ao carregar áudios pré-carregados:', error);
+	}
+}
+
+// =============================================================================
+// PLAYER YOUTUBE (Embed sem API)
+// =============================================================================
+
+let youtubePlayer = null;
+let youtubePlayerReady = false;
+let currentYoutubeId = null;
+let youtubeLoopEnabled = true; // Loop habilitado por padrão para sessões
+
+/**
+ * Cria ou obtém o container do player YouTube (escondido)
+ */
+function getYoutubePlayerContainer() {
+	let container = document.getElementById('youtube-player-container');
+	if (!container) {
+		container = document.createElement('div');
+		container.id = 'youtube-player-container';
+		container.innerHTML = `
+			<div id="youtube-player-wrapper" style="position:fixed; bottom:-1000px; left:-1000px; width:1px; height:1px; overflow:hidden; pointer-events:none;">
+				<div id="youtube-player"></div>
+			</div>
+		`;
+		document.body.appendChild(container);
+	}
+	return container;
+}
+
+/**
+ * Carrega a API do YouTube IFrame (uma vez)
+ */
+function loadYoutubeAPI() {
+	return new Promise((resolve, reject) => {
+		if (window.YT && window.YT.Player) {
+			resolve();
+			return;
+		}
+		
+		// Callback global quando API carrega
+		window.onYouTubeIframeAPIReady = () => {
+			youtubePlayerReady = true;
+			resolve();
+		};
+		
+		// Carregar script da API
+		const script = document.createElement('script');
+		script.src = 'https://www.youtube.com/iframe_api';
+		script.onerror = reject;
+		document.head.appendChild(script);
+	});
+}
+
+/**
+ * Toca um vídeo do YouTube (apenas áudio - vídeo escondido)
+ * @param {string} youtubeId - ID do vídeo do YouTube
+ * @param {object} options - Opções: volume (0-100), loop (boolean)
+ */
+async function playYoutubeAudio(youtubeId, options = {}) {
+	if (!navigator.onLine) {
+		showToast('⚠️ Requer conexão com a internet', 'warning');
+		return false;
+	}
+	
+	// Configurar loop (padrão: true para sessões)
+	youtubeLoopEnabled = options.loop !== undefined ? options.loop : true;
+	
+	try {
+		getYoutubePlayerContainer();
+		await loadYoutubeAPI();
+		
+		return new Promise((resolve) => {
+			// Destruir player anterior se existir
+			if (youtubePlayer) {
+				try { youtubePlayer.destroy(); } catch(e) {}
+			}
+			
+			currentYoutubeId = youtubeId;
+			
+			youtubePlayer = new YT.Player('youtube-player', {
+				height: '1',
+				width: '1',
+				videoId: youtubeId,
+				playerVars: {
+					autoplay: 1,
+					controls: 0,
+					disablekb: 1,
+					fs: 0,
+					modestbranding: 1,
+					rel: 0,
+					showinfo: 0,
+					loop: 1, // Habilita loop nativo (precisa de playlist)
+					playlist: youtubeId, // Necessário para loop funcionar
+					origin: window.location.origin
+				},
+				events: {
+					onReady: (event) => {
+						event.target.setVolume(options.volume || 70);
+						event.target.playVideo();
+						resolve(true);
+					},
+					onStateChange: (event) => {
+						// Quando o vídeo termina
+						if (event.data === YT.PlayerState.ENDED) {
+							if (youtubeLoopEnabled && state.isSessionRunning) {
+								// Reiniciar o vídeo para loop durante a sessão
+								console.log('YouTube: reiniciando em loop');
+								event.target.seekTo(0);
+								event.target.playVideo();
+							} else if (!state.isSessionRunning) {
+								// Se não há sessão ativa, para o vídeo
+								stopYoutubeAudio();
+							}
+						}
+					},
+					onError: (event) => {
+						console.error('YouTube Error:', event.data);
+						showToast('Erro ao carregar vídeo do YouTube', 'error');
+						resolve(false);
+					}
+				}
+			});
+		});
+	} catch (error) {
+		console.error('Erro ao iniciar YouTube:', error);
+		showToast('Erro ao carregar player do YouTube', 'error');
+		return false;
+	}
+}
+
+/**
+ * Ativa/desativa controles baseado no modo YouTube
+ * Quando YouTube está ativo, controles que não funcionam ficam desabilitados e minimizados
+ */
+function updateControlsForYoutubeMode(isYoutubeActive) {
+	// Busca os cards de efeitos pelo toggle interno (compatível com todos navegadores)
+	const audio8dToggle = document.getElementById('audio-8d-toggle');
+	const enhancerToggle = document.getElementById('enhancer-toggle');
+	const panSlider = document.getElementById('panSlider');
+	
+	// Encontra o card pai de cada toggle
+	const audio8dCard = audio8dToggle?.closest('.effect-card');
+	const enhancerCard = enhancerToggle?.closest('.effect-card');
+	const panContainer = panSlider?.closest('.mixer-item, .control-group');
+	
+	// Lista de elementos para aplicar classes
+	const elementsToDisable = [
+		audio8dToggle,
+		enhancerToggle,
+		panSlider
+	].filter(Boolean);
+	
+	const cardsToDisable = [
+		audio8dCard,
+		enhancerCard,
+		panContainer
+	].filter(Boolean);
+	
+	// Aplica/remove classe nos toggles e sliders
+	elementsToDisable.forEach(element => {
+		if (isYoutubeActive) {
+			element.classList.add('disabled-for-youtube');
+			element.setAttribute('aria-disabled', 'true');
+			element.style.pointerEvents = 'none';
+		} else {
+			element.classList.remove('disabled-for-youtube');
+			element.setAttribute('aria-disabled', 'false');
+			element.style.pointerEvents = '';
+		}
+	});
+	
+	// Aplica/remove classe nos cards
+	cardsToDisable.forEach(card => {
+		card.classList.toggle('disabled-for-youtube', isYoutubeActive);
+	});
+	
+	// Desabilita todos os inputs dentro dos controles de efeitos
+	const effectInputs = document.querySelectorAll('#audio8dControls input, #audio8dControls button, #enhancerControls input, #enhancerControls select, #enhancerControls button');
+	effectInputs.forEach(input => {
+		input.disabled = isYoutubeActive;
+	});
+	
+	// Mostra/remove aviso de controles limitados
+	let warning = document.getElementById('youtube-controls-warning');
+	
+	if (isYoutubeActive) {
+		if (!warning) {
+			warning = document.createElement('div');
+			warning.id = 'youtube-controls-warning';
+			warning.className = 'youtube-controls-warning';
+			warning.innerHTML = `
+				<i class="fa-brands fa-youtube"></i>
+				<span>Modo YouTube: controles 8D, Aprimoramento e Pan estão desabilitados</span>
+			`;
+			// Insere antes dos cards de efeitos
+			const effectsGrid = document.querySelector('.effects-grid');
+			if (effectsGrid && effectsGrid.parentNode) {
+				effectsGrid.parentNode.insertBefore(warning, effectsGrid);
+			}
+		}
+	} else {
+		if (warning) {
+			warning.remove();
+		}
+	}
+}
+
+/**
+ * Para o áudio do YouTube
+ */
+function stopYoutubeAudio() {
+	if (youtubePlayer) {
+		try {
+			youtubePlayer.stopVideo();
+			youtubePlayer.destroy();
+		} catch(e) {}
+		youtubePlayer = null;
+	}
+	currentYoutubeId = null;
+	// Reativa controles ao parar YouTube
+	updateControlsForYoutubeMode(false);
+}
+
+/**
+ * Pausa/Resume o YouTube
+ */
+function toggleYoutubePause() {
+	if (!youtubePlayer) return;
+	
+	const state = youtubePlayer.getPlayerState();
+	if (state === YT.PlayerState.PLAYING) {
+		youtubePlayer.pauseVideo();
+	} else {
+		youtubePlayer.playVideo();
+	}
+}
+
+/**
+ * Abre modal com vídeo do YouTube em tela cheia
+ */
+function openYoutubeFullscreen(youtubeId, title) {
+	// Criar modal se não existir
+	let modal = document.getElementById('youtube-fullscreen-modal');
+	if (!modal) {
+		modal = document.createElement('div');
+		modal.id = 'youtube-fullscreen-modal';
+		modal.className = 'modal youtube-modal hidden';
+		modal.innerHTML = `
+			<div class="modal-content youtube-modal-content">
+				<div class="modal-header">
+					<h3 id="youtube-modal-title">Vídeo</h3>
+					<button class="modal-close" onclick="closeYoutubeFullscreen()">
+						<i class="fa-solid fa-times"></i>
+					</button>
+				</div>
+				<div class="youtube-video-wrapper">
+					<iframe id="youtube-fullscreen-iframe" 
+						src="" 
+						frameborder="0" 
+						allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" 
+						allowfullscreen>
+					</iframe>
+				</div>
+				<div class="youtube-modal-footer">
+					<span class="youtube-notice">
+						<i class="fa-solid fa-wifi"></i> Requer conexão com a internet
+					</span>
+					<a id="youtube-external-link" href="#" target="_blank" class="btn secondary">
+						<i class="fa-brands fa-youtube"></i> Abrir no YouTube
+					</a>
+				</div>
+			</div>
+		`;
+		document.body.appendChild(modal);
+		
+		// Fechar ao clicar fora do conteúdo
+		modal.addEventListener('click', (e) => {
+			if (e.target === modal) {
+				closeYoutubeFullscreen();
+			}
+		});
+	}
+	
+	// Atualizar conteúdo
+	document.getElementById('youtube-modal-title').textContent = title || 'Vídeo';
+	document.getElementById('youtube-fullscreen-iframe').src = `https://www.youtube.com/embed/${youtubeId}?autoplay=1&rel=0`;
+	document.getElementById('youtube-external-link').href = `https://www.youtube.com/watch?v=${youtubeId}`;
+	
+	// Parar áudio de fundo se estiver tocando
+	if (currentYoutubeId === youtubeId) {
+		stopYoutubeAudio();
+	}
+	
+	modal.classList.remove('hidden');
+	document.body.style.overflow = 'hidden';
+}
+
+/**
+ * Fecha modal do YouTube
+ */
+function closeYoutubeFullscreen() {
+	const modal = document.getElementById('youtube-fullscreen-modal');
+	if (modal) {
+		modal.classList.add('hidden');
+		document.getElementById('youtube-fullscreen-iframe').src = '';
+		document.body.style.overflow = '';
+	}
+}
+
+// Expor funções globalmente para onclick
+window.closeYoutubeFullscreen = closeYoutubeFullscreen;
+
+// =============================================================================
+// CONTROLES YOUTUBE - DESABILITAR FUNÇÕES NÃO SUPORTADAS
+// =============================================================================
+
+/**
+ * Verifica se apenas YouTube está ativo na sessão (sem músicas locais)
+ */
+function isOnlyYoutubeActive() {
+	return youtubePlayer && currentYoutubeId && 
+		   (!state.activeHowls || state.activeHowls.length === 0);
+}
+
+/**
+ * Atualiza estado dos controles baseado no tipo de áudio ativo
+ * Desabilita controles que não funcionam com YouTube
+ */
+function updateControlsForYoutube(youtubeActive) {
+	const controlsToDisable = [
+		{ element: ui.audio8DToggle, label: 'Áudio 8D' },
+		{ element: ui.enhancerToggle, label: 'Aprimoramento' },
+		{ element: ui.panSlider, label: 'Pan Estéreo' }
+	];
+	
+	controlsToDisable.forEach(({ element, label }) => {
+		if (!element) return;
+		
+		const container = element.closest('.mixer-item, .control-group, .audio-effect-toggle');
+		
+		if (youtubeActive) {
+			element.disabled = true;
+			element.classList.add('disabled-youtube');
+			if (container) {
+				container.classList.add('disabled-youtube');
+				container.title = `${label} não disponível com YouTube`;
+			}
+		} else {
+			element.disabled = false;
+			element.classList.remove('disabled-youtube');
+			if (container) {
+				container.classList.remove('disabled-youtube');
+				container.title = '';
+			}
+		}
+	});
+	
+	// Atualiza controles 8D e Enhancer
+	if (ui.audio8dControls) {
+		ui.audio8dControls.classList.toggle('disabled-youtube', youtubeActive);
+	}
+	if (ui.enhancerControls) {
+		ui.enhancerControls.classList.toggle('disabled-youtube', youtubeActive);
+	}
+}
+
+// =============================================================================
+// SONS TERAPÊUTICOS PADRÕES
+// =============================================================================
+
+let defaultSoundsData = null;
+
+/**
+ * Carrega o catálogo de sons padrões
+ */
+async function loadDefaultSoundsCatalog() {
+	if (defaultSoundsData) return defaultSoundsData;
+	
+	try {
+		const response = await fetch('./data/default_sounds.json');
+		if (!response.ok) throw new Error('Falha ao carregar catálogo');
+		defaultSoundsData = await response.json();
+		return defaultSoundsData;
+	} catch (error) {
+		console.error('Erro ao carregar sons padrões:', error);
+		return null;
+	}
+}
+
+/**
+ * Baixa um som padrão do Internet Archive
+ */
+async function downloadDefaultSound(soundId) {
+	const catalog = await loadDefaultSoundsCatalog();
+	if (!catalog) return;
+	
+	const sound = catalog.sounds.find(s => s.id === soundId);
+	if (!sound) {
+		showToast('Som não encontrado', 'error');
+		return;
+	}
+	
+	// Verifica se já foi baixado
+	if (state.musicMeta.some(m => m.defaultSoundId === soundId)) {
+		showToast('Este som já está na sua biblioteca', 'info');
+		return;
+	}
+	
+	// Find download button in playlist
+	const button = document.querySelector(`[data-sound-id="${soundId}"].btn-download`);
+	if (button) {
+		button.disabled = true;
+		button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+	}
+	
+	try {
+		showToast(`Baixando "${sound.name}"...`, 'info', 5000);
+		
+		// URL do Internet Archive (direta do JSON)
+		const audioUrl = sound.archiveUrl;
+		
+		const response = await fetch(audioUrl);
+		if (!response.ok) {
+			throw new Error(`Falha no download: ${response.status}`);
+		}
+		
+		const arrayBuffer = await response.arrayBuffer();
+		const blob = new Blob([arrayBuffer], { type: 'audio/mpeg' });
+		
+		// Criar metadados
+		const trackMeta = {
+			id: `default-${soundId}-${Date.now()}`,
+			name: sound.name,
+			size: blob.size,
+			type: 'audio/mpeg',
+			tag: sound.tag,
+			lowEnergyPct: sound.lowEnergyPct,
+			addedAt: Date.now(),
+			origin: 'default-sounds',
+			defaultSoundId: soundId,
+			archiveUrl: sound.archiveUrl,
+			category: sound.category,
+			therapeuticUse: sound.therapeuticUse,
+			evidence: sound.evidence,
+			description: sound.description
+		};
+		
+		// Salvar no IndexedDB
+		await stores.music.setItem(trackMeta.id, blob);
+		state.musicMeta.push(trackMeta);
+		await stores.data.setItem(STORAGE_KEYS.MUSIC_META, state.musicMeta);
+		
+		// Re-render playlist to show updated state
+		await PlaylistManager.render();
+		
+		showToast(`"${sound.name}" baixado com sucesso!`, 'success');
+		
+	} catch (error) {
+		console.error('Erro ao baixar som padrão:', error);
+		showToast(`Erro ao baixar: ${error.message}`, 'error');
+		
+		// Re-render to restore button state
+		await PlaylistManager.render();
+	}
+}
+
+/**
+ * Mostra detalhes científicos de um som
+ */
+async function showSoundEvidence(soundId) {
+	const catalog = await loadDefaultSoundsCatalog();
+	if (!catalog) return;
+	
+	const sound = catalog.sounds.find(s => s.id === soundId);
+	if (!sound) return;
+	
+	const category = catalog.categories[sound.category];
+	
+	const modal = document.createElement('div');
+	modal.className = 'evidence-modal-overlay';
+	modal.innerHTML = `
+		<div class="evidence-modal">
+			<div class="evidence-modal-header">
+				<h3><i class="${category.icon}"></i> ${sound.name}</h3>
+				<button class="btn-close-evidence" aria-label="Fechar">
+					<i class="fa-solid fa-times"></i>
+				</button>
+			</div>
+			<div class="evidence-modal-body">
+				<p class="sound-full-description">${sound.description}</p>
+				
+				<div class="evidence-section">
+					<h4><i class="fa-solid fa-flask"></i> Base Científica</h4>
+					<div class="evidence-card">
+						<p class="evidence-study"><strong>Estudo:</strong> ${sound.evidence.study}</p>
+						<p class="evidence-finding"><strong>Resultado:</strong> ${sound.evidence.finding}</p>
+						<p class="evidence-mechanism"><strong>Mecanismo:</strong> ${sound.evidence.mechanism}</p>
+					</div>
+				</div>
+				
+				<div class="evidence-section">
+					<h4><i class="fa-solid fa-stethoscope"></i> Indicações Terapêuticas</h4>
+					<div class="therapeutic-uses">
+						${sound.therapeuticUse.map(u => `<span class="use-badge">${u}</span>`).join('')}
+					</div>
+				</div>
+				
+				<div class="evidence-section">
+					<h4><i class="fa-solid fa-wave-square"></i> Características Sonoras</h4>
+					<ul class="sound-characteristics">
+						<li><strong>Faixa de ondas cerebrais:</strong> ${sound.tag.toUpperCase()}</li>
+						<li><strong>Energia em graves:</strong> ${sound.lowEnergyPct}%</li>
+					</ul>
+				</div>
+			</div>
+			<div class="evidence-modal-footer">
+				<button class="btn-download-from-evidence primary" data-sound-id="${soundId}">
+					<i class="fa-solid fa-download"></i>
+					Adicionar à Biblioteca
+				</button>
+			</div>
+		</div>
+	`;
+	
+	document.body.appendChild(modal);
+	
+	// Event listeners
+	modal.querySelector('.btn-close-evidence').addEventListener('click', () => modal.remove());
+	modal.querySelector('.btn-download-from-evidence').addEventListener('click', async (e) => {
+		await downloadDefaultSound(soundId);
+		modal.remove();
+	});
+	modal.addEventListener('click', (e) => {
+		if (e.target === modal) modal.remove();
+	});
 }
 
 async function hydrateHistory() {
@@ -1133,7 +1862,7 @@ function selectPlaylistOptions(ids) {
 	// Update selected playlist state
 	state.selectedPlaylist = [...ids];
 	// Re-render to reflect changes
-	renderPlaylistUnified();
+	PlaylistManager.render();
 }
 
 async function handlePresetSave(event) {
@@ -1207,8 +1936,21 @@ function handlePanChange(event) {
 	const value = Number(event.target.value);
 	state.currentPan = value;
 	updatePanOutput(value);
-	if (state.currentHowl) {
+	
+	// Aplica pan em todas as faixas ativas (apenas Howler)
+	if (state.activeHowls && state.activeHowls.length > 0) {
+		state.activeHowls.forEach(howl => {
+			if (howl && typeof howl.stereo === 'function') {
+				howl.stereo(value);
+			}
+		});
+	} else if (state.currentHowl && typeof state.currentHowl.stereo === 'function') {
 		state.currentHowl.stereo(value);
+	}
+	
+	// Aviso se tentar usar pan com YouTube
+	if (youtubePlayer && currentYoutubeId && value !== 0) {
+		showToast('⚠️ Pan estéreo não funciona com YouTube', 'warning');
 	}
 }
 
@@ -1275,6 +2017,48 @@ function describeDiffBand(value) {
 	return DIFF_BANDS.find((band) => value >= band.range[0] && value <= band.range[1]) || DIFF_BANDS[2];
 }
 
+/**
+ * Manipula clique nos botões de protocolos terapêuticos rápidos
+ * Aplica configuração completa do protocolo (base, diff, duração, volume, lowpass)
+ * @param {Event} e - Evento de clique
+ */
+function handleProtocolQuickSelect(e) {
+	const btn = e.target.closest('.protocol-chip');
+	if (!btn) return;
+	
+	const protocolKey = btn.dataset.protocol;
+	if (!protocolKey || !THERAPEUTIC_PROTOCOLS[protocolKey]) return;
+	
+	const protocol = THERAPEUTIC_PROTOCOLS[protocolKey];
+	
+	// Aplica todas as configurações do protocolo
+	ui.baseFreq.value = protocol.baseHz;
+	ui.diffFreq.value = protocol.diffHz;
+	ui.duration.value = protocol.duration;
+	ui.binauralVolume.value = protocol.binauralVolume;
+	ui.lowPass.value = protocol.lowPass;
+	
+	// Atualiza nome do preset
+	ui.form.presetName.value = `Protocolo: ${protocol.name}`;
+	
+	// Atualiza os outputs e sugestões
+	updateRangeOutputs();
+	updateSuggestions();
+	
+	// Atualiza frequências em tempo real se sessão estiver ativa
+	updateBinauralFrequenciesRealtime();
+	updateBinauralVolumeRealtime();
+	updateLowPassRealtime();
+	
+	// Remove classe ativa de todos os botões
+	ui.protocolQuickSelector.querySelectorAll('.protocol-chip').forEach(b => b.classList.remove('active'));
+	// Adiciona classe ativa ao botão clicado
+	btn.classList.add('active');
+	
+	// Feedback visual
+	showToast(`Protocolo "${protocol.name}" aplicado`, 'success');
+}
+
 function updateSuggestions() {
 	const diff = Number(ui.diffFreq.value);
 	const band = describeDiffBand(diff);
@@ -1334,8 +2118,28 @@ function applyMix() {
 		state.binauralChain.binauralGain.gain.setTargetAtTime(state.mixRatio, state.audioCtx.currentTime, 0.05);
 	}
 	const musicRatio = 1 - state.mixRatio;
-	if (state.currentHowl) {
+	
+	// Aplica volume em todas as faixas ativas (Howler)
+	if (state.activeHowls && state.activeHowls.length > 0) {
+		const trackCount = state.activeHowls.length;
+		const volumePerTrack = musicRatio / Math.sqrt(trackCount);
+		state.activeHowls.forEach(howl => {
+			if (howl && typeof howl.volume === 'function') {
+				howl.volume(volumePerTrack);
+			}
+		});
+	} else if (state.currentHowl && typeof state.currentHowl.volume === 'function') {
 		state.currentHowl.volume(musicRatio);
+	}
+	
+	// Aplica volume no YouTube se estiver ativo
+	if (youtubePlayer && currentYoutubeId) {
+		try {
+			// YouTube usa volume de 0-100
+			youtubePlayer.setVolume(Math.round(musicRatio * 100));
+		} catch (e) {
+			// Player pode não estar pronto ainda
+		}
 	}
 }
 
@@ -1463,48 +2267,159 @@ async function setupPlaylist(playlistIds = []) {
 	}
 	state.playlistQueue = playlistIds;
 	state.currentTrackIndex = 0;
-	await playCurrentTrack();
+	await playAllSelectedTracks();
+}
+
+/**
+ * Toca todas as músicas selecionadas simultaneamente
+ */
+async function playAllSelectedTracks() {
+	stopCurrentTrack();
+	stopYoutubeAudio(); // Para qualquer vídeo YouTube anterior
+	if (!state.playlistQueue.length) return;
+	
+	// Limpa o array de howls ativos
+	state.activeHowls = [];
+	
+	// Para sons gerados pelo TherapeuticSoundGenerator
+	therapeuticGenerator.stopAll();
+	
+	// Volume dividido entre as faixas para evitar clipping
+	const trackCount = state.playlistQueue.length;
+	const volumePerTrack = (1 - state.mixRatio) / Math.sqrt(trackCount);
+	
+	// Carrega e toca cada faixa selecionada
+	for (const trackId of state.playlistQueue) {
+		// Verifica se é um vídeo do YouTube (padrão ou do usuário)
+		if (trackId.startsWith('yt-') || trackId.startsWith('user-youtube-')) {
+			let youtubeId, soundName;
+			
+			if (trackId.startsWith('yt-')) {
+				// Vídeo do catálogo padrão
+				const soundId = trackId.replace('yt-', '');
+				const catalog = state.defaultSoundsCatalog;
+				const sound = catalog?.sounds?.find(s => s.id === soundId);
+				
+				if (!sound || !sound.youtubeId) {
+					console.warn('YouTube ID ausente para:', soundId);
+					continue;
+				}
+				youtubeId = sound.youtubeId;
+				soundName = sound.name;
+			} else {
+				// Vídeo adicionado pelo usuário
+				const userVideos = await stores.data.getItem('userYoutubeVideos') || [];
+				const userVideo = userVideos.find(v => v.id === trackId);
+				
+				if (!userVideo || !userVideo.youtube) {
+					console.warn('Vídeo do usuário não encontrado:', trackId);
+					continue;
+				}
+				youtubeId = userVideo.youtube;
+				soundName = userVideo.name;
+			}
+			
+			// Reproduz via streaming do YouTube
+			try {
+				const success = await playYoutubeAudio(youtubeId, {
+					volume: Math.round(volumePerTrack * 100),
+					loop: true
+				});
+				if (success) {
+					console.log('Streaming YouTube:', soundName, '- ID:', youtubeId);
+					// Salva nome da faixa em reprodução
+					state.currentPlayingName = soundName;
+					// Ativa modo YouTube (desabilita controles não funcionais)
+					updateControlsForYoutubeMode(true);
+				}
+			} catch (err) {
+				console.error('Erro ao reproduzir YouTube:', err);
+				showToast(`Erro ao reproduzir: ${soundName}`, 'error');
+			}
+		}
+		// Verifica se é um som padrão (gerado) ou música local
+		else if (trackId.startsWith('default-')) {
+			// Som padrão - reproduz via Web Audio API (geração em tempo real)
+			const soundId = trackId.replace('default-', '');
+			const catalog = state.defaultSoundsCatalog;
+			const sound = catalog?.sounds?.find(s => s.id === soundId);
+			
+			if (!sound || !sound.generatorType) {
+				console.warn('Tipo de gerador ausente para som padrão:', soundId);
+				continue;
+			}
+			
+			try {
+				// Usa o gerador de sons terapêuticos
+				await therapeuticGenerator.play(sound.generatorType, {
+					volume: volumePerTrack
+				});
+				console.log('Gerando som terapêutico:', sound.name, '- Tipo:', sound.generatorType);
+			} catch (err) {
+				console.error('Erro ao gerar som terapêutico:', err);
+				showToast(`Erro ao gerar som: ${sound.name}`, 'error');
+			}
+		} else {
+			// Música local - busca do IndexedDB
+			const blob = await stores.music.getItem(trackId);
+			if (!blob) {
+				console.warn('Blob ausente para track', trackId);
+				continue;
+			}
+			
+			// Busca metadados da faixa para exibir o nome
+			const trackMeta = state.musicMeta.find(t => t.id === trackId);
+			const trackName = trackMeta?.name || 'Música local';
+			
+			const objectUrl = URL.createObjectURL(blob);
+			state.musicObjectUrls.push(objectUrl);
+			
+			// Detecta o formato do áudio baseado no MIME type
+			const mimeType = blob.type || 'audio/mpeg';
+			const format = getAudioFormat(mimeType);
+			
+			const howl = new Howl({
+				src: [objectUrl],
+				format: [format],
+				loop: true,
+				volume: volumePerTrack,
+				onplay: () => {
+					console.log('Howler reproduzindo', trackId, 'formato:', format, 'volume:', volumePerTrack.toFixed(2));
+					// Salva nome da faixa em reprodução
+					state.currentPlayingName = trackName;
+					if (state.audio8D.enabled) {
+						console.log('Audio 8D: Ativo na sessão');
+					}
+				},
+				onloaderror: (id, err) => {
+					console.error('Erro ao carregar áudio:', err, 'formato:', format);
+					showToast(`Erro ao carregar áudio.`, 'error');
+				},
+				onplayerror: (id, err) => {
+					console.error('Erro ao reproduzir áudio:', err);
+					howl.once('unlock', () => {
+						howl.play();
+					});
+				}
+			});
+			
+			howl._trackId = trackId; // Referência para identificar a faixa
+			state.activeHowls.push(howl);
+			howl.play();
+		}
+	}
+	
+	// Mantém compatibilidade com currentHowl (primeira faixa)
+	state.currentHowl = state.activeHowls[0] || null;
+	
+	const generatedCount = therapeuticGenerator.getActiveSoundCount();
+	const howlCount = state.activeHowls.length;
+	console.log(`Tocando ${howlCount} faixa(s) local(is) + ${generatedCount} som(ns) gerado(s)`);
 }
 
 async function playCurrentTrack() {
-	stopCurrentTrack();
-	if (!state.playlistQueue.length) return;
-	const trackId = state.playlistQueue[state.currentTrackIndex];
-	const blob = await stores.music.getItem(trackId);
-	if (!blob) {
-		console.warn('Blob ausente para track', trackId);
-		return;
-	}
-	const objectUrl = URL.createObjectURL(blob);
-	state.musicObjectUrls.push(objectUrl);
-	
-	// Detecta o formato do áudio baseado no MIME type
-	const mimeType = blob.type || 'audio/mpeg';
-	const format = getAudioFormat(mimeType);
-	
-	state.currentHowl = new Howl({
-		src: [objectUrl],
-		format: [format],
-		loop: true,
-		html5: false, // IMPORTANTE: usar Web Audio API para suportar stereo panning (8D)
-		volume: 1 - state.mixRatio,
-		onplay: () => {
-			console.log('Howler reproduzindo', trackId, 'formato:', format);
-			// Aplica 8D se estiver ativo
-			if (state.audio8D.enabled) {
-				// Howler.stereo() funciona nativamente com html5: false
-				console.log('Audio 8D: Ativo na sessão');
-			}
-		},
-		onloaderror: (id, err) => console.error('Erro ao carregar áudio:', err, 'formato:', format, 'tipo:', mimeType),
-		onplayerror: (id, err) => {
-			console.error('Erro ao reproduzir áudio:', err);
-			state.currentHowl.once('unlock', () => {
-				state.currentHowl.play();
-			});
-		}
-	});
-	state.currentHowl.play();
+	// Redireciona para a nova função que toca múltiplas faixas
+	await playAllSelectedTracks();
 }
 
 /**
@@ -1529,17 +2444,40 @@ function getAudioFormat(mimeType) {
 }
 
 function stopCurrentTrack() {
+	// Para sons gerados pelo TherapeuticSoundGenerator
+	therapeuticGenerator.stopAll();
+	
+	// Para todas as faixas ativas
+	if (state.activeHowls && state.activeHowls.length > 0) {
+		state.activeHowls.forEach(howl => {
+			try {
+				howl.stop();
+				howl.unload();
+			} catch (err) {
+				console.warn('Erro ao parar howl:', err.message);
+			}
+		});
+		state.activeHowls = [];
+	}
+	
+	// Mantém compatibilidade com currentHowl legado
 	if (state.currentHowl) {
 		state.currentHowl.stop();
 		state.currentHowl.unload();
 		state.currentHowl = null;
 	}
+	
 	state.musicObjectUrls.forEach((url) => URL.revokeObjectURL(url));
 	state.musicObjectUrls = [];
 }
 
 function pauseSession(autoResume = false) {
-	if (state.currentHowl) state.currentHowl.pause();
+	// Pausa todas as faixas ativas
+	if (state.activeHowls && state.activeHowls.length > 0) {
+		state.activeHowls.forEach(howl => howl.pause());
+	} else if (state.currentHowl) {
+		state.currentHowl.pause();
+	}
 	if (state.audioCtx.state === 'running') {
 		state.audioCtx.suspend();
 	}
@@ -1551,9 +2489,18 @@ function pauseSession(autoResume = false) {
 function resumeSession() {
 	if (!state.isSessionRunning) return;
 	resumeAudioContext();
-	if (state.currentHowl && !state.currentHowl.playing()) {
+	
+	// Retoma todas as faixas ativas
+	if (state.activeHowls && state.activeHowls.length > 0) {
+		state.activeHowls.forEach(howl => {
+			if (!howl.playing()) {
+				howl.play();
+			}
+		});
+	} else if (state.currentHowl && !state.currentHowl.playing()) {
 		state.currentHowl.play();
 	}
+	
 	state.wasPlayingBeforeBlur = false;
 	updateMediaSessionState('playing');
 	updateSessionUI(true, false);
@@ -1562,9 +2509,11 @@ function resumeSession() {
 function stopSession() {
 	stopBinaural();
 	stopCurrentTrack();
+	stopYoutubeAudio(); // Para o YouTube quando a sessão termina
 	clearInterval(state.timerId);
 	state.timerId = null;
 	state.remainingSeconds = 0;
+	state.currentPlayingName = null; // Limpa nome da música atual
 	totalSessionSeconds = 0;
 	updateTimerDisplay();
 	state.isSessionRunning = false;
@@ -1597,11 +2546,11 @@ function startTimer(durationMinutes) {
 function updateTimerDisplay() {
 	const minutes = String(Math.floor(state.remainingSeconds / 60)).padStart(2, '0');
 	const seconds = String(state.remainingSeconds % 60).padStart(2, '0');
-	ui.timerDisplay.textContent = `${minutes}:${seconds}`;
+	const timeStr = `${minutes}:${seconds}`;
 	
-	// Atualizar progresso circular
-	if (totalSessionSeconds > 0) {
-		updateTimerProgress(state.remainingSeconds, totalSessionSeconds);
+	// Atualizar timer principal
+	if (ui.timerDisplay) {
+		ui.timerDisplay.textContent = timeStr;
 	}
 }
 
@@ -1617,6 +2566,237 @@ function playBeep() {
 	osc.connect(gain).connect(ctx.destination);
 	osc.start();
 	osc.stop(ctx.currentTime + 0.8);
+}
+
+// Estado de validação de upload
+let uploadValidationState = {
+	files: [],
+	validated: [],
+	validCount: 0,
+	isValidating: false
+};
+
+/**
+ * Formata tamanho de arquivo em bytes para formato legível
+ */
+function formatFileSize(bytes) {
+	if (bytes < 1024) return bytes + ' B';
+	if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+	return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+/**
+ * Valida um arquivo de áudio tentando decodificá-lo
+ */
+async function validateAudioFile(file) {
+	return new Promise((resolve) => {
+		try {
+			const audio = new Audio();
+			const url = URL.createObjectURL(file);
+			
+			const cleanup = () => {
+				URL.revokeObjectURL(url);
+				audio.src = '';
+			};
+			
+			audio.oncanplaythrough = () => {
+				cleanup();
+				resolve({ valid: true, duration: audio.duration });
+			};
+			
+			audio.onerror = () => {
+				cleanup();
+				resolve({ valid: false, error: 'Não foi possível reproduzir este arquivo' });
+			};
+			
+			// Timeout de 10 segundos
+			setTimeout(() => {
+				cleanup();
+				resolve({ valid: false, error: 'Timeout ao validar arquivo' });
+			}, 10000);
+			
+			audio.src = url;
+			audio.load();
+		} catch (error) {
+			resolve({ valid: false, error: error.message });
+		}
+	});
+}
+
+/**
+ * Processa arquivos com validação antes de adicionar
+ */
+async function handleFilesWithValidation(fileList) {
+	if (!fileList?.length) return;
+	
+	// Reset estado
+	uploadValidationState = {
+		files: [...fileList],
+		validated: [],
+		validCount: 0,
+		isValidating: true
+	};
+	
+	// Mostra área de validação
+	if (ui.uploadValidationArea) {
+		ui.uploadValidationArea.style.display = 'block';
+		ui.uploadConfirmBtn.disabled = true;
+	}
+	
+	// Renderiza lista inicial
+	renderUploadValidationList();
+	
+	// Valida cada arquivo
+	for (let i = 0; i < fileList.length; i++) {
+		const file = fileList[i];
+		
+		// Atualiza status para "validando"
+		uploadValidationState.validated[i] = { status: 'validating' };
+		renderUploadValidationList();
+		
+		// Valida o arquivo
+		const result = await validateAudioFile(file);
+		
+		if (result.valid) {
+			uploadValidationState.validated[i] = { 
+				status: 'valid', 
+				duration: result.duration 
+			};
+			uploadValidationState.validCount++;
+		} else {
+			uploadValidationState.validated[i] = { 
+				status: 'invalid', 
+				error: result.error 
+			};
+		}
+		
+		renderUploadValidationList();
+	}
+	
+	// Validação completa
+	uploadValidationState.isValidating = false;
+	updateUploadValidationHeader();
+	
+	// Habilita botão se há arquivos válidos
+	if (ui.uploadConfirmBtn && uploadValidationState.validCount > 0) {
+		ui.uploadConfirmBtn.disabled = false;
+		ui.uploadConfirmBtn.innerHTML = `<i class="fa-solid fa-check"></i> Adicionar ${uploadValidationState.validCount} arquivo${uploadValidationState.validCount > 1 ? 's' : ''}`;
+	}
+	
+	ui.audioUpload.value = '';
+}
+
+/**
+ * Renderiza a lista de validação de upload
+ */
+function renderUploadValidationList() {
+	if (!ui.uploadValidationList) return;
+	
+	ui.uploadValidationList.innerHTML = uploadValidationState.files.map((file, index) => {
+		const validation = uploadValidationState.validated[index] || { status: 'pending' };
+		
+		let statusHtml = '';
+		let itemClass = '';
+		
+		switch (validation.status) {
+			case 'validating':
+				statusHtml = `<span class="file-status status-validating"><i class="fa-solid fa-spinner fa-spin"></i> Validando...</span>`;
+				itemClass = 'validating';
+				break;
+			case 'valid':
+				statusHtml = `<span class="file-status status-valid"><i class="fa-solid fa-check-circle"></i> Válido</span>`;
+				itemClass = 'valid';
+				break;
+			case 'invalid':
+				statusHtml = `<span class="file-status status-invalid"><i class="fa-solid fa-times-circle"></i> ${validation.error || 'Inválido'}</span>`;
+				itemClass = 'invalid';
+				break;
+			default:
+				statusHtml = `<span class="file-status"><i class="fa-solid fa-clock"></i> Aguardando</span>`;
+		}
+		
+		return `
+			<li class="upload-validation-item ${itemClass}">
+				<i class="fa-solid fa-file-audio file-icon"></i>
+				<div class="file-info">
+					<span class="file-name">${file.name}</span>
+					<span class="file-size">${formatFileSize(file.size)}</span>
+				</div>
+				${statusHtml}
+			</li>
+		`;
+	}).join('');
+}
+
+/**
+ * Atualiza o header da área de validação
+ */
+function updateUploadValidationHeader() {
+	const header = ui.uploadValidationArea?.querySelector('.upload-validation-header');
+	if (!header) return;
+	
+	if (uploadValidationState.isValidating) {
+		header.innerHTML = `<span><i class="fa-solid fa-spinner fa-spin"></i> Validando arquivos...</span>`;
+		header.classList.remove('complete');
+	} else {
+		const total = uploadValidationState.files.length;
+		const valid = uploadValidationState.validCount;
+		header.innerHTML = `<span><i class="fa-solid fa-check-circle"></i> ${valid} de ${total} arquivo${total > 1 ? 's' : ''} válido${valid > 1 ? 's' : ''}</span>`;
+		header.classList.add('complete');
+	}
+}
+
+/**
+ * Confirma e adiciona os arquivos válidos
+ */
+async function confirmValidatedUploads() {
+	if (uploadValidationState.validCount === 0) return;
+	
+	// Filtra apenas arquivos válidos
+	const validFiles = uploadValidationState.files.filter((_, index) => 
+		uploadValidationState.validated[index]?.status === 'valid'
+	);
+	
+	// Adiciona cada arquivo
+	const tasks = validFiles.map(persistTrack);
+	await Promise.all(tasks);
+	
+	showToast(`${validFiles.length} arquivo${validFiles.length > 1 ? 's' : ''} adicionado${validFiles.length > 1 ? 's' : ''} com sucesso!`, 'success');
+	
+	// Limpa e esconde área de validação
+	cancelUploadValidation();
+	
+	// Atualiza playlist
+	updatePlaylistSelect();
+	updateSuggestions();
+}
+
+/**
+ * Cancela a validação e limpa o estado
+ */
+function cancelUploadValidation() {
+	uploadValidationState = {
+		files: [],
+		validated: [],
+		validCount: 0,
+		isValidating: false
+	};
+	
+	if (ui.uploadValidationArea) {
+		ui.uploadValidationArea.style.display = 'none';
+		ui.uploadValidationList.innerHTML = '';
+		ui.uploadConfirmBtn.disabled = true;
+		ui.uploadConfirmBtn.innerHTML = '<i class="fa-solid fa-check"></i> Adicionar Válidos';
+	}
+	
+	// Reset header
+	const header = ui.uploadValidationArea?.querySelector('.upload-validation-header');
+	if (header) {
+		header.innerHTML = `<span><i class="fa-solid fa-spinner fa-spin"></i> Validando arquivos...</span>`;
+		header.classList.remove('complete');
+	}
+	
+	ui.audioUpload.value = '';
 }
 
 async function handleFiles(fileList) {
@@ -1646,7 +2826,7 @@ async function persistTrack(file) {
 	await stores.music.setItem(meta.id, blob);
 	state.musicMeta.push(meta);
 	await stores.data.setItem(STORAGE_KEYS.MUSIC_META, state.musicMeta);
-	renderMusicList();
+	// Não renderiza aqui - será feito uma única vez após todos os uploads
 	console.log('Arquivo armazenado', meta.name, tag);
 }
 
@@ -1700,124 +2880,90 @@ let currentPreview = null;
 let currentPreviewId = null;
 
 function renderMusicList() {
-	renderPlaylistUnified();
+	PlaylistManager.render();
 }
 
 function updatePlaylistSelect() {
-	renderPlaylistUnified();
+	PlaylistManager.render();
 }
 
-function renderPlaylistUnified() {
-	ui.playlistSelect.innerHTML = '';
-	
-	// Get previously selected tracks
-	const selectedTracks = state.selectedPlaylist || [];
-	
-	state.musicMeta.forEach((track) => {
-		let originLabel = 'Upload';
-		let originClass = 'badge user';
-		if (track.origin === 'textura-nativa') {
-			originLabel = 'Nativo';
-			originClass = 'badge native';
-		} else if (track.origin === 'internet-archive') {
-			originLabel = 'Archive';
-			originClass = 'badge archive';
-		}
-		
-		const isSelected = selectedTracks.includes(track.id);
-		const isPlaying = currentPreviewId === track.id;
-		
-		const li = document.createElement('li');
-		li.className = `playlist-item${isSelected ? ' selected' : ''}${isPlaying ? ' playing' : ''}`;
-		li.dataset.id = track.id;
-		li.setAttribute('role', 'option');
-		li.setAttribute('aria-selected', isSelected);
-		
-		const sizeMB = ((track.size || 0) / 1024 / 1024).toFixed(2);
-		
-		li.innerHTML = `
-			<input type="checkbox" class="playlist-checkbox" ${isSelected ? 'checked' : ''} data-action="select" aria-label="Selecionar ${track.name}">
-			<div class="playlist-info" data-action="toggle">
-				<strong>${track.name}</strong>
-				<div class="playlist-meta">
-					<span class="tag">${track.tag}</span>
-					<span class="${originClass}">${originLabel}</span>
-					<span class="size">${sizeMB} MB • ${track.lowEnergyPct ?? '--'}% graves</span>
-				</div>
-			</div>
-			<div class="playlist-actions">
-				<button class="btn-preview${isPlaying ? ' playing' : ''}" data-action="preview" title="${isPlaying ? 'Parar' : 'Preview'}">
-					<i class="fa-solid ${isPlaying ? 'fa-stop' : 'fa-play'}"></i>
-					<span>${isPlaying ? 'Stop' : 'Preview'}</span>
-				</button>
-				<button class="btn-delete" data-action="delete" title="Excluir">
-					<i class="fa-solid fa-trash"></i>
-				</button>
-			</div>
-		`;
-		ui.playlistSelect.append(li);
-	});
-	
-	// Update counter
-	updatePlaylistCounter();
+/**
+ * Renderiza os sons terapêuticos padrões na playlist unificada
+ * Sons padrão são reproduzidos via streaming do Internet Archive
+ * Também inclui vídeos do YouTube adicionados pelo usuário
+ */
+/**
+ * @deprecated Use PlaylistManager.render() diretamente
+ * Mantido para compatibilidade retroativa
+ */
+async function renderDefaultSoundsInPlaylist(selectedTracks) {
+	console.warn('[DEPRECATED] renderDefaultSoundsInPlaylist() chamada - use PlaylistManager.render()');
+	return PlaylistManager.render();
 }
 
+/**
+ * @deprecated Use PlaylistManager.render() diretamente
+ * Mantido para compatibilidade retroativa
+ */
+async function renderPlaylistUnified() {
+	console.warn('[DEPRECATED] renderPlaylistUnified() chamada - use PlaylistManager.render()');
+	return PlaylistManager.render();
+}
+
+/**
+ * @deprecated Use PlaylistManager.updateCounter() diretamente
+ */
 function updatePlaylistCounter() {
-	const selectedCount = (state.selectedPlaylist || []).length;
-	if (ui.playlistCount) {
-		ui.playlistCount.textContent = `${selectedCount} selecionada${selectedCount !== 1 ? 's' : ''}`;
-	}
+	PlaylistManager.updateCounter();
 }
 
+/**
+ * @deprecated Agora delega para PlaylistManager.handleSelectionChange()
+ */
 function handlePlaylistSelectionChange(event) {
-	const checkbox = event.target.closest('.playlist-checkbox');
-	if (!checkbox) return;
-	
-	const li = checkbox.closest('.playlist-item');
-	const trackId = li.dataset.id;
-	
-	if (!state.selectedPlaylist) {
-		state.selectedPlaylist = [];
-	}
-	
-	if (checkbox.checked) {
-		if (!state.selectedPlaylist.includes(trackId)) {
-			state.selectedPlaylist.push(trackId);
-		}
-		li.classList.add('selected');
-	} else {
-		state.selectedPlaylist = state.selectedPlaylist.filter(id => id !== trackId);
-		li.classList.remove('selected');
-	}
-	
-	li.setAttribute('aria-selected', checkbox.checked);
-	updatePlaylistCounter();
+	PlaylistManager.handleSelectionChange(event);
 }
 
+/**
+ * @deprecated Agora delega para PlaylistManager.handleActions()
+ */
 async function handlePlaylistActions(event) {
-	const button = event.target.closest('button');
-	const info = event.target.closest('.playlist-info');
+	await PlaylistManager.handleActions(event);
+}
+
+/**
+ * Alterna o estado de favorito de uma faixa e atualiza a interface
+ * @param {string} trackId - ID da faixa
+ * @param {HTMLElement} button - Botão clicado
+ * @param {HTMLElement} li - Elemento li do item
+ */
+async function handleFavoriteToggle(trackId, button, li) {
+	const isFav = await toggleFavorite(trackId);
 	
-	if (info) {
-		// Click on info area toggles checkbox
-		const li = info.closest('.playlist-item');
-		const checkbox = li.querySelector('.playlist-checkbox');
-		checkbox.checked = !checkbox.checked;
-		checkbox.dispatchEvent(new Event('change', { bubbles: true }));
-		return;
+	// Atualiza visual do botão
+	if (button) {
+		button.classList.toggle('active', isFav);
+		const icon = button.querySelector('i');
+		if (icon) {
+			icon.className = `fa-${isFav ? 'solid' : 'regular'} fa-star`;
+		}
+		button.title = isFav ? 'Remover dos favoritos' : 'Adicionar aos favoritos';
 	}
 	
-	if (!button) return;
-	
-	const li = button.closest('.playlist-item');
-	const trackId = li.dataset.id;
-	const action = button.dataset.action;
-	
-	if (action === 'delete') {
-		await removeTrack(trackId);
-	} else if (action === 'preview') {
-		togglePreview(trackId, button, li);
+	// Atualiza classe do item
+	if (li) {
+		li.classList.toggle('playlist-item--favorite', isFav);
+		
+		// Atualiza o nome com/sem estrela
+		const nameEl = li.querySelector('.playlist-info strong');
+		if (nameEl) {
+			const currentName = nameEl.textContent.replace(/^⭐\s*/, '');
+			nameEl.textContent = isFav ? `⭐ ${currentName}` : currentName;
+		}
 	}
+	
+	// Re-renderiza para reordenar (favoritos no topo)
+	await PlaylistManager.render();
 }
 
 async function removeTrack(trackId) {
@@ -1835,8 +2981,70 @@ async function removeTrack(trackId) {
 	}
 	
 	await stores.data.setItem(STORAGE_KEYS.MUSIC_META, state.musicMeta);
-	renderPlaylistUnified();
+	PlaylistManager.render();
 	console.log('Track removida', trackId);
+}
+
+/**
+ * Exporta um áudio do IndexedDB para arquivo físico (download)
+ * Útil para salvar áudios baixados do Internet Archive
+ */
+async function exportTrackToFile(trackId) {
+	const meta = state.musicMeta.find(m => m.id === trackId);
+	if (!meta) {
+		showToast('Áudio não encontrado', 'error');
+		return;
+	}
+	
+	const blob = await stores.music.getItem(trackId);
+	if (!blob) {
+		showToast('Arquivo de áudio não encontrado', 'error');
+		return;
+	}
+	
+	// Determinar nome do arquivo
+	let filename;
+	if (meta.archiveId) {
+		filename = `${meta.archiveId}.mp3`;
+	} else if (meta.bundledId) {
+		filename = `${meta.bundledId}.mp3`;
+	} else {
+		// Sanitizar nome para uso como arquivo
+		const safeName = meta.name
+			.replace(/[^a-z0-9\s-]/gi, '')
+			.replace(/\s+/g, '-')
+			.toLowerCase()
+			.substring(0, 50);
+		filename = `${safeName}.mp3`;
+	}
+	
+	// Criar link de download
+	const url = URL.createObjectURL(blob);
+	const a = document.createElement('a');
+	a.href = url;
+	a.download = filename;
+	document.body.appendChild(a);
+	a.click();
+	document.body.removeChild(a);
+	URL.revokeObjectURL(url);
+	
+	// Mostrar informações para o manifest.json no console
+	console.log('=== DADOS PARA manifest.json ===');
+	console.log(JSON.stringify({
+		id: meta.archiveId || meta.bundledId || filename.replace('.mp3', ''),
+		filename: filename,
+		name: meta.name.replace(' (Archive)', '').replace(' (Nativo)', ''),
+		tag: meta.tag || 'alpha',
+		lowEnergyPct: meta.lowEnergyPct || 50,
+		category: meta.category || 'ambient',
+		therapeuticUse: meta.therapeuticUse || [],
+		description: meta.description || '',
+		source: meta.origin === 'internet-archive' ? 'Internet Archive' : 'Local',
+		sourceUrl: meta.archiveId ? `https://archive.org/details/${meta.archiveId}` : '',
+		archiveId: meta.archiveId || null
+	}, null, 2));
+	
+	showToast(`Arquivo exportado: ${filename}`, 'success');
 }
 
 async function togglePreview(trackId, button, li) {
@@ -1849,57 +3057,197 @@ async function togglePreview(trackId, button, li) {
 	// Stop any existing preview
 	stopPreview();
 	
-	const blob = await stores.music.getItem(trackId);
-	if (!blob) return;
+	// Verifica se é vídeo do YouTube (padrão ou do usuário)
+	if (trackId.startsWith('yt-') || trackId.startsWith('user-youtube-')) {
+		let youtubeId, soundName;
+		
+		if (trackId.startsWith('yt-')) {
+			// Vídeo do catálogo padrão
+			const soundId = trackId.replace('yt-', '');
+			const catalog = state.defaultSoundsCatalog;
+			const sound = catalog?.sounds?.find(s => s.id === soundId);
+			
+			if (!sound || !sound.youtubeId) {
+				showToast('Vídeo não encontrado', 'error');
+				return;
+			}
+			youtubeId = sound.youtubeId;
+			soundName = sound.name;
+		} else {
+			// Vídeo adicionado pelo usuário
+			const userVideos = await stores.data.getItem('userYoutubeVideos') || [];
+			const userVideo = userVideos.find(v => v.id === trackId);
+			
+			if (!userVideo || !userVideo.youtube) {
+				showToast('Vídeo não encontrado', 'error');
+				return;
+			}
+			youtubeId = userVideo.youtube;
+			soundName = userVideo.name;
+		}
+		
+		// Verifica se existe versão offline
+		const offlineKey = `yt-offline-${youtubeId}`;
+		const offlineBlob = await stores.music.getItem(offlineKey);
+		
+		currentPreviewId = trackId;
+		
+		// Update UI
+		button.classList.add('playing');
+		button.innerHTML = '<i class="fa-solid fa-stop"></i><span>Stop</span>';
+		button.title = 'Parar';
+		li.classList.add('playing');
+		
+		if (offlineBlob) {
+			// USA VERSÃO OFFLINE para preview
+			const audioSource = URL.createObjectURL(offlineBlob);
+			const format = getAudioFormat(offlineBlob.type || 'audio/mpeg');
+			
+			currentPreview = new Howl({
+				src: [audioSource],
+				format: [format],
+				volume: 0.5,
+				onend: () => {
+					stopPreview();
+					URL.revokeObjectURL(audioSource);
+				},
+				onstop: () => {
+					URL.revokeObjectURL(audioSource);
+				}
+			});
+			currentPreview.play();
+		} else {
+			// Usa streaming do YouTube
+			if (!navigator.onLine) {
+				showToast('⚠️ Requer conexão com a internet', 'warning');
+				stopPreview();
+				return;
+			}
+			
+			const success = await playYoutubeAudio(youtubeId, { volume: 70, loop: false });
+			
+			if (success) {
+				currentPreview = {
+					isYoutube: true,
+					youtubeId: youtubeId,
+					stop: () => stopYoutubeAudio(),
+					unload: () => stopYoutubeAudio()
+				};
+			} else {
+				stopPreview();
+			}
+		}
+		return;
+	}
 	
-	const url = URL.createObjectURL(blob);
-	currentPreviewId = trackId;
-	
-	// Update UI
-	button.classList.add('playing');
-	button.innerHTML = '<i class="fa-solid fa-stop"></i><span>Stop</span>';
-	button.title = 'Parar';
-	li.classList.add('playing');
-	
-	// Detectar formato do áudio a partir do MIME type do blob
-	const mimeToFormat = {
-		'audio/mpeg': 'mp3',
-		'audio/mp3': 'mp3',
-		'audio/wav': 'wav',
-		'audio/wave': 'wav',
-		'audio/ogg': 'ogg',
-		'audio/webm': 'webm',
-		'audio/aac': 'aac',
-		'audio/mp4': 'm4a',
-		'audio/x-m4a': 'm4a',
-		'audio/flac': 'flac'
-	};
-	const format = mimeToFormat[blob.type] || 'mp3';
-	
-	currentPreview = new Howl({
-		src: [url],
-		format: [format],
-		html5: false, // IMPORTANTE: usar Web Audio API para suportar stereo panning (8D)
-		volume: 0.4,
-		stereo: state.currentPan,
-		onend: () => {
-			stopPreview();
-			URL.revokeObjectURL(url);
-		},
-		onstop: () => {
-			URL.revokeObjectURL(url);
-		},
-		onloaderror: (id, err) => console.error('Preview: erro ao carregar:', err, 'formato:', format, 'tipo:', blob.type)
-	});
-	
-	currentPreview.play();
-	
-	// Auto-stop after 10 seconds
-	setTimeout(() => {
-		if (currentPreviewId === trackId) {
+	// Verifica se é som padrão (gerado)
+	if (trackId.startsWith('default-')) {
+		const soundId = trackId.replace('default-', '');
+		const catalog = state.defaultSoundsCatalog;
+		const sound = catalog?.sounds?.find(s => s.id === soundId);
+		
+		if (!sound) {
+			showToast('Som não encontrado', 'error');
+			return;
+		}
+		
+		// Som gerado via Web Audio API
+		if (!sound.generatorType) {
+			showToast('Tipo de som não encontrado', 'error');
+			return;
+		}
+		
+		currentPreviewId = trackId;
+		
+		// Update UI
+		button.classList.add('playing');
+		button.innerHTML = '<i class="fa-solid fa-stop"></i><span>Stop</span>';
+		button.title = 'Parar';
+		li.classList.add('playing');
+		
+		try {
+			// Usa o gerador de sons terapêuticos para preview
+			await therapeuticGenerator.play(sound.generatorType, {
+				volume: 0.4
+			});
+			
+			// Armazena referência para poder parar
+			currentPreview = {
+				isGenerated: true,
+				soundType: sound.generatorType,
+				stop: () => therapeuticGenerator.stopAll(),
+				unload: () => {} // Não precisa de unload para sons gerados
+			};
+			
+			// Auto-stop after 10 seconds
+			setTimeout(() => {
+				if (currentPreviewId === trackId) {
+					stopPreview();
+				}
+			}, 10000);
+		} catch (err) {
+			console.error('Preview: erro ao gerar som:', err);
+			showToast('Erro ao gerar preview do som.', 'error');
 			stopPreview();
 		}
-	}, 10000);
+	} else {
+		// Música local
+		const blob = await stores.music.getItem(trackId);
+		if (!blob) return;
+		
+		const audioSource = URL.createObjectURL(blob);
+		
+		// Detectar formato do áudio a partir do MIME type do blob
+		const mimeToFormat = {
+			'audio/mpeg': 'mp3',
+			'audio/mp3': 'mp3',
+			'audio/wav': 'wav',
+			'audio/wave': 'wav',
+			'audio/ogg': 'ogg',
+			'audio/webm': 'webm',
+			'audio/aac': 'aac',
+			'audio/mp4': 'm4a',
+			'audio/x-m4a': 'm4a',
+			'audio/flac': 'flac'
+		};
+		const format = mimeToFormat[blob.type] || 'mp3';
+		
+		currentPreviewId = trackId;
+		
+		// Update UI
+		button.classList.add('playing');
+		button.innerHTML = '<i class="fa-solid fa-stop"></i><span>Stop</span>';
+		button.title = 'Parar';
+		li.classList.add('playing');
+		
+		currentPreview = new Howl({
+			src: [audioSource],
+			format: [format],
+			volume: 0.4,
+			stereo: state.currentPan,
+			onend: () => {
+				stopPreview();
+				URL.revokeObjectURL(audioSource);
+			},
+			onstop: () => {
+				URL.revokeObjectURL(audioSource);
+			},
+			onloaderror: (id, err) => {
+				console.error('Preview: erro ao carregar:', err, 'formato:', format);
+				showToast('Erro ao carregar preview.', 'error');
+				stopPreview();
+			}
+		});
+		
+		currentPreview.play();
+		
+		// Auto-stop after 10 seconds
+		setTimeout(() => {
+			if (currentPreviewId === trackId) {
+				stopPreview();
+			}
+		}, 10000);
+	}
 }
 
 function stopPreview() {
@@ -1917,7 +3265,7 @@ function stopPreview() {
 			const btn = li.querySelector('.btn-preview');
 			if (btn) {
 				btn.classList.remove('playing');
-				btn.innerHTML = '<i class="fa-solid fa-play"></i><span>Preview</span>';
+				btn.innerHTML = '<i class="fa-solid fa-headphones"></i><span>Preview</span>';
 				btn.title = 'Preview';
 			}
 		}
@@ -1962,7 +3310,7 @@ function handleDropZone(event) {
 	}
 	if (event.type === 'drop') {
 		ui.dropZone.classList.remove('dragging');
-		handleFiles(event.dataTransfer.files);
+		handleFilesWithValidation(event.dataTransfer.files);
 	}
 }
 
@@ -2315,9 +3663,9 @@ const TUTORIAL_STEPS = [
 		position: 'bottom'
 	},
 	{
-		selector: '#therapeuticProtocol',
+		selector: '#protocolQuickSelector',
 		title: '📋 Protocolos Terapêuticos',
-		text: 'Selecione protocolos pré-definidos baseados em evidências científicas para diferentes objetivos terapêuticos.',
+		text: 'Clique em qualquer botão para aplicar um protocolo pré-definido baseado em evidências científicas. Todas as configurações serão ajustadas automaticamente.',
 		position: 'bottom'
 	},
 	{
@@ -2822,259 +4170,304 @@ function floatTo16BitPCM(view, offset, input) {
 }
 
 // ==========================================
-// Internet Archive Integration
+// YouTube Video Add Panel
 // ==========================================
 
-const ARCHIVE_BASE = 'https://archive.org';
-const ARCHIVE_SEARCH_URL = `${ARCHIVE_BASE}/advancedsearch.php`;
+// Estado do preview de validação
+let youtubeAddPreviewState = {
+	isPlaying: false,
+	videoId: null,
+	validated: false
+};
 
-async function searchInternetArchive() {
-	const query = ui.archiveQuery.value.trim();
-	const category = ui.archiveCategory.value;
+/**
+ * Extrai o ID do vídeo do YouTube de uma URL
+ * @param {string} url - URL do YouTube
+ * @returns {string|null} - ID do vídeo ou null se inválido
+ */
+function extractYoutubeVideoId(url) {
+	if (!url) return null;
 	
-	if (!query && !category) {
-		setArchiveStatus('Digite um termo de busca ou selecione uma categoria.', 'error');
+	// Padrões suportados:
+	// https://www.youtube.com/watch?v=VIDEO_ID
+	// https://youtu.be/VIDEO_ID
+	// https://www.youtube.com/embed/VIDEO_ID
+	// https://www.youtube.com/v/VIDEO_ID
+	// https://www.youtube.com/shorts/VIDEO_ID
+	
+	const patterns = [
+		/(?:youtube\.com\/watch\?v=|youtube\.com\/watch\?.+&v=)([^&\n?#]+)/,
+		/youtu\.be\/([^&\n?#]+)/,
+		/youtube\.com\/embed\/([^&\n?#]+)/,
+		/youtube\.com\/v\/([^&\n?#]+)/,
+		/youtube\.com\/shorts\/([^&\n?#]+)/
+	];
+	
+	for (const pattern of patterns) {
+		const match = url.match(pattern);
+		if (match && match[1]) {
+			return match[1];
+		}
+	}
+	
+	return null;
+}
+
+/**
+ * Define o status do painel de adicionar YouTube
+ * @param {string} message - Mensagem a exibir
+ * @param {string} type - Tipo: 'success', 'error', 'loading' ou ''
+ */
+function setYoutubeAddStatus(message, type) {
+	ui.youtubeAddStatus.textContent = message;
+	ui.youtubeAddStatus.className = 'archive-status';
+	if (type) {
+		ui.youtubeAddStatus.classList.add(type);
+	}
+}
+
+/**
+ * Reseta o formulário de adicionar YouTube quando o URL é alterado
+ */
+function resetYoutubeAddForm() {
+	// Se o preview estiver tocando, para
+	if (youtubeAddPreviewState.isPlaying) {
+		stopYoutubeAddPreview();
+	}
+	
+	// Reseta estado
+	youtubeAddPreviewState.validated = false;
+	youtubeAddPreviewState.videoId = null;
+	
+	// Esconde botão adicionar, mostra botão preview
+	ui.youtubeAddBtn.style.display = 'none';
+	ui.youtubeAddBtn.disabled = true;
+	ui.youtubePreviewBtn.style.display = '';
+	ui.youtubePreviewBtn.innerHTML = '<i class="fa-solid fa-headphones"></i> Preview';
+	ui.youtubePreviewBtn.classList.remove('playing');
+	ui.youtubePreviewBtn.classList.add('secondary');
+	ui.youtubePreviewBtn.classList.remove('danger');
+	
+	setYoutubeAddStatus('', '');
+}
+
+/**
+ * Para o preview de validação do YouTube
+ */
+function stopYoutubeAddPreview() {
+	stopYoutubeAudio();
+	youtubeAddPreviewState.isPlaying = false;
+	
+	// Atualiza botão para estado de preview
+	ui.youtubePreviewBtn.innerHTML = '<i class="fa-solid fa-headphones"></i> Preview';
+	ui.youtubePreviewBtn.classList.remove('playing', 'danger');
+	ui.youtubePreviewBtn.classList.add('secondary');
+	ui.youtubePreviewBtn.disabled = false;
+}
+
+/**
+ * Alterna entre preview e stop do vídeo para validação
+ */
+async function handleYoutubePreviewToggle() {
+	// Se está tocando, para
+	if (youtubeAddPreviewState.isPlaying) {
+		stopYoutubeAddPreview();
+		setYoutubeAddStatus('Preview parado. Clique em Preview novamente para testar.', '');
 		return;
 	}
-
+	
+	const url = ui.youtubeUrlInput.value.trim();
+	
+	// Validar URL
+	if (!url) {
+		setYoutubeAddStatus('Por favor, insira um link do YouTube.', 'error');
+		return;
+	}
+	
+	// Extrair ID do vídeo
+	const videoId = extractYoutubeVideoId(url);
+	
+	if (!videoId) {
+		setYoutubeAddStatus('Link inválido. Cole um link válido do YouTube.', 'error');
+		return;
+	}
+	
+	// Verificar conexão
 	if (!navigator.onLine) {
-		setArchiveStatus('Sem conexão. Conecte-se à internet para buscar no Archive.', 'error');
+		setYoutubeAddStatus('Sem conexão com a internet.', 'error');
 		return;
 	}
-
-	setArchiveStatus('Buscando no Internet Archive...', 'loading');
-	ui.archiveResults.innerHTML = '';
-
+	
+	// Verificar se já existe no catálogo padrão
+	const catalog = state.defaultSoundsCatalog;
+	const existingInCatalog = catalog?.sounds?.find(s => s.youtubeId === videoId);
+	if (existingInCatalog) {
+		setYoutubeAddStatus(`Este vídeo já está na playlist: "${existingInCatalog.name}"`, 'error');
+		return;
+	}
+	
+	// Verificar se já existe nos vídeos do usuário
+	const userYoutubeVideos = await stores.data.getItem('userYoutubeVideos') || [];
+	const existingUserVideo = userYoutubeVideos.find(v => v.youtube === videoId);
+	if (existingUserVideo) {
+		setYoutubeAddStatus(`Este vídeo já está na playlist: "${existingUserVideo.name}"`, 'error');
+		return;
+	}
+	
+	// Atualiza botão para estado de carregando
+	ui.youtubePreviewBtn.disabled = true;
+	ui.youtubePreviewBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Carregando...';
+	setYoutubeAddStatus('Validando vídeo...', 'loading');
+	
 	try {
-		const searchTerms = [];
-		if (query) searchTerms.push(query);
-		if (category) searchTerms.push(category);
+		// Tenta reproduzir o vídeo
+		const success = await playYoutubeAudio(videoId, { volume: 70, loop: false });
 		
-		const searchQuery = `(${searchTerms.join(' ')}) AND mediatype:audio AND format:mp3`;
-		
-		const params = new URLSearchParams({
-			q: searchQuery,
-			fl: ['identifier', 'title', 'creator', 'description', 'downloads'].join(','),
-			rows: '25',
-			page: '1',
-			output: 'json',
-			sort: 'downloads desc'
-		});
-
-		const response = await fetch(`${ARCHIVE_SEARCH_URL}?${params.toString()}`);
-		
-		if (!response.ok) {
-			throw new Error(`HTTP ${response.status}`);
+		if (success) {
+			// Vídeo validado com sucesso!
+			youtubeAddPreviewState.isPlaying = true;
+			youtubeAddPreviewState.videoId = videoId;
+			youtubeAddPreviewState.validated = true;
+			
+			// Atualiza botão preview para "Stop"
+			ui.youtubePreviewBtn.disabled = false;
+			ui.youtubePreviewBtn.innerHTML = '<i class="fa-solid fa-stop"></i> Stop';
+			ui.youtubePreviewBtn.classList.remove('secondary');
+			ui.youtubePreviewBtn.classList.add('danger', 'playing');
+			
+			// Mostra botão adicionar
+			ui.youtubeAddBtn.style.display = '';
+			ui.youtubeAddBtn.disabled = false;
+			
+			setYoutubeAddStatus('✓ Vídeo validado! Ouça o preview e clique em "Adicionar" para salvar.', 'success');
+		} else {
+			// Falha na reprodução
+			ui.youtubePreviewBtn.disabled = false;
+			ui.youtubePreviewBtn.innerHTML = '<i class="fa-solid fa-headphones"></i> Preview';
+			setYoutubeAddStatus('Erro: Este vídeo não pode ser reproduzido (pode estar bloqueado ou indisponível).', 'error');
 		}
-
-		const data = await response.json();
-		const docs = data.response?.docs || [];
-
-		if (!docs.length) {
-			ui.archiveResults.innerHTML = '<div class="archive-empty">Nenhum resultado encontrado. Tente outros termos.</div>';
-			setArchiveStatus('', '');
-			return;
-		}
-
-		renderArchiveResults(docs);
-		setArchiveStatus(`${docs.length} resultados encontrados`, 'success');
 	} catch (error) {
-		console.error('Erro ao buscar no Archive:', error);
-		setArchiveStatus('Erro na busca. Tente novamente.', 'error');
+		console.error('Erro ao validar vídeo do YouTube:', error);
+		ui.youtubePreviewBtn.disabled = false;
+		ui.youtubePreviewBtn.innerHTML = '<i class="fa-solid fa-headphones"></i> Preview';
+		setYoutubeAddStatus('Erro ao carregar vídeo. Verifique o link e tente novamente.', 'error');
 	}
 }
 
-function renderArchiveResults(docs) {
-	ui.archiveResults.innerHTML = '';
-	
-	docs.forEach((doc) => {
-		const item = document.createElement('div');
-		item.className = 'archive-result-item';
-		item.dataset.identifier = doc.identifier;
-		
-		const title = doc.title || doc.identifier;
-		const creator = doc.creator || 'Desconhecido';
-		const downloads = doc.downloads ? `${doc.downloads.toLocaleString()} downloads` : '';
-		
-		item.innerHTML = `
-			<div class="archive-result-info">
-				<strong title="${title}">${title}</strong>
-				<small>${creator} ${downloads ? '• ' + downloads : ''}</small>
-			</div>
-			<div class="archive-result-actions">
-				<button type="button" class="ghost" data-action="preview" title="Ouvir preview">
-					<i class="fa-solid fa-headphones"></i>
-				</button>
-				<button type="button" class="secondary" data-action="download" title="Baixar para biblioteca">
-					<i class="fa-solid fa-download"></i> Baixar
-				</button>
-			</div>
-		`;
-		
-		ui.archiveResults.appendChild(item);
-	});
-}
-
-async function handleArchiveActions(event) {
-	const button = event.target.closest('button');
-	if (!button) return;
-	
-	const item = button.closest('.archive-result-item');
-	const identifier = item.dataset.identifier;
-	const action = button.dataset.action;
-
-	if (action === 'preview') {
-		await previewArchiveItem(identifier);
+/**
+ * Confirma a adição do vídeo após validação bem-sucedida
+ */
+async function handleConfirmAddYoutubeVideo() {
+	// Verifica se foi validado
+	if (!youtubeAddPreviewState.validated || !youtubeAddPreviewState.videoId) {
+		setYoutubeAddStatus('Por favor, faça o preview primeiro para validar o vídeo.', 'error');
+		return;
 	}
 	
-	if (action === 'download') {
-		await downloadArchiveItem(identifier, item);
-	}
-}
-
-async function getArchiveItemFiles(identifier) {
-	const metadataUrl = `${ARCHIVE_BASE}/metadata/${identifier}`;
-	const response = await fetch(metadataUrl);
+	const videoId = youtubeAddPreviewState.videoId;
+	const customName = ui.youtubeNameInput.value.trim();
+	const tag = ui.youtubeTagInput.value;
 	
-	if (!response.ok) {
-		throw new Error(`Falha ao obter metadados: ${response.status}`);
-	}
+	// Para o preview
+	stopYoutubeAddPreview();
 	
-	const data = await response.json();
-	const files = data.files || [];
-	
-	// Filtrar apenas arquivos MP3
-	const audioFiles = files.filter((file) => {
-		const name = file.name.toLowerCase();
-		return name.endsWith('.mp3') || name.endsWith('.ogg') || name.endsWith('.wav');
-	});
-	
-	// Ordenar por tamanho (preferir arquivos menores primeiro para preview)
-	audioFiles.sort((a, b) => (a.size || 0) - (b.size || 0));
-	
-	return {
-		metadata: data.metadata || {},
-		files: audioFiles,
-		identifier
-	};
-}
-
-async function previewArchiveItem(identifier) {
-	setArchiveStatus('Carregando preview...', 'loading');
+	// Desabilitar botão enquanto processa
+	ui.youtubeAddBtn.disabled = true;
+	ui.youtubeAddBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Adicionando...';
+	setYoutubeAddStatus('Salvando vídeo...', 'loading');
 	
 	try {
-		const { files } = await getArchiveItemFiles(identifier);
+		// Gerar nome padrão se não foi fornecido
+		const videoName = customName || `YouTube - ${videoId}`;
 		
-		if (!files.length) {
-			setArchiveStatus('Nenhum arquivo de áudio encontrado.', 'error');
-			return;
-		}
-		
-		// Usar o primeiro arquivo (menor)
-		const file = files[0];
-		const audioUrl = `${ARCHIVE_BASE}/download/${identifier}/${encodeURIComponent(file.name)}`;
-		
-		// Parar preview anterior se existir
-		if (state.archivePreview) {
-			state.archivePreview.stop();
-			state.archivePreview.unload();
-		}
-		
-		state.archivePreview = new Howl({
-			src: [audioUrl],
-			html5: true,
-			volume: 0.5,
-			onplay: () => setArchiveStatus('Reproduzindo preview...', 'success'),
-			onend: () => setArchiveStatus('Preview concluído.', ''),
-			onloaderror: () => setArchiveStatus('Erro ao carregar áudio.', 'error'),
-			onplayerror: () => setArchiveStatus('Erro ao reproduzir.', 'error')
-		});
-		
-		state.archivePreview.play();
-	} catch (error) {
-		console.error('Erro no preview:', error);
-		setArchiveStatus('Erro ao carregar preview.', 'error');
-	}
-}
-
-async function downloadArchiveItem(identifier, itemElement) {
-	const downloadBtn = itemElement.querySelector('[data-action="download"]');
-	const originalHtml = downloadBtn.innerHTML;
-	
-	downloadBtn.disabled = true;
-	downloadBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-	setArchiveStatus('Baixando arquivo...', 'loading');
-	
-	try {
-		const { files, metadata } = await getArchiveItemFiles(identifier);
-		
-		if (!files.length) {
-			throw new Error('Nenhum arquivo de áudio encontrado');
-		}
-		
-		// Escolher o melhor arquivo (preferir MP3, tamanho razoável)
-		const preferredFile = files.find((f) => f.name.toLowerCase().endsWith('.mp3')) || files[0];
-		const audioUrl = `${ARCHIVE_BASE}/download/${identifier}/${encodeURIComponent(preferredFile.name)}`;
-		
-		setArchiveStatus(`Baixando ${preferredFile.name}...`, 'loading');
-		
-		const response = await fetch(audioUrl);
-		if (!response.ok) {
-			throw new Error(`Falha no download: ${response.status}`);
-		}
-		
-		const arrayBuffer = await response.arrayBuffer();
-		const blob = new Blob([arrayBuffer], { type: 'audio/mpeg' });
-		
-		// Analisar energia de graves
-		const lowEnergyPct = await analyzeLowEnergy(blob);
-		const tag = lowEnergyPct > 40 ? 'relax/vibro' : lowEnergyPct > 25 ? 'meditacao' : 'ativa';
-		
-		// Criar metadados
-		const trackMeta = {
-			id: `archive-${identifier}-${Date.now()}`,
-			name: `${metadata.title || identifier} (Archive)`,
-			size: blob.size,
-			type: 'audio/mpeg',
-			tag,
-			lowEnergyPct: Number(lowEnergyPct.toFixed(2)),
+		// Criar objeto do vídeo
+		const newVideo = {
+			id: `user-youtube-${videoId}-${Date.now()}`,
+			name: videoName,
+			youtube: videoId,
+			tag: tag,
 			addedAt: Date.now(),
-			origin: 'internet-archive',
-			archiveId: identifier,
-			creator: metadata.creator || 'Desconhecido',
-			description: metadata.description ? metadata.description.substring(0, 200) : ''
+			userAdded: true
 		};
 		
-		// Salvar no IndexedDB
-		await stores.music.setItem(trackMeta.id, blob);
-		state.musicMeta.push(trackMeta);
-		await stores.data.setItem(STORAGE_KEYS.MUSIC_META, state.musicMeta);
+		// Carregar e salvar na lista de vídeos do usuário
+		const userYoutubeVideos = await stores.data.getItem('userYoutubeVideos') || [];
+		userYoutubeVideos.push(newVideo);
+		await stores.data.setItem('userYoutubeVideos', userYoutubeVideos);
 		
-		// Atualizar UI
-		renderMusicList();
-		updatePlaylistSelect();
-		updateSuggestions();
+		// Adicionar como favorito automaticamente
+		const favorites = await loadFavorites();
+		if (!favorites.includes(newVideo.id)) {
+			favorites.push(newVideo.id);
+			await saveFavorites(favorites);
+		}
 		
-		setArchiveStatus(`"${trackMeta.name}" adicionado à biblioteca!`, 'success');
+		// Atualizar playlist
+		await PlaylistManager.render();
 		
-		// Marcar como baixado
-		downloadBtn.innerHTML = '<i class="fa-solid fa-check"></i> Salvo';
-		downloadBtn.classList.remove('secondary');
-		downloadBtn.classList.add('ghost');
+		// Limpar inputs e resetar formulário
+		ui.youtubeUrlInput.value = '';
+		ui.youtubeNameInput.value = '';
+		resetYoutubeAddForm();
+		
+		setYoutubeAddStatus(`"${videoName}" adicionado à playlist e favoritado!`, 'success');
+		showToast(`Vídeo "${videoName}" adicionado à playlist!`, 'success');
 		
 	} catch (error) {
-		console.error('Erro no download:', error);
-		setArchiveStatus(`Erro: ${error.message}`, 'error');
-		downloadBtn.innerHTML = originalHtml;
-		downloadBtn.disabled = false;
+		console.error('Erro ao adicionar vídeo do YouTube:', error);
+		setYoutubeAddStatus('Erro ao adicionar vídeo. Tente novamente.', 'error');
+		
+		// Restaurar botão
+		ui.youtubeAddBtn.disabled = false;
+		ui.youtubeAddBtn.innerHTML = '<i class="fa-solid fa-plus"></i> Adicionar à Playlist';
 	}
 }
 
-function setArchiveStatus(message, type) {
-	ui.archiveStatus.textContent = message;
-	ui.archiveStatus.className = 'archive-status';
-	if (type) {
-		ui.archiveStatus.classList.add(type);
+/**
+ * Remove um vídeo do YouTube adicionado pelo usuário
+ * @param {string} videoId - ID do vídeo a remover
+ */
+async function removeUserYoutubeVideo(videoId) {
+	try {
+		// Carregar lista de vídeos do usuário
+		const userYoutubeVideos = await stores.data.getItem('userYoutubeVideos') || [];
+		
+		// Encontrar o vídeo
+		const video = userYoutubeVideos.find(v => v.id === videoId);
+		if (!video) {
+			showToast('Vídeo não encontrado.', 'error');
+			return;
+		}
+		
+		// Confirmar remoção
+		if (!confirm(`Remover "${video.name}" da playlist?`)) {
+			return;
+		}
+		
+		// Remover da lista
+		const updatedVideos = userYoutubeVideos.filter(v => v.id !== videoId);
+		await stores.data.setItem('userYoutubeVideos', updatedVideos);
+		
+		// Remover dos favoritos se estiver
+		const favorites = await loadFavorites();
+		const updatedFavorites = favorites.filter(id => id !== videoId);
+		if (updatedFavorites.length !== favorites.length) {
+			await saveFavorites(updatedFavorites);
+		}
+		
+		// Remover da seleção se estiver selecionado
+		if (state.selectedPlaylist?.includes(videoId)) {
+			state.selectedPlaylist = state.selectedPlaylist.filter(id => id !== videoId);
+			await stores.data.setItem(STORAGE_KEYS.SELECTED_PLAYLIST, state.selectedPlaylist);
+		}
+		
+		// Atualizar playlist
+		await PlaylistManager.render();
+		
+		showToast(`"${video.name}" removido da playlist.`, 'success');
+	} catch (error) {
+		console.error('Erro ao remover vídeo:', error);
+		showToast('Erro ao remover vídeo.', 'error');
 	}
 }
 
@@ -3097,49 +4490,35 @@ function updateSessionUI(isActive, isPaused = false) {
 	}
 	
 	// Visualizador
-	ui.sessionVisualizer.classList.toggle('active', isActive && !isPaused);
-	ui.wavePulse.classList.toggle('active', isActive && !isPaused);
-	ui.breathCircle.classList.toggle('active', isActive && !isPaused);
+	if (ui.sessionVisualizer) ui.sessionVisualizer.classList.toggle('active', isActive && !isPaused);
+	if (ui.wavePulse) ui.wavePulse.classList.toggle('active', isActive && !isPaused);
+	if (ui.breathCircle) ui.breathCircle.classList.toggle('active', isActive && !isPaused);
 }
 
 function updateFrequencyDisplay(diffHz) {
-	const freqValue = ui.frequencyDisplay.querySelector('.freq-value');
-	freqValue.textContent = diffHz;
-	
-	// Atualizar cor baseado na banda
-	const band = describeDiffBand(diffHz);
-	const colors = {
-		'Delta profundo': '#6366f1',
-		'Teta introspectiva': '#8b5cf6',
-		'Alfa relax': '#22c55e',
-		'Sigma regenerativo': '#eab308',
-		'Beta foco': '#f97316',
-		'Gama integração': '#ef4444'
-	};
-	freqValue.style.color = colors[band.label] || 'var(--color-accent)';
+	const freqValue = ui.frequencyDisplay?.querySelector('.freq-value');
+	if (freqValue) {
+		freqValue.textContent = diffHz;
+		
+		// Atualizar cor baseado na banda
+		const band = describeDiffBand(diffHz);
+		const colors = {
+			'Delta profundo': '#6366f1',
+			'Teta introspectiva': '#8b5cf6',
+			'Alfa relax': '#22c55e',
+			'Sigma regenerativo': '#eab308',
+			'Beta foco': '#f97316',
+			'Gama integração': '#ef4444'
+		};
+		freqValue.style.color = colors[band.label] || 'var(--color-accent)';
+	}
 	
 	// Ajustar velocidade da animação de onda baseado na frequência
 	const animDuration = Math.max(2, 12 - diffHz * 0.25);
-	ui.wavePulse.style.animationDuration = `${animDuration}s`;
-}
-
-function updateTimerProgress(remaining, total) {
-	if (!total || total <= 0) return;
+	if (ui.wavePulse) ui.wavePulse.style.animationDuration = `${animDuration}s`;
 	
-	const progress = remaining / total;
-	const circumference = 2 * Math.PI * 45; // r = 45
-	const offset = circumference * (1 - progress);
-	
-	ui.timerProgress.style.strokeDasharray = circumference;
-	ui.timerProgress.style.strokeDashoffset = offset;
-	
-	// Cores de alerta
-	ui.timerProgress.classList.remove('low-time', 'critical-time');
-	if (progress < 0.1) {
-		ui.timerProgress.classList.add('critical-time');
-	} else if (progress < 0.25) {
-		ui.timerProgress.classList.add('low-time');
-	}
+	// Atualizar displays de frequência
+	updateFrequencyDisplays();
 }
 
 function startBreathingGuide(diffHz) {
@@ -3164,15 +4543,21 @@ function startBreathingGuide(diffHz) {
 	
 	const halfCycle = cycleDuration / 2;
 	
-	// Ajustar animação CSS
-	ui.breathCircle.style.animationDuration = `${cycleDuration}ms`;
+	// Ajustar animação CSS (se elemento existir)
+	if (ui.breathCircle) {
+		ui.breathCircle.style.animationDuration = `${cycleDuration}ms`;
+	}
 	
 	let isInhale = true;
 	
 	function updateBreath() {
-		ui.breathCircle.classList.remove('inhale', 'exhale');
-		ui.breathCircle.classList.add(isInhale ? 'inhale' : 'exhale');
-		ui.breathText.textContent = isInhale ? 'Inspire' : 'Expire';
+		if (ui.breathCircle) {
+			ui.breathCircle.classList.remove('inhale', 'exhale');
+			ui.breathCircle.classList.add(isInhale ? 'inhale' : 'exhale');
+		}
+		if (ui.breathText) {
+			ui.breathText.textContent = isInhale ? 'Inspire' : 'Expire';
+		}
 		isInhale = !isInhale;
 	}
 	
@@ -3185,32 +4570,12 @@ function stopBreathingGuide() {
 		clearInterval(breathingInterval);
 		breathingInterval = null;
 	}
-	ui.breathCircle.classList.remove('inhale', 'exhale', 'active');
-	ui.breathText.textContent = 'Inspire';
-}
-
-function handleMasterVolumeChange(event) {
-	const value = Number(event.target.value);
-	
-	// Aplicar volume master
-	if (state.masterGain) {
-		state.masterGain.gain.setTargetAtTime(value / 100, state.audioCtx.currentTime, 0.05);
+	if (ui.breathCircle) {
+		ui.breathCircle.classList.remove('inhale', 'exhale', 'active');
 	}
-	
-	// Feedback visual
-	let icon = 'shield-check';
-	let className = '';
-	
-	if (value >= 85) {
-		icon = 'triangle-exclamation';
-		className = 'danger';
-	} else if (value >= 70) {
-		icon = 'circle-exclamation';
-		className = 'caution';
+	if (ui.breathText) {
+		ui.breathText.textContent = 'Inspire';
 	}
-	
-	ui.masterVolumeValue.innerHTML = `${value}% <i class="fa-solid fa-${icon}"></i>`;
-	ui.masterVolumeValue.className = className;
 }
 
 // Utilitário para obter classe CSS da banda cerebral
@@ -3221,32 +4586,6 @@ function getBandClass(diffHz) {
 	if (diffHz <= 16) return 'sigma';
 	if (diffHz <= 22) return 'beta';
 	return 'gama';
-}
-
-// Aplicar protocolo terapêutico selecionado
-function handleProtocolChange(event) {
-	const protocolKey = event.target.value;
-	if (!protocolKey || !THERAPEUTIC_PROTOCOLS[protocolKey]) {
-		return; // Configuração manual selecionada
-	}
-	
-	const protocol = THERAPEUTIC_PROTOCOLS[protocolKey];
-	
-	// Aplicar valores aos controles
-	ui.baseFreq.value = protocol.baseHz;
-	ui.diffFreq.value = protocol.diffHz;
-	ui.duration.value = protocol.duration;
-	ui.binauralVolume.value = protocol.binauralVolume;
-	ui.lowPass.value = protocol.lowPass;
-	
-	// Atualizar nome do preset
-	ui.form.presetName.value = `Protocolo: ${protocol.name}`;
-	
-	// Atualizar outputs
-	updateRangeOutputs();
-	updateSuggestions();
-	
-	console.log('Protocolo aplicado:', protocol.name);
 }
 
 // =====================================================
@@ -4216,6 +5555,7 @@ async function deletePatient(patientId) {
 
 /**
  * Importa pacientes de arquivo JSON
+ * Suporta arquivos do Terra Vibro Sensory Musical e TerraMidi
  */
 async function handleImportPatients(e) {
 	const file = e.target.files?.[0];
@@ -4225,33 +5565,83 @@ async function handleImportPatients(e) {
 		const text = await file.text();
 		const data = JSON.parse(text);
 		
-		let imported = 0;
+		console.log('Importando arquivo:', file.name, data);
 		
-		// Suporta backup completo ou paciente único
-		const patients = data.patients || (data.id ? [data] : []);
+		// Detecta se é um arquivo TerraMidi (tem campo fullName nos pacientes, não "nome" ou "identification")
+		const isTerraMidi = data.patients?.some(p => p.fullName && !p.identification);
 		
-		for (const patient of patients) {
-			if (patient.id && (patient.nome || patient.identification?.fullName)) {
-				// Verifica se já existe
-				const exists = state.patients.some(p => p.id === patient.id);
-				if (!exists) {
-					state.patients.push(patient);
-					imported++;
+		console.log('É arquivo TerraMidi:', isTerraMidi);
+		
+		if (isTerraMidi) {
+			// Usa compatibilidade TerraMidi
+			const terraMidiCompat = await import('./js/patients/terraMidiCompat.js');
+			
+			// Mostra resumo antes de importar
+			const patientNames = data.patients?.map(p => p.fullName).filter(Boolean) || [];
+			const summary = {
+				version: data.version || 'unknown',
+				exportedAt: data.exportedAt,
+				exportedFrom: data.exportedFrom || 'TerraMidi',
+				patientsCount: data.patients?.length || 0,
+				patientNames: patientNames.slice(0, 10),
+				hasMore: patientNames.length > 10
+			};
+			
+			const confirmImport = window.confirm(
+				`Importar prontuário do TerraMidi?\n\n` +
+				`📋 ${summary.patientsCount} paciente(s) encontrado(s)\n` +
+				`📅 Exportado em: ${new Date(summary.exportedAt).toLocaleDateString('pt-BR')}\n` +
+				`📂 Origem: ${summary.exportedFrom}\n\n` +
+				`Pacientes: ${summary.patientNames.join(', ')}${summary.hasMore ? '...' : ''}`
+			);
+			
+			if (!confirmImport) {
+				e.target.value = '';
+				return;
+			}
+			
+			// Importa usando os dados já parseados
+			const result = await terraMidiCompat.importTerraMidiData(data);
+			
+			renderPatientsList(state.patients);
+			
+			let msg = `TerraMidi: `;
+			if (result.imported > 0) msg += `${result.imported} novo(s), `;
+			if (result.updated > 0) msg += `${result.updated} atualizado(s), `;
+			if (result.skipped > 0) msg += `${result.skipped} ignorado(s)`;
+			
+			alert(msg.replace(/, $/, '') || 'Nenhum paciente importado.');
+			
+		} else {
+			// Importação padrão Terra Vibro Sensory
+			let imported = 0;
+			
+			// Suporta backup completo ou paciente único
+			const patients = data.patients || (data.id ? [data] : []);
+			
+			for (const patient of patients) {
+				if (patient.id && (patient.nome || patient.identification?.fullName)) {
+					// Verifica se já existe
+					const exists = state.patients.some(p => p.id === patient.id);
+					if (!exists) {
+						state.patients.push(patient);
+						imported++;
+					}
 				}
 			}
-		}
-		
-		if (imported > 0) {
-			await persistPatients();
-			renderPatientsList(state.patients);
-			alert(`${imported} paciente(s) importado(s) com sucesso!`);
-		} else {
-			alert('Nenhum paciente novo encontrado para importar.');
+			
+			if (imported > 0) {
+				await persistPatients();
+				renderPatientsList(state.patients);
+				alert(`${imported} paciente(s) importado(s) com sucesso!`);
+			} else {
+				alert('Nenhum paciente novo encontrado para importar.');
+			}
 		}
 		
 	} catch (error) {
 		console.error('Erro ao importar pacientes:', error);
-		alert('Erro ao importar arquivo. Verifique se é um arquivo JSON válido.');
+		alert(`Erro ao importar arquivo: ${error.message}`);
 	}
 	
 	// Limpa input para permitir reimportação
@@ -4388,6 +5778,10 @@ function toggleAudio8D() {
 	}
 	
 	if (state.audio8D.enabled) {
+		// Aviso se estiver usando YouTube
+		if (youtubePlayer && currentYoutubeId) {
+			showToast('⚠️ Áudio 8D não funciona com vídeos do YouTube', 'warning');
+		}
 		initAudio8D();
 		showToast('Áudio 8D ativado', 'success');
 	} else {
@@ -4416,36 +5810,48 @@ function initAudio8D() {
 function stopAudio8D() {
 	console.log('Audio 8D: Parando...');
 	
-	// Para a animação
+	// Para a animação (usa clearInterval pois mudamos para setInterval)
 	if (state.audio8D.animationId) {
-		cancelAnimationFrame(state.audio8D.animationId);
+		clearInterval(state.audio8D.animationId);
 		state.audio8D.animationId = null;
 	}
 	
-	// Reseta o pan para o valor original
-	if (state.currentHowl) {
+	// Reseta o pan para o valor original em todas as faixas ativas
+	if (state.activeHowls && state.activeHowls.length > 0) {
+		state.activeHowls.forEach(howl => {
+			if (howl && typeof howl.stereo === 'function') {
+				howl.stereo(state.currentPan);
+			}
+		});
+	} else if (state.currentHowl && typeof state.currentHowl.stereo === 'function') {
 		state.currentHowl.stereo(state.currentPan);
 	}
 	
-	// Reseta também o preview
-	if (currentPreview) {
+	// Reseta também o preview (se for Howl)
+	if (currentPreview && typeof currentPreview.stereo === 'function') {
 		currentPreview.stereo(state.currentPan);
 	}
 }
 
 /**
  * Anima o pan do Audio 8D
- * Usa Web Audio API StereoPannerNode quando disponível, 
- * fallback para Howler.stereo() quando não
+ * Usa setInterval para continuar funcionando quando a aba perde foco
  */
 function startAudio8DAnimation() {
-	let lastTime = performance.now();
+	// Para qualquer animação anterior
+	if (state.audio8D.animationId) {
+		clearInterval(state.audio8D.animationId);
+	}
 	
-	const animate = (currentTime) => {
+	let lastTime = performance.now();
+	const INTERVAL_MS = 16; // ~60fps
+	
+	const animate = () => {
 		if (!state.audio8D.enabled) {
 			return;
 		}
 		
+		const currentTime = performance.now();
 		// Calcula delta time para animação suave independente de FPS
 		const deltaTime = (currentTime - lastTime) / 1000;
 		lastTime = currentTime;
@@ -4490,24 +5896,35 @@ function startAudio8DAnimation() {
 				panValue = Math.sin(state.audio8D.angle) * intensity;
 		}
 		
-		// Aplica o pan - tenta via Web Audio API primeiro, fallback para Howler
-		applyPanToHowl(state.currentHowl, panValue);
+		// Aplica o pan em todas as faixas ativas
+		if (state.activeHowls && state.activeHowls.length > 0) {
+			state.activeHowls.forEach(howl => applyPanToHowl(howl, panValue));
+		} else {
+			applyPanToHowl(state.currentHowl, panValue);
+		}
 		applyPanToHowl(currentPreview, panValue);
-		
-		// Continua a animação
-		state.audio8D.animationId = requestAnimationFrame(animate);
 	};
 	
-	// Inicia a animação
-	state.audio8D.animationId = requestAnimationFrame(animate);
+	// Inicia a animação com setInterval (funciona em background)
+	state.audio8D.animationId = setInterval(animate, INTERVAL_MS);
+	
+	// Executa imediatamente a primeira vez
+	animate();
 }
 
 /**
  * Aplica pan a um Howl usando Howler.stereo()
  * Com html5: false, isso funciona nativamente via Web Audio API
+ * Nota: Não funciona com YouTube (API não suporta controle de pan)
  */
 function applyPanToHowl(howl, panValue) {
 	if (!howl) return;
+	
+	// Verifica se é um objeto Howl válido (tem método stereo)
+	if (typeof howl.stereo !== 'function') {
+		// Pode ser preview do YouTube ou outro objeto - ignora silenciosamente
+		return;
+	}
 	
 	try {
 		// Com html5: false, Howler.stereo() usa Web Audio API nativamente
@@ -4560,6 +5977,10 @@ function toggleEnhancer() {
 	}
 	
 	if (state.enhancer.enabled) {
+		// Aviso se estiver usando YouTube
+		if (youtubePlayer && currentYoutubeId) {
+			showToast('⚠️ Aprimoramento não funciona com vídeos do YouTube', 'warning');
+		}
 		initEnhancer();
 		showToast('Aprimoramento ativado', 'success');
 	} else {
@@ -4794,21 +6215,21 @@ function connectMonitorToBinaural() {
 }
 
 /**
- * Inicia a animação do monitor de áudio
+ * Inicia a animação do monitor de áudio (display de frequências)
  */
 function startAudioMonitorAnimation() {
 	if (state.audioMonitor.animationId) return;
 	
 	function animate() {
-		if (!state.audioMonitor.isOpen || state.audioMonitor.isMinimized) {
+		if (!state.audioMonitor.isOpen) {
 			state.audioMonitor.animationId = null;
 			return;
 		}
-		
-		updateAudioMonitor();
+		updateFrequencyDisplays();
 		state.audioMonitor.animationId = requestAnimationFrame(animate);
 	}
 	
+	state.audioMonitor.isOpen = true;
 	animate();
 }
 
@@ -4820,248 +6241,11 @@ function stopAudioMonitorAnimation() {
 		cancelAnimationFrame(state.audioMonitor.animationId);
 		state.audioMonitor.animationId = null;
 	}
-}
-
-/**
- * Atualiza todos os elementos visuais do monitor de áudio
- */
-function updateAudioMonitor() {
-	// Atualiza o espectro de frequências
-	drawSpectrum();
-	
-	// Atualiza a forma de onda
-	drawWaveform();
-	
-	// Atualiza os medidores de volume
-	updateVolumeMeter('left', state.audioMonitor.analyserLeft, ui.volumeMeterLeft, ui.volumePeakLeft, ui.volumeValueLeft);
-	updateVolumeMeter('right', state.audioMonitor.analyserRight, ui.volumeMeterRight, ui.volumePeakRight, ui.volumeValueRight);
-	updateVolumeMeter('master', state.audioMonitor.analyserMaster, ui.volumeMeterMaster, ui.volumePeakMaster, ui.volumeValueMaster);
-	
-	// Atualiza informações de frequência binaural
-	updateFrequencyDisplays();
-	
-	// Atualiza informações da sessão
-	updateSessionInfo();
-}
-
-/**
- * Desenha o espectro de frequências
- */
-function drawSpectrum() {
-	const canvas = ui.spectrumCanvas;
-	const analyser = state.audioMonitor.analyserMaster;
-	
-	if (!canvas || !analyser) return;
-	
-	const ctx = canvas.getContext('2d');
-	const width = canvas.width;
-	const height = canvas.height;
-	
-	const bufferLength = analyser.frequencyBinCount;
-	const dataArray = new Uint8Array(bufferLength);
-	analyser.getByteFrequencyData(dataArray);
-	
-	// Limpa o canvas
-	ctx.fillStyle = 'rgba(26, 26, 26, 0.95)';
-	ctx.fillRect(0, 0, width, height);
-	
-	// Desenha grid
-	ctx.strokeStyle = 'rgba(100, 100, 100, 0.3)';
-	ctx.lineWidth = 1;
-	for (let i = 0; i < 10; i++) {
-		const y = (height / 10) * i;
-		ctx.beginPath();
-		ctx.moveTo(0, y);
-		ctx.lineTo(width, y);
-		ctx.stroke();
-	}
-	
-	// Desenha as barras do espectro
-	const barWidth = (width / bufferLength) * 2.5;
-	let x = 0;
-	
-	for (let i = 0; i < bufferLength; i++) {
-		const barHeight = (dataArray[i] / 255) * height;
-		
-		// Gradiente de cores baseado na frequência e intensidade
-		const hue = (i / bufferLength) * 240 + 180; // Ciano para azul
-		const saturation = 80;
-		const lightness = 40 + (dataArray[i] / 255) * 30;
-		
-		ctx.fillStyle = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
-		ctx.fillRect(x, height - barHeight, barWidth - 1, barHeight);
-		
-		x += barWidth;
-	}
-	
-	// Linha de topo brilhante
-	x = 0;
-	ctx.strokeStyle = 'rgba(0, 208, 255, 0.8)';
-	ctx.lineWidth = 2;
-	ctx.beginPath();
-	for (let i = 0; i < bufferLength; i++) {
-		const barHeight = (dataArray[i] / 255) * height;
-		const y = height - barHeight;
-		
-		if (i === 0) {
-			ctx.moveTo(x + barWidth / 2, y);
-		} else {
-			ctx.lineTo(x + barWidth / 2, y);
-		}
-		x += barWidth;
-	}
-	ctx.stroke();
-}
-
-/**
- * Desenha a forma de onda - canais L e R separados
- */
-function drawWaveform() {
-	const canvas = ui.waveformCanvas;
-	
-	if (!canvas) return;
-	
-	const ctx = canvas.getContext('2d');
-	const width = canvas.width;
-	const height = canvas.height;
-	
-	// Limpa o canvas
-	ctx.fillStyle = 'rgba(26, 26, 26, 0.95)';
-	ctx.fillRect(0, 0, width, height);
-	
-	// Linhas de referência
-	ctx.strokeStyle = 'rgba(100, 100, 100, 0.3)';
-	ctx.lineWidth = 1;
-	
-	// Linha central (0)
-	ctx.beginPath();
-	ctx.moveTo(0, height / 2);
-	ctx.lineTo(width, height / 2);
-	ctx.stroke();
-	
-	// Linhas 25% e 75% (para L e R)
-	ctx.setLineDash([2, 4]);
-	ctx.beginPath();
-	ctx.moveTo(0, height * 0.25);
-	ctx.lineTo(width, height * 0.25);
-	ctx.moveTo(0, height * 0.75);
-	ctx.lineTo(width, height * 0.75);
-	ctx.stroke();
-	ctx.setLineDash([]);
-	
-	// Labels L/R
-	ctx.font = '10px monospace';
-	ctx.fillStyle = '#3b82f6';
-	ctx.fillText('L', 5, height * 0.25 - 3);
-	ctx.fillStyle = '#22c55e';
-	ctx.fillText('R', 5, height * 0.75 - 3);
-	
-	// Desenha canal ESQUERDO (azul) - metade superior
-	drawWaveformChannel(
-		ctx, 
-		state.audioMonitor.analyserLeft, 
-		width, 
-		height * 0.5, 
-		0, 
-		'#3b82f6', 
-		'rgba(59, 130, 246, 0.2)'
-	);
-	
-	// Desenha canal DIREITO (verde) - metade inferior
-	drawWaveformChannel(
-		ctx, 
-		state.audioMonitor.analyserRight, 
-		width, 
-		height * 0.5, 
-		height * 0.5, 
-		'#22c55e', 
-		'rgba(34, 197, 94, 0.2)'
-	);
-}
-
-/**
- * Desenha a forma de onda de um canal específico
- */
-function drawWaveformChannel(ctx, analyser, width, height, offsetY, color, glowColor) {
-	if (!analyser) return;
-	
-	const bufferLength = analyser.fftSize;
-	const dataArray = new Uint8Array(bufferLength);
-	analyser.getByteTimeDomainData(dataArray);
-	
-	// Desenha a forma de onda
-	ctx.strokeStyle = color;
-	ctx.lineWidth = 1.5;
-	ctx.beginPath();
-	
-	const sliceWidth = width / bufferLength;
-	let x = 0;
-	
-	for (let i = 0; i < bufferLength; i++) {
-		const v = dataArray[i] / 128.0;
-		const y = offsetY + (v * height) / 2;
-		
-		if (i === 0) {
-			ctx.moveTo(x, y);
-		} else {
-			ctx.lineTo(x, y);
-		}
-		
-		x += sliceWidth;
-	}
-	
-	ctx.lineTo(width, offsetY + height / 2);
-	ctx.stroke();
-	
-	// Adiciona um brilho suave
-	ctx.strokeStyle = glowColor;
-	ctx.lineWidth = 4;
-	ctx.stroke();
-}
-
-/**
- * Atualiza um medidor de volume específico
- */
-function updateVolumeMeter(channel, analyser, meterEl, peakEl, valueEl) {
-	if (!analyser || !meterEl) return;
-	
-	const dataArray = new Uint8Array(analyser.frequencyBinCount);
-	analyser.getByteFrequencyData(dataArray);
-	
-	// Calcula RMS
-	let sum = 0;
-	for (let i = 0; i < dataArray.length; i++) {
-		sum += dataArray[i] * dataArray[i];
-	}
-	const rms = Math.sqrt(sum / dataArray.length);
-	const level = (rms / 255) * 100;
-	
-	// Atualiza a barra (horizontal - usa width)
-	meterEl.style.width = `${level}%`;
-	
-	// Atualiza o pico
-	const peakKey = `peak${channel.charAt(0).toUpperCase() + channel.slice(1)}`;
-	if (level > state.audioMonitor[peakKey]) {
-		state.audioMonitor[peakKey] = level;
-	} else {
-		state.audioMonitor[peakKey] *= state.audioMonitor.peakDecay;
-	}
-	
-	if (peakEl) {
-		peakEl.style.left = `${state.audioMonitor[peakKey]}%`;
-	}
-	
-	// Atualiza o valor numérico
-	if (valueEl) {
-		const db = level > 0 ? Math.round(20 * Math.log10(level / 100)) : -60;
-		valueEl.textContent = `${db > -60 ? db : '-∞'} dB`;
-	}
+	state.audioMonitor.isOpen = false;
 }
 
 /**
  * Atualiza os displays de frequência binaural
- * Usa as frequências reais dos osciladores quando disponíveis
- * Também detecta a frequência dominante via FFT para confirmação
  */
 function updateFrequencyDisplays() {
 	let freqLeft, freqRight, freqDiff;
@@ -5078,7 +6262,7 @@ function updateFrequencyDisplays() {
 		freqRight = state.binauralChain.freqRight;
 		freqDiff = state.binauralChain.freqDiff;
 	}
-	// Prioridade 3: Usar valores do formulário (quando não há sessão ativa)
+	// Prioridade 3: Usar valores do formulário
 	else {
 		const baseFreq = parseFloat(ui.baseFreq?.value) || 200;
 		const diffFreqVal = parseFloat(ui.diffFreq?.value) || 10;
@@ -5087,123 +6271,43 @@ function updateFrequencyDisplays() {
 		freqDiff = diffFreqVal;
 	}
 	
-	// Detecta frequência dominante via FFT para confirmação visual
-	const detectedLeft = detectDominantFrequency(state.audioMonitor.analyserLeft);
-	const detectedRight = detectDominantFrequency(state.audioMonitor.analyserRight);
-	
-	// Atualiza displays
+	// Atualiza displays de frequência no overlay
 	if (ui.monitorFreqLeft) {
-		const displayFreq = freqLeft.toFixed(1);
-		const detected = detectedLeft > 0 ? ` (${detectedLeft.toFixed(0)})` : '';
-		ui.monitorFreqLeft.textContent = `${displayFreq} Hz`;
-		// Adiciona indicador visual se a sessão está ativa
-		if (state.binauralChain?.leftOsc) {
-			ui.monitorFreqLeft.classList.add('active');
-		} else {
-			ui.monitorFreqLeft.classList.remove('active');
-		}
+		ui.monitorFreqLeft.textContent = freqLeft.toFixed(1);
 	}
-	
 	if (ui.monitorFreqRight) {
-		const displayFreq = freqRight.toFixed(1);
-		ui.monitorFreqRight.textContent = `${displayFreq} Hz`;
-		if (state.binauralChain?.rightOsc) {
-			ui.monitorFreqRight.classList.add('active');
-		} else {
-			ui.monitorFreqRight.classList.remove('active');
-		}
+		ui.monitorFreqRight.textContent = freqRight.toFixed(1);
 	}
-	
 	if (ui.monitorFreqDiff) {
-		ui.monitorFreqDiff.textContent = `Δ ${freqDiff.toFixed(1)} Hz`;
-		
-		// Classifica a onda cerebral baseada na diferença
-		let brainwave = '';
-		let brainwaveClass = '';
-		if (freqDiff <= 4) {
-			brainwave = 'Delta (Sono profundo)';
-			brainwaveClass = 'delta';
-		} else if (freqDiff <= 8) {
-			brainwave = 'Theta (Meditação)';
-			brainwaveClass = 'theta';
-		} else if (freqDiff <= 13) {
-			brainwave = 'Alpha (Relaxamento)';
-			brainwaveClass = 'alpha';
-		} else if (freqDiff <= 30) {
-			brainwave = 'Beta (Foco)';
-			brainwaveClass = 'beta';
-		} else {
-			brainwave = 'Gamma (Alta cognição)';
-			brainwaveClass = 'gamma';
+		ui.monitorFreqDiff.textContent = `Δ ${freqDiff.toFixed(1)}`;
+	}
+	
+	// Classifica e atualiza badge de brainwave
+	let brainwaveName = '';
+	let brainwaveBand = '';
+	
+	if (freqDiff <= 4) {
+		brainwaveName = 'Delta'; brainwaveBand = 'delta';
+	} else if (freqDiff <= 8) {
+		brainwaveName = 'Theta'; brainwaveBand = 'theta';
+	} else if (freqDiff <= 13) {
+		brainwaveName = 'Alpha'; brainwaveBand = 'alpha';
+	} else if (freqDiff <= 16) {
+		brainwaveName = 'SMR'; brainwaveBand = 'smr';
+	} else if (freqDiff <= 30) {
+		brainwaveName = 'Beta'; brainwaveBand = 'beta';
+	} else {
+		brainwaveName = 'Gamma'; brainwaveBand = 'gamma';
+	}
+	
+	// Atualiza o badge do monitor unificado
+	if (ui.monitorBrainwaveBadge) {
+		const nameSpan = ui.monitorBrainwaveBadge.querySelector('.brainwave-name');
+		if (nameSpan) {
+			nameSpan.textContent = brainwaveName;
 		}
-		
-		if (ui.monitorBrainwave) {
-			ui.monitorBrainwave.textContent = brainwave;
-			ui.monitorBrainwave.className = `brainwave-indicator ${brainwaveClass}`;
-		}
+		ui.monitorBrainwaveBadge.setAttribute('data-band', brainwaveBand);
 	}
 }
 
-/**
- * Detecta a frequência dominante em um analyser usando FFT
- * @param {AnalyserNode} analyser - O analyser node a analisar
- * @returns {number} A frequência dominante em Hz, ou 0 se não detectada
- */
-function detectDominantFrequency(analyser) {
-	if (!analyser || !state.audioCtx) return 0;
-	
-	const bufferLength = analyser.frequencyBinCount;
-	const dataArray = new Uint8Array(bufferLength);
-	analyser.getByteFrequencyData(dataArray);
-	
-	// Encontra o bin com maior amplitude
-	let maxValue = 0;
-	let maxIndex = 0;
-	
-	// Ignora frequências muito baixas (ruído DC) - começa do bin 2
-	for (let i = 2; i < bufferLength; i++) {
-		if (dataArray[i] > maxValue) {
-			maxValue = dataArray[i];
-			maxIndex = i;
-		}
-	}
-	
-	// Se a amplitude máxima for muito baixa, não há sinal significativo
-	if (maxValue < 30) return 0;
-	
-	// Calcula a frequência baseada no índice do bin
-	const sampleRate = state.audioCtx.sampleRate;
-	const frequency = (maxIndex * sampleRate) / (analyser.fftSize);
-	
-	return frequency;
-}
-
-/**
- * Atualiza informações da sessão no monitor
- */
-function updateSessionInfo() {
-	// Status da música
-	if (ui.monitorMusicStatus) {
-		if (state.currentHowl && state.currentHowl.playing()) {
-			const track = state.musicMeta[state.currentTrackIndex];
-			const name = track?.name || 'Reproduzindo...';
-			ui.monitorMusicStatus.textContent = `♪ ${name}`;
-			ui.monitorMusicStatus.classList.add('playing');
-		} else if (state.isSessionRunning) {
-			ui.monitorMusicStatus.textContent = '◼ Sessão ativa (sem música)';
-			ui.monitorMusicStatus.classList.remove('playing');
-		} else {
-			ui.monitorMusicStatus.textContent = '◻ Aguardando...';
-			ui.monitorMusicStatus.classList.remove('playing');
-		}
-	}
-	
-	// Tempo da sessão
-	if (ui.monitorSessionTime && state.audioMonitor.sessionStartTime) {
-		const elapsed = Date.now() - state.audioMonitor.sessionStartTime;
-		const minutes = Math.floor(elapsed / 60000);
-		const seconds = Math.floor((elapsed % 60000) / 1000);
-		ui.monitorSessionTime.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-	}
-}
 

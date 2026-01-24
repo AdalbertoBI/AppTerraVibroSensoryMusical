@@ -1,0 +1,270 @@
+{
+	"version": "2.1.0",
+	"lastUpdate": "2026-01-24",
+	"description": "Sons terapêuticos e vídeos do YouTube para terapia sonora",
+	
+	"categories": {
+		"nature": {
+			"name": "Sons da Natureza",
+			"icon": "fa-solid fa-leaf",
+			"description": "Sons ambientais com efeitos calmantes comprovados",
+			"evidence": "Diversos estudos demonstram que sons da natureza reduzem cortisol e ativam o sistema nervoso parassimpático"
+		},
+		"ambient": {
+			"name": "Texturas Ambientais",
+			"icon": "fa-solid fa-wave-square",
+			"description": "Sons contínuos para relaxamento profundo e meditação",
+			"evidence": "Frequências baixas promovem estados de relaxamento e redução de ansiedade"
+		},
+		"youtube": {
+			"name": "Vídeos Terapêuticos",
+			"icon": "fa-brands fa-youtube",
+			"description": "Vídeos do YouTube selecionados para terapia - requer internet",
+			"evidence": "Música e visualizações podem potencializar efeitos terapêuticos",
+			"requiresInternet": true
+		}
+	},
+	
+	"sounds": [
+		{
+			"id": "relaxing-music-1",
+			"category": "youtube",
+			"name": "Música 8D Massagem Cerebral Vol.1 - Ativação da Glândula Pineal",
+			"tag": "theta",
+			"youtubeId": "_T2WeP4uet4",
+			"duration": "8:20",
+			"description": "Música 8D para dormir e relaxar - Ativa a glândula pineal",
+			"therapeuticUse": ["Meditação", "Relaxamento", "Glândula Pineal"],
+			"requiresInternet": true
+		},
+		{
+			"id": "relaxing-music-2",
+			"category": "youtube",
+			"name": "Música 8D Relaxamento Terapêutico Vol.2 - Bem-estar e Concentração",
+			"tag": "alpha",
+			"youtubeId": "OYkuAqd9g-0",
+			"duration": "",
+			"description": "Música terapêutica para sessões de relaxamento e bem-estar",
+			"therapeuticUse": ["Relaxamento", "Bem-estar", "Concentração"],
+			"requiresInternet": true
+		},
+		{
+			"id": "relaxing-music-3",
+			"category": "youtube",
+			"name": "Música 8D Paz Interior Vol.3 - Relaxamento Profundo",
+			"tag": "delta",
+			"youtubeId": "-QSYwG9p4mg",
+			"duration": "",
+			"description": "Música para relaxamento profundo e paz interior",
+			"therapeuticUse": ["Relaxamento Profundo", "Paz Interior", "Sono"],
+			"requiresInternet": true
+		},
+		{
+			"id": "relaxing-music-4",
+			"category": "youtube",
+			"name": "Música 8D Sono Reparador Vol.4 - 3 Horas de Relaxamento",
+			"tag": "delta",
+			"youtubeId": "O3mirEWuL-4",
+			"duration": "2:59:31",
+			"description": "Música 8D para dormir e relaxar - Use fones de ouvido e ative sua glândula pineal",
+			"therapeuticUse": ["Sono", "Relaxamento", "Glândula Pineal"],
+			"requiresInternet": true
+		},
+		{
+			"id": "relaxing-music-5",
+			"category": "youtube",
+			"name": "🎧 Relax Music with Binaural Beats [8D AUDIO] Lucid Dreaming, REM Sleep Hypnosis Music",
+			"tag": "theta",
+			"youtubeId": "lRRF2liwNzc",
+			"duration": "8:08:00",
+			"description": "Áudio 8D com batidas binaurais para sono REM, sonhos lúcidos e hipnose do sono",
+			"therapeuticUse": ["Sonhos Lúcidos", "Sono REM", "Meditação"],
+			"requiresInternet": true
+		},
+		{
+			"id": "relaxing-music-6",
+			"category": "youtube",
+			"name": "🎧MELHORES LOUVORES EM (AUDIO 8D) [DuMascena 8D]",
+			"tag": "alpha",
+			"youtubeId": "vfgA0ILzM8U",
+			"duration": "",
+			"description": "Seleção de louvores gospel em áudio 8D para relaxamento espiritual",
+			"therapeuticUse": ["Espiritualidade", "Paz Interior", "Relaxamento"],
+			"requiresInternet": true
+		},
+		{
+			"id": "relaxing-music-7",
+			"category": "youtube",
+			"name": "8D Music Mix ⚡ Best 8D Audio Songs [7 Million Subs Special] 🎧",
+			"tag": "beta",
+			"youtubeId": "ebfboqfPYGk",
+			"duration": "1:01:00",
+			"description": "Mix das melhores músicas em áudio 8D - Especial 7 milhões de inscritos",
+			"therapeuticUse": ["Energia", "Foco", "Ânimo"],
+			"requiresInternet": true
+		},
+		{
+			"id": "relaxing-music-8",
+			"category": "youtube",
+			"name": "8D Music for Sleep 🎧 Relaxing Music, Insomnia, Sleep Meditation, Study, Deep Sleeping Audio",
+			"tag": "theta",
+			"youtubeId": "-gZxuSx26ec",
+			"duration": "1:05:30",
+			"description": "Música instrumental para acalmar a mente e relaxar",
+			"therapeuticUse": ["Calma", "Relaxamento", "Ansiedade"],
+			"requiresInternet": true
+		},
+		{
+			"id": "relaxing-music-9",
+			"category": "youtube",
+			"name": "8D Deep Shamanic Trance (Powerful Hypnotic Meditation Music)",
+			"tag": "alpha",
+			"youtubeId": "ESZ51wvrRxE",
+			"duration": "",
+			"description": "Música xamânica hipnótica para meditação profunda e transe",
+			"therapeuticUse": ["Meditação", "Transe", "Espiritualidade"],
+			"requiresInternet": true
+		},
+		{
+			"id": "relaxing-music-10",
+			"category": "youtube",
+			"name": "Louvor Soul e Blues, Vol. 5 – Adoração Profunda em Cada Acorde",
+			"tag": "theta",
+			"youtubeId": "Ihmz95u44Dk",
+			"duration": "",
+			"description": "Louvor Soul e Blues para adoração profunda e relaxamento",
+			"therapeuticUse": ["Espiritualidade", "Relaxamento", "Adoração"],
+			"requiresInternet": true
+		},
+		{
+			"id": "relaxing-music-11",
+			"category": "youtube",
+			"name": "✨Gospel Blues - Everlasting Grace – a heartfelt blend of Christian Blues and soulful",
+			"tag": "delta",
+			"youtubeId": "a9tzDeDdWBQ",
+			"duration": "",
+			"description": "Gospel Blues com graça eterna - mistura de blues cristão e música soulful",
+			"therapeuticUse": ["Espiritualidade", "Relaxamento", "Paz Interior"],
+			"requiresInternet": true
+		},
+		{
+			"id": "relaxing-music-12",
+			"category": "youtube",
+			"name": "Vintage 1960s Gospel Blues | Classic Soulful Spirit | Timeless Harmony",
+			"tag": "alpha",
+			"youtubeId": "diCK2QfUT8Y",
+			"duration": "",
+			"description": "Gospel Blues vintage dos anos 1960 com espírito soulful clássico",
+			"therapeuticUse": ["Relaxamento", "Nostalgia", "Espiritualidade"],
+			"requiresInternet": true
+		},
+		{
+			"id": "relaxing-music-13",
+			"category": "youtube",
+			"name": "Whiskey Blues Chill Melodies | Best of Slow Blues",
+			"tag": "delta",
+			"youtubeId": "BLm6220wUGQ",
+			"duration": "",
+			"description": "Melodias relaxantes de Slow Blues para noites tranquilas",
+			"therapeuticUse": ["Relaxamento", "Sono", "Calma"],
+			"requiresInternet": true
+		},
+		{
+			"id": "relaxing-music-14",
+			"category": "youtube",
+			"name": "(ÁUDIO 8D) SET SÓ PEDRADA - MELHORES REMIX - SET MIX #001 By @EletroEmpire (SOTRACKBOA)",
+			"tag": "theta",
+			"youtubeId": "0LoTQEv1X5o",
+			"duration": "1:27:19",
+			"description": "Set mix de melhores remixes em áudio 8D",
+			"therapeuticUse": ["Energia", "Ânimo", "Foco"],
+			"requiresInternet": true
+		},
+		{
+			"id": "relaxing-music-15",
+			"category": "youtube",
+			"name": "8D Chuva: Sons de chuva e trovão para um sono profundo • Som de chuva relaxante 10 horas",
+			"tag": "alpha",
+			"youtubeId": "q76bMs-NwRk",
+			"duration": "10:00:00",
+			"description": "Som relaxante de chuva 8D para dormir profundamente",
+			"therapeuticUse": ["Sono", "Relaxamento", "ASMR"],
+			"requiresInternet": true
+		}
+	],
+	
+	"references": [
+		{
+			"id": "alvarsson2010",
+			"authors": "Alvarsson, J. J., Wiens, S., & Nilsson, M. E.",
+			"year": 2010,
+			"title": "Stress recovery during exposure to nature sound and environmental noise",
+			"journal": "International Journal of Environmental Research and Public Health",
+			"doi": "10.3390/ijerph7031036"
+		},
+		{
+			"id": "goldsby2017",
+			"authors": "Goldsby, T. L., Goldsby, M. E., McWalters, M., & Mills, P. J.",
+			"year": 2017,
+			"title": "Effects of Singing Bowl Sound Meditation on Mood, Tension, and Well-being",
+			"journal": "Journal of Evidence-Based Complementary & Alternative Medicine",
+			"doi": "10.1177/2156587216668109"
+		},
+		{
+			"id": "gould2017",
+			"authors": "Gould van Praag, C. D., et al.",
+			"year": 2017,
+			"title": "Mind-wandering and alterations to default mode network connectivity",
+			"journal": "Scientific Reports",
+			"doi": "10.1038/srep45273"
+		},
+		{
+			"id": "kalyani2011",
+			"authors": "Kalyani, B. G., Venkatasubramanian, G., et al.",
+			"year": 2011,
+			"title": "Neurohemodynamic correlates of 'OM' chanting",
+			"journal": "International Journal of Yoga",
+			"doi": "10.4103/0973-6131.78171"
+		},
+		{
+			"id": "messineo2017",
+			"authors": "Messineo, L., Taranto-Montemurro, L., Sands, S. A., et al.",
+			"year": 2017,
+			"title": "Broadband sound administration improves sleep onset latency",
+			"journal": "Frontiers in Human Neuroscience",
+			"doi": "10.3389/fnhum.2017.00329"
+		},
+		{
+			"id": "ong2015",
+			"authors": "Ong, J. C., Ulmer, C. S., & Manber, R.",
+			"year": 2015,
+			"title": "Improving sleep with mindfulness and acceptance",
+			"journal": "Sleep Medicine Reviews",
+			"doi": "10.1016/j.smrv.2015.05.002"
+		},
+		{
+			"id": "papalambros2017",
+			"authors": "Papalambros, N. A., Santostasi, G., et al.",
+			"year": 2017,
+			"title": "Acoustic enhancement of sleep slow oscillations and concomitant memory improvement",
+			"journal": "Frontiers in Human Neuroscience",
+			"doi": "10.3389/fnhum.2017.00109"
+		},
+		{
+			"id": "ratcliffe2013",
+			"authors": "Ratcliffe, E., Gatersleben, B., & Sowden, P. T.",
+			"year": 2013,
+			"title": "Bird sounds and their contributions to perceived attention restoration and stress recovery",
+			"journal": "Journal of Environmental Psychology",
+			"doi": "10.1016/j.jenvp.2013.08.004"
+		},
+		{
+			"id": "soderlund2007",
+			"authors": "Söderlund, G., Sikström, S., & Smart, A.",
+			"year": 2007,
+			"title": "Listen to the noise: Noise is beneficial for cognitive performance in ADHD",
+			"journal": "Journal of Child Psychology and Psychiatry",
+			"doi": "10.1111/j.1469-7610.2007.01749.x"
+		}
+	]
+}

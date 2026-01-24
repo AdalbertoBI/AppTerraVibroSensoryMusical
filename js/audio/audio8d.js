@@ -158,18 +158,21 @@ export function setAudio8DEnabled(enabled) {
 
 /**
  * Inicia a animação de rotação do áudio
+ * Usa setInterval para continuar funcionando quando a aba perde foco
  */
 export function startRotation() {
 	if (state.audio8D.animationId) return;
 	
 	const startTime = performance.now();
+	const INTERVAL_MS = 16; // ~60fps
 	
-	function animate(currentTime) {
+	function animate() {
 		if (!state.audio8D.enabled) {
-			state.audio8D.animationId = null;
+			stopRotation();
 			return;
 		}
 		
+		const currentTime = performance.now();
 		const elapsed = (currentTime - startTime) / 1000;
 		const speed = state.audio8D.rotationSpeed;
 		const depth = state.audio8D.depth;
@@ -199,17 +202,19 @@ export function startRotation() {
 		}
 		
 		// Aplica o pan
-		if (state.audio8D.pannerNode) {
+		if (state.audio8D.pannerNode && state.audioCtx) {
 			state.audio8D.pannerNode.pan.setValueAtTime(panValue, state.audioCtx.currentTime);
 		}
 		
 		// Atualiza ângulo para visualização
 		state.audio8D.rotationAngle = (elapsed * speed * 360) % 360;
-		
-		state.audio8D.animationId = requestAnimationFrame(animate);
 	}
 	
-	state.audio8D.animationId = requestAnimationFrame(animate);
+	// Usa setInterval em vez de requestAnimationFrame para funcionar em background
+	state.audio8D.animationId = setInterval(animate, INTERVAL_MS);
+	
+	// Executa imediatamente a primeira vez
+	animate();
 }
 
 /**
@@ -217,7 +222,7 @@ export function startRotation() {
  */
 export function stopRotation() {
 	if (state.audio8D.animationId) {
-		cancelAnimationFrame(state.audio8D.animationId);
+		clearInterval(state.audio8D.animationId);
 		state.audio8D.animationId = null;
 	}
 }

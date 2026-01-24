@@ -55,14 +55,17 @@ export const state = {
 	history: [],
 	archivePreview: null,
 	
-	// Sistema de Pacientes
+	// Sistema de Pacientes (compatível com TerraMidi)
 	patients: [],
+	plans: [],           // Planos terapêuticos (TerraMidi)
+	patientSessions: [], // Sessões terapêuticas (TerraMidi)
 	currentPatient: null,
 	selectedPatient: null,
 	patientFormStep: 0,
 	sessionHistory: [],
 	sessionStartTime: null,
 	sessionDuration: 0,
+	currentPatientTab: 'cadastro', // 'cadastro' | 'plano' | 'sessoes' | 'dashboard'
 	
 	// Volumes
 	binauralVolume: 0.7,
@@ -90,6 +93,8 @@ export const STORAGE_KEYS = {
 	MUSIC_META: 'musicMeta',
 	HISTORY: 'sessionHistory',
 	PATIENTS: 'patients',
+	PLANS: 'plans',                    // TerraMidi: Planos terapêuticos
+	PATIENT_SESSIONS: 'patientSessions', // TerraMidi: Sessões de atendimento
 	CURRENT_PATIENT: 'currentPatient',
 	AUDIO_8D_ENABLED: 'audio8dEnabled',
 	AUDIO_8D_SETTINGS: 'audio8dSettings',

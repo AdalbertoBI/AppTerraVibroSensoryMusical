@@ -21,7 +21,7 @@ export const stores = {
 		storeName: 'ts_music' 
 	}),
 	
-	// Histórico de sessões
+	// Histórico de sessões de áudio
 	history: localforage.createInstance({ 
 		name: 'terra-sensory', 
 		storeName: 'ts_history' 
@@ -32,6 +32,20 @@ export const stores = {
 		name: 'terra-sensory-patients', 
 		storeName: 'ts_patients',
 		description: 'Dados de pacientes e anamnese - persistente'
+	}),
+	
+	// Planos terapêuticos (TerraMidi compatível)
+	plans: localforage.createInstance({
+		name: 'terra-sensory-patients',
+		storeName: 'ts_plans',
+		description: 'Planos terapêuticos - TerraMidi compatível'
+	}),
+	
+	// Sessões de atendimento (TerraMidi compatível)
+	patientSessions: localforage.createInstance({
+		name: 'terra-sensory-patients',
+		storeName: 'ts_patient_sessions',
+		description: 'Sessões de atendimento - TerraMidi compatível'
 	})
 };
 
