@@ -85,16 +85,17 @@ const WELCOME_SLIDES = [
 		`
 	},
 	{
-		icon: 'fa-solid fa-user-injured',
-		title: 'Gerenciamento de Pacientes',
+		icon: 'fa-solid fa-hospital-user',
+		title: 'Cadastro e Anamnese',
 		content: `
-			<p>Para terapeutas, o sistema oferece:</p>
+			<p>Sistema completo para terapeutas:</p>
 			<ul>
-				<li>Cadastro de pacientes com anamnese completa</li>
-				<li>Histórico de sessões</li>
-				<li>Exportação de dados (LGPD)</li>
+				<li><strong>Anamnese em 9 etapas</strong> - Identificação, queixa, histórico médico, saúde, estilo de vida, emocional, musicoterapia, avaliação e plano</li>
+				<li><strong>Contraindicações</strong> - Checklist para terapia vibroacústica</li>
+				<li><strong>Histórico de sessões</strong> - Registro automático</li>
+				<li><strong>Layout responsivo</strong> - Otimizado para qualquer dispositivo</li>
 			</ul>
-			<p>Todos os dados são armazenados localmente no seu dispositivo.</p>
+			<p>Dados armazenados localmente com conformidade LGPD.</p>
 		`
 	},
 	{
@@ -175,9 +176,15 @@ const TOUR_STEPS = [
 		position: 'left'
 	},
 	{
-		element: '#patients-btn',
-		title: 'Pacientes',
-		content: 'Acesse o gerenciador de pacientes para cadastrar e acompanhar sessões.',
+		element: '#openPatientListBtn',
+		title: 'Gerenciar Pacientes',
+		content: 'Acesse a lista de pacientes cadastrados, importe/exporte dados e gerencie o armazenamento.',
+		position: 'left'
+	},
+	{
+		element: '#newPatientBtn',
+		title: 'Novo Paciente',
+		content: 'Cadastre um novo paciente com anamnese completa em 9 etapas estruturadas.',
 		position: 'left'
 	}
 ];
