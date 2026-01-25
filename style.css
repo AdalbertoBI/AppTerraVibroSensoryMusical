@@ -4600,8 +4600,22 @@ fieldset:focus-within {
 }
 
 .form-group textarea {
-	min-height: 100px;
+	min-height: 120px;
 	resize: vertical;
+}
+
+/* Textareas maiores para campos de texto longo */
+.form-group textarea[rows="3"] {
+	min-height: 100px;
+}
+
+.form-group textarea[rows="4"] {
+	min-height: 150px;
+}
+
+.form-group textarea[rows="5"],
+.form-group textarea[rows="6"] {
+	min-height: 180px;
 }
 
 .form-group select {
@@ -4612,6 +4626,49 @@ fieldset:focus-within {
 	background-position: right 0.75rem center;
 	padding-right: 2.5rem;
 }
+
+/* Touch targets mínimos para inputs e selects (acessibilidade) */
+.form-group input,
+.form-group select {
+	min-height: 44px;
+}
+
+/* =============================================================================
+   MODIFICADORES DE TAMANHO PARA FORM-GROUP
+   Sistema de grid de 12 colunas para formulários
+   ============================================================================= */
+
+/* Padrão: campos ocupam 4 colunas se não especificado */
+.form-row > .form-group:not([class*="col-"]):not([class*="form-group--"]) {
+	grid-column: span 4;
+}
+
+/* Modificadores de tamanho BEM */
+.form-group--small {
+	grid-column: span 2;
+}
+
+.form-group--medium {
+	grid-column: span 4;
+}
+
+.form-group--large {
+	grid-column: span 6;
+}
+
+.form-group--xlarge {
+	grid-column: span 8;
+}
+
+.form-group--full {
+	grid-column: span 12;
+}
+
+/* Alias: suporte a classes col-* alternativas */
+.form-row > .form-group.small { grid-column: span 2; }
+.form-row > .form-group.medium { grid-column: span 4; }
+.form-row > .form-group.large { grid-column: span 6; }
+.form-row > .form-group.full { grid-column: span 12; }
 
 /* Checkbox e Radio Groups */
 .checkbox-group,
@@ -5570,6 +5627,68 @@ button.small i {
 		margin-bottom: 0.5rem;
 	}
 	
+	/* =============================================================================
+	   RESPONSIVIDADE DE FORMULÁRIOS - MOBILE
+	   ============================================================================= */
+	
+	/* Grid de formulário em coluna única no mobile */
+	.form-row {
+		grid-template-columns: 1fr;
+		gap: 0.875rem;
+	}
+	
+	/* Todos os form-groups ocupam largura total no mobile */
+	.form-group,
+	.form-group--small,
+	.form-group--medium,
+	.form-group--large,
+	.form-group--xlarge,
+	.form-group--full,
+	.form-group.col-3,
+	.form-group.col-4,
+	.form-group.col-6,
+	.form-group.col-8,
+	.form-group.col-12,
+	.form-row > .form-group:not([class*="col-"]):not([class*="form-group--"]) {
+		grid-column: span 1 !important;
+	}
+	
+	/* Labels maiores para legibilidade em mobile */
+	.form-group label {
+		font-size: 0.875rem;
+	}
+	
+	/* Inputs com altura adequada para toque */
+	.form-group input,
+	.form-group select {
+		min-height: 48px;
+		font-size: 1rem;
+	}
+	
+	/* Textareas um pouco menores em mobile para economia de espaço */
+	.form-group textarea {
+		min-height: 100px;
+	}
+	
+	.form-group textarea[rows="4"] {
+		min-height: 120px;
+	}
+	
+	/* Checkbox groups empilhados em mobile */
+	.checkbox-group,
+	.radio-group {
+		flex-direction: column;
+	}
+	
+	.checkbox-group label,
+	.radio-group label {
+		width: 100%;
+	}
+	
+	.checkbox-grid {
+		grid-template-columns: 1fr;
+	}
+	
 	.patient-list-controls {
 		flex-direction: column;
 	}
@@ -5587,6 +5706,34 @@ button.small i {
 	.patient-bar__actions button {
 		flex: 1;
 		justify-content: center;
+	}
+}
+
+/* Tablet - 2 colunas para formulários */
+@media (min-width: 769px) and (max-width: 1024px) {
+	.form-row {
+		grid-template-columns: repeat(6, 1fr);
+	}
+	
+	.form-group--small {
+		grid-column: span 2;
+	}
+	
+	.form-group--medium {
+		grid-column: span 3;
+	}
+	
+	.form-group--large {
+		grid-column: span 4;
+	}
+	
+	.form-group--xlarge,
+	.form-group--full {
+		grid-column: span 6;
+	}
+	
+	.form-row > .form-group:not([class*="col-"]):not([class*="form-group--"]) {
+		grid-column: span 3;
 	}
 }
 
