@@ -623,7 +623,6 @@ function cacheDom() {
 	// YouTube Add Panel
 	ui.youtubeUrlInput = document.getElementById('youtubeUrlInput');
 	ui.youtubeNameInput = document.getElementById('youtubeNameInput');
-	ui.youtubeTagInput = document.getElementById('youtubeTagInput');
 	ui.youtubePreviewBtn = document.getElementById('youtubePreviewBtn');
 	ui.youtubeAddBtn = document.getElementById('youtubeAddBtn');
 	ui.youtubeAddStatus = document.getElementById('youtubeAddStatus');
@@ -4209,7 +4208,6 @@ async function handleConfirmAddYoutubeVideo() {
 	
 	const videoId = youtubeAddPreviewState.videoId;
 	const customName = ui.youtubeNameInput.value.trim();
-	const tag = ui.youtubeTagInput.value;
 	
 	// Para o preview
 	stopYoutubeAddPreview();
@@ -4228,7 +4226,7 @@ async function handleConfirmAddYoutubeVideo() {
 			id: `user-youtube-${videoId}-${Date.now()}`,
 			name: videoName,
 			youtube: videoId,
-			tag: tag,
+			tag: 'youtube', // Tag genérica - frequência é controlada em tempo real
 			addedAt: Date.now(),
 			userAdded: true
 		};
