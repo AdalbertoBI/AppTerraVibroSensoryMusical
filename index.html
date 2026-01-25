@@ -169,39 +169,6 @@
 						</div>
 					</div>
 					
-					<!-- CONTROLES DE REPRODUÇÃO -->
-					<div class="unified-section" id="sectionPlayer">
-						<div class="section-header">
-							<div class="section-title">
-								<i class="fa-solid fa-play-circle"></i>
-								<h3>Controles de Reprodução</h3>
-							</div>
-							<span class="section-hint">Play, pause, volume</span>
-						</div>
-						
-						<div class="section-body">
-							<div class="unified-player-bar" id="playerBar">
-								<div class="player-main-controls">
-									<button id="playBtn" class="control-btn primary" type="button" aria-label="Reproduzir">
-										<i class="fa-solid fa-play"></i>
-									</button>
-									<button id="pauseBtn" class="control-btn" type="button" aria-label="Pausar">
-										<i class="fa-solid fa-pause"></i>
-									</button>
-									<button id="stopBtn" class="control-btn" type="button" aria-label="Parar">
-										<i class="fa-solid fa-stop"></i>
-									</button>
-								</div>
-								
-								<div class="player-timer" id="playerTimer">
-									<span id="timerDisplay" class="timer-value">00:00</span>
-									<span class="timer-separator">/</span>
-									<span id="timerTotal" class="timer-total">--:--</span>
-								</div>
-							</div>
-						</div>
-					</div>
-					
 					<!-- SEÇÃO 1: Biblioteca de Áudio -->
 					<div class="unified-section" id="sectionLibrary">
 						<div class="section-header">
@@ -368,8 +335,8 @@
 											Intensidade vibroacústica
 											<small class="helper">Seguro: 50-75%</small>
 										</label>
-										<input type="range" id="binauralVolume" name="binauralVolume" min="20" max="85" value="65" />
-										<output id="binauralVolumeValue">65%</output>
+										<input type="range" id="binauralVolume" name="binauralVolume" min="20" max="85" value="50" />
+										<output id="binauralVolumeValue">50%</output>
 									</div>
 								</div>
 								
@@ -377,8 +344,8 @@
 								<div class="compact-mixer">
 									<div class="mixer-item">
 										<label for="mixSlider"><i class="fa-solid fa-sliders"></i> Mix Binaural/Música</label>
-										<input type="range" id="mixSlider" min="0" max="100" value="70" />
-										<output id="mixValue">70%</output>
+										<input type="range" id="mixSlider" min="0" max="100" value="50" />
+										<output id="mixValue">Binaural 50% / Música 50%</output>
 									</div>
 									<div class="mixer-item">
 										<label for="panSlider"><i class="fa-solid fa-headphones"></i> Pan Estéreo</label>
@@ -599,7 +566,7 @@
 						<p>© <span id="year"></span> <strong>Terra Vibro Sensory Musical</strong> — Terra Eletrônica</p>
 					</div>
 					<div class="footer-version">
-						<span class="version-tag">v1.0.0.0.1</span>
+						<span class="version-tag">v1.0.0.0.2</span>
 						<span class="footer-separator">•</span>
 						<span class="made-with">Feito com <i class="fa-solid fa-heart"></i> no Brasil</span>
 					</div>
@@ -1638,6 +1605,7 @@
 
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.4/howler.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+	<script src="js/player/playerController.js"></script>
 	<script src="js/playlist/playlistManager.js"></script>
 	<script type="module" src="app.js"></script>
 </body>

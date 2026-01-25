@@ -37,7 +37,7 @@ export const state = {
 	currentHowl: null,
 	
 	// Controles de Áudio
-	mixRatio: 0.7,
+	mixRatio: 0.5,
 	currentPan: 0,
 	
 	// Timer da Sessão
@@ -68,8 +68,8 @@ export const state = {
 	currentPatientTab: 'cadastro', // 'cadastro' | 'plano' | 'sessoes' | 'dashboard'
 	
 	// Volumes
-	binauralVolume: 0.7,
-	musicVolume: 0.7,
+	binauralVolume: 0.5,
+	musicVolume: 0.5,
 	
 	// Monitor de Áudio
 	audioMonitor: {

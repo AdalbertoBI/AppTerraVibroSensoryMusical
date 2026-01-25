@@ -67,7 +67,7 @@ export function buildBinauralChain(preset) {
 	// Gains individuais para cada canal
 	const leftGain = ctx.createGain();
 	const rightGain = ctx.createGain();
-	const volume = ((preset.binauralVolume || 65) / 100) * 0.5;
+	const volume = ((preset.binauralVolume || 50) / 100) * 0.5;
 	leftGain.gain.value = rightGain.gain.value = volume;
 	
 	// Merger para combinar em estéreo

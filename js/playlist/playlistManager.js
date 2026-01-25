@@ -19,10 +19,8 @@ const PlaylistManager = (function() {
 	// Referências externas (injetadas)
 	let appState = null;
 	let appStores = null;
-	let currentPreviewId = null;
 	
 	// Callbacks externos
-	let onPreviewToggle = null;
 	let onTrackRemove = null;
 	let onFavoriteToggle = null;
 	let onShowToast = null;
@@ -38,7 +36,6 @@ const PlaylistManager = (function() {
 		appStores = config.stores;
 		
 		// Callbacks
-		onPreviewToggle = config.onPreviewToggle;
 		onTrackRemove = config.onTrackRemove;
 		onFavoriteToggle = config.onFavoriteToggle;
 		onShowToast = config.onShowToast;
@@ -63,13 +60,6 @@ const PlaylistManager = (function() {
 		// Adiciona listeners
 		playlistContainer.addEventListener('change', handleSelectionChange);
 		playlistContainer.addEventListener('click', handlePlaylistClick);
-	}
-	
-	/**
-	 * Atualiza referência do preview atual
-	 */
-	function setCurrentPreviewId(id) {
-		currentPreviewId = id;
 	}
 	
 	/**
@@ -194,7 +184,6 @@ const PlaylistManager = (function() {
 	 */
 	function createUserTrackElement(track, selectedTracks, favorites) {
 		const isSelected = selectedTracks.includes(track.id);
-		const isPlaying = currentPreviewId === track.id;
 		const isFav = favorites.includes(track.id);
 		
 		// Determina origem
@@ -211,16 +200,40 @@ const PlaylistManager = (function() {
 			originClass = 'badge bundled';
 		}
 		
+		// Verifica estado de reprodução via PlayerController
+		const isSessionTrack = typeof PlayerController !== 'undefined' && PlayerController.getCurrentTrackId() === track.id;
+		const isTrackPlaying = isSessionTrack && PlayerController.isTrackPlaying(track.id);
+		
 		const li = document.createElement('li');
-		li.className = `playlist-item${isSelected ? ' selected' : ''}${isPlaying ? ' playing' : ''}${isFav ? ' playlist-item--favorite' : ''}`;
+		li.className = `playlist-item${isSelected ? ' selected' : ''}${isFav ? ' playlist-item--favorite' : ''}${isTrackPlaying ? ' is-playing' : ''}`;
 		li.dataset.id = track.id;
 		li.setAttribute('role', 'option');
 		li.setAttribute('aria-selected', isSelected);
 		
 		const sizeMB = ((track.size || 0) / 1024 / 1024).toFixed(2);
 		
+		// Determina ícone e título do botão de controle (play/stop toggle)
+		let controlIcon = 'fa-play';
+		let controlTitle = 'Iniciar sessão';
+		let controlClass = 'btn-track-control';
+		if (isTrackPlaying) {
+			controlIcon = 'fa-stop';
+			controlTitle = 'Parar sessão';
+			controlClass += ' playing';
+		}
+		
+		// Timer de sessão (visível apenas quando tocando)
+		const timerDisplay = isSessionTrack ? `
+			<div class="track-timer" data-track-timer="${track.id}">
+				<i class="fa-solid fa-clock"></i>
+				<span class="timer-value">00:00</span>
+			</div>
+		` : '';
+		
 		li.innerHTML = `
-			<input type="checkbox" class="playlist-checkbox" ${isSelected ? 'checked' : ''} data-action="select" aria-label="Selecionar ${track.name}">
+			<button class="${controlClass}" data-action="session-control" title="${controlTitle}">
+				<i class="fa-solid ${controlIcon}"></i>
+			</button>
 			<button class="btn-favorite${isFav ? ' active' : ''}" data-action="favorite" title="${isFav ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}">
 				<i class="fa-${isFav ? 'solid' : 'regular'} fa-star"></i>
 			</button>
@@ -231,11 +244,8 @@ const PlaylistManager = (function() {
 					<span class="size">${sizeMB} MB • ${track.lowEnergyPct ?? '--'}% graves</span>
 				</div>
 			</div>
+			${timerDisplay}
 			<div class="playlist-actions">
-				<button class="btn-preview${isPlaying ? ' playing' : ''}" data-action="preview" title="${isPlaying ? 'Parar' : 'Preview'}">
-					<i class="fa-solid ${isPlaying ? 'fa-stop' : 'fa-headphones'}"></i>
-					<span>${isPlaying ? 'Stop' : 'Preview'}</span>
-				</button>
 				<button class="btn-delete" data-action="delete" title="Excluir">
 					<i class="fa-solid fa-trash"></i>
 				</button>
@@ -382,8 +392,12 @@ const PlaylistManager = (function() {
 		const isSelected = selectedTracks.includes(trackId);
 		const isFav = favorites.includes(trackId);
 		
+		// Verifica estado de reprodução via PlayerController
+		const isSessionTrack = typeof PlayerController !== 'undefined' && PlayerController.getCurrentTrackId() === trackId;
+		const isTrackPlaying = isSessionTrack && PlayerController.isTrackPlaying(trackId);
+		
 		const li = document.createElement('li');
-		li.className = `playlist-item playlist-item--default${isSelected ? ' selected' : ''}${isYoutube ? ' playlist-item--youtube' : ''}${isFav ? ' playlist-item--favorite' : ''}${isUserAdded ? ' playlist-item--user-added' : ''}`;
+		li.className = `playlist-item playlist-item--default${isSelected ? ' selected' : ''}${isYoutube ? ' playlist-item--youtube' : ''}${isFav ? ' playlist-item--favorite' : ''}${isUserAdded ? ' playlist-item--user-added' : ''}${isTrackPlaying ? ' is-playing' : ''}`;
 		li.dataset.id = trackId;
 		li.dataset.soundId = sound.id;
 		
@@ -399,11 +413,35 @@ const PlaylistManager = (function() {
 		li.setAttribute('role', 'option');
 		li.setAttribute('aria-selected', isSelected);
 		
+		// Determina ícone e título do botão de controle (play/stop toggle)
+		let controlIcon = 'fa-play';
+		let controlTitle = 'Iniciar sessão';
+		let controlClass = 'btn-track-control';
+		if (isTrackPlaying) {
+			controlIcon = 'fa-stop';
+			controlTitle = 'Parar sessão';
+			controlClass += ' playing';
+		}
+		
+		const controlButton = `
+			<button class="${controlClass}" data-action="session-control" title="${controlTitle}">
+				<i class="fa-solid ${controlIcon}"></i>
+			</button>
+		`;
+		
 		const favButton = `
 			<button class="btn-favorite${isFav ? ' active' : ''}" data-action="favorite" title="${isFav ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}">
 				<i class="fa-${isFav ? 'solid' : 'regular'} fa-star"></i>
 			</button>
 		`;
+		
+		// Timer de sessão (visível apenas quando tocando)
+		const timerDisplay = isSessionTrack ? `
+			<div class="track-timer" data-track-timer="${trackId}">
+				<i class="fa-solid fa-clock"></i>
+				<span class="timer-value">00:00</span>
+			</div>
+		` : '';
 		
 		if (isYoutube) {
 			const deleteButton = isUserAdded ? `
@@ -417,27 +455,24 @@ const PlaylistManager = (function() {
 				: '';
 			
 			li.innerHTML = `
-				<input type="checkbox" class="playlist-checkbox" ${isSelected ? 'checked' : ''} data-action="select" aria-label="Selecionar ${sound.name}">
+				${controlButton}
 				${favButton}
 				<div class="playlist-info" data-action="toggle">
 					<strong>${isFav ? '⭐ ' : ''}${sound.name}</strong>
 					<div class="playlist-meta">
 						<span class="badge youtube"><i class="fa-brands fa-youtube"></i> YouTube</span>
 						${userAddedBadge}
-						<span class="badge youtube-warning" title="8D, Pan e EQ não disponíveis"><i class="fa-solid fa-triangle-exclamation"></i> Efeitos limitados</span>
+						<span class="badge youtube-warning" title="8D, Pan e EQ não disponíveis"><i class="fa-solid fa-triangle-exclamation"></i> Limitado</span>
 					</div>
 				</div>
+				${timerDisplay}
 				<div class="playlist-actions">
-					<button class="btn-preview" data-action="preview" title="Preview">
-						<i class="fa-solid fa-headphones"></i>
-						<span>Preview</span>
-					</button>
 					${deleteButton}
 				</div>
 			`;
 		} else {
 			li.innerHTML = `
-				<input type="checkbox" class="playlist-checkbox" ${isSelected ? 'checked' : ''} data-action="select" aria-label="Selecionar ${sound.name}">
+				${controlButton}
 				${favButton}
 				<div class="playlist-info" data-action="toggle">
 					<strong>${isFav ? '⭐ ' : ''}${sound.name}</strong>
@@ -446,13 +481,10 @@ const PlaylistManager = (function() {
 						<span class="size">${sound.lowEnergyPct}% graves</span>
 					</div>
 				</div>
+				${timerDisplay}
 				<div class="playlist-actions">
 					<button class="btn-sound-info secondary" data-action="info" data-sound-id="${sound.id}" title="Ver evidência científica">
 						<i class="fa-solid fa-microscope"></i>
-					</button>
-					<button class="btn-preview" data-action="preview" title="Preview">
-						<i class="fa-solid fa-headphones"></i>
-						<span>Preview</span>
 					</button>
 				</div>
 			`;
@@ -591,6 +623,15 @@ const PlaylistManager = (function() {
 		const action = button.dataset.action;
 		
 		switch (action) {
+			case 'session-control':
+				console.log('[PlaylistManager] Ação session-control:', trackId);
+				if (typeof PlayerController !== 'undefined') {
+					await PlayerController.playFromTrack(trackId, li);
+				} else {
+					console.warn('[PlaylistManager] PlayerController não disponível');
+				}
+				break;
+				
 			case 'delete':
 			case 'delete-youtube':
 				console.log('[PlaylistManager] Ação delete:', trackId);
@@ -604,13 +645,6 @@ const PlaylistManager = (function() {
 				console.log('[PlaylistManager] Ação favorite:', trackId, 'callback:', !!onFavoriteToggle);
 				if (onFavoriteToggle) {
 					await onFavoriteToggle(trackId, button, li);
-				}
-				break;
-				
-			case 'preview':
-				console.log('[PlaylistManager] Ação preview:', trackId);
-				if (onPreviewToggle) {
-					onPreviewToggle(trackId, button, li);
 				}
 				break;
 				
@@ -671,6 +705,20 @@ const PlaylistManager = (function() {
 		updateCounter();
 	}
 	
+	/**
+	 * Atualiza o timer de uma track específica
+	 * @param {string} trackId - ID da track
+	 * @param {number} remainingSeconds - Segundos restantes
+	 */
+	function updateTrackTimer(trackId, remainingSeconds) {
+		const timerEl = document.querySelector(`[data-track-timer="${trackId}"] .timer-value`);
+		if (timerEl) {
+			const minutes = String(Math.floor(remainingSeconds / 60)).padStart(2, '0');
+			const seconds = String(remainingSeconds % 60).padStart(2, '0');
+			timerEl.textContent = `${minutes}:${seconds}`;
+		}
+	}
+	
 	// API pública
 	return {
 		init,
@@ -681,7 +729,7 @@ const PlaylistManager = (function() {
 		setSelected,
 		addToSelection,
 		removeFromSelection,
-		setCurrentPreviewId,
+		updateTrackTimer,
 		handleSelectionChange,
 		handleActions: handlePlaylistClick  // Alias para compatibilidade
 	};

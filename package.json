@@ -1,6 +1,6 @@
 {
 	"name": "terra-vibro-sensory-musical",
-	"version": "1.0.0.0.1",
+	"version": "1.0.0.0.2",
 	"description": "Aplicativo de terapia sonora com batimentos binaurais e sons terapêuticos",
 	"main": "app.js",
 	"scripts": {

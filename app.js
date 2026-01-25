@@ -16,7 +16,7 @@ const state = {
 	currentHowl: null,
 	currentPlayingName: null, // Nome da faixa em reprodução (música local ou YouTube)
 	activeHowls: [], // Múltiplas músicas simultâneas
-	mixRatio: 0.7,
+	mixRatio: 0.5,
 	currentPan: 0,
 	timerId: null,
 	remainingSeconds: 0,
@@ -474,6 +474,7 @@ async function initApp() {
 	cacheDom();
 	attachListeners();
 	initPlaylistManager(); // Inicializa o gerenciador de playlist ANTES de carregar dados
+	initPlayerController(); // Inicializa o controlador de player integrado
 	await hydratePresetStore();
 	await hydrateMusicStore();
 	await ensureStockTextures();
@@ -506,7 +507,6 @@ function initPlaylistManager() {
 			countEl: ui.playlistCount,
 			state: state,
 			stores: stores,
-			onPreviewToggle: togglePreview,
 			onTrackRemove: async (trackId, isYoutube) => {
 				if (isYoutube) {
 					await removeUserYoutubeVideo(trackId);
@@ -518,6 +518,46 @@ function initPlaylistManager() {
 			onShowToast: showToast,
 			onShowSoundEvidence: showSoundEvidence
 		});
+	}
+}
+
+/**
+ * Inicializa o PlayerController com as configurações necessárias
+ */
+function initPlayerController() {
+	if (typeof PlayerController !== 'undefined') {
+		PlayerController.init({
+			state: state,
+			stores: stores,
+			ui: ui,
+			// Callbacks de áudio binaural
+			onBuildBinauralChain: buildBinauralChain,
+			onStopBinaural: stopBinaural,
+			onResumeAudioContext: resumeAudioContext,
+			onSetupPlaylist: setupPlaylist,
+			onScheduleMixer: scheduleMixer,
+			onStopCurrentTrack: stopCurrentTrack,
+			onStopYoutubeAudio: stopYoutubeAudio,
+			// Callbacks de timer
+			onStartTimer: startTimer,
+			onStopTimer: () => { clearInterval(state.timerId); state.timerId = null; },
+			onUpdateTimerProgress: updateTimerProgress,
+			onPlayBeep: playBeep,
+			// Callbacks de UI
+			onUpdateSessionUI: updateSessionUI,
+			onUpdateFrequencyDisplay: updateFrequencyDisplay,
+			onStartBreathingGuide: startBreathingGuide,
+			onStopBreathingGuide: stopBreathingGuide,
+			onOpenAudioMonitor: openAudioMonitor,
+			// Callbacks de sessão
+			onLogSession: logSession,
+			onSetupMediaSession: setupMediaSession,
+			onUpdateMediaSessionState: updateMediaSessionState,
+			onCollectPresetFromForm: collectPresetFromForm,
+			// Callbacks de notificação
+			onShowToast: showToast
+		});
+		console.log('[App] PlayerController inicializado');
 	}
 }
 
@@ -713,9 +753,9 @@ function attachListeners() {
 		updateRangeOutputs();
 		updateLowPassRealtime();
 	});
-	ui.playBtn.addEventListener('click', handlePlay);
-	ui.pauseBtn.addEventListener('click', handlePause);
-	ui.stopBtn.addEventListener('click', stopSession);
+	ui.playBtn?.addEventListener('click', handlePlay);
+	ui.pauseBtn?.addEventListener('click', handlePause);
+	ui.stopBtn?.addEventListener('click', stopSession);
 	ui.mixSlider.addEventListener('input', handleMixChange);
 	ui.panSlider.addEventListener('input', handlePanChange);
 	// Upload com validação
@@ -1235,23 +1275,27 @@ function updateControlsForYoutubeMode(isYoutubeActive) {
 	const audio8dToggle = document.getElementById('audio-8d-toggle');
 	const enhancerToggle = document.getElementById('enhancer-toggle');
 	const panSlider = document.getElementById('panSlider');
+	const lowPassSlider = document.getElementById('lowPass');
 	
 	// Encontra o card pai de cada toggle
 	const audio8dCard = audio8dToggle?.closest('.effect-card');
 	const enhancerCard = enhancerToggle?.closest('.effect-card');
 	const panContainer = panSlider?.closest('.mixer-item, .control-group');
+	const lowPassContainer = lowPassSlider?.closest('.mixer-item, .control-group');
 	
 	// Lista de elementos para aplicar classes
 	const elementsToDisable = [
 		audio8dToggle,
 		enhancerToggle,
-		panSlider
+		panSlider,
+		lowPassSlider
 	].filter(Boolean);
 	
 	const cardsToDisable = [
 		audio8dCard,
 		enhancerCard,
-		panContainer
+		panContainer,
+		lowPassContainer
 	].filter(Boolean);
 	
 	// Aplica/remove classe nos toggles e sliders
@@ -1288,7 +1332,7 @@ function updateControlsForYoutubeMode(isYoutubeActive) {
 			warning.className = 'youtube-controls-warning';
 			warning.innerHTML = `
 				<i class="fa-brands fa-youtube"></i>
-				<span>Modo YouTube: controles 8D, Aprimoramento e Pan estão desabilitados</span>
+				<span>Modo YouTube: controles 8D, Aprimoramento, Pan e Filtro estão desabilitados</span>
 			`;
 			// Insere antes dos cards de efeitos
 			const effectsGrid = document.querySelector('.effects-grid');
@@ -2144,6 +2188,9 @@ function applyMix() {
 }
 
 function buildBinauralChain(preset) {
+	console.log('[buildBinauralChain] Iniciando com preset:', preset);
+	console.log('[buildBinauralChain] AudioContext state:', state.audioCtx.state);
+	
 	stopBinaural();
 	const ctx = state.audioCtx;
 	const leftOsc = ctx.createOscillator();
@@ -2157,11 +2204,21 @@ function buildBinauralChain(preset) {
 	const merger = ctx.createChannelMerger(2);
 	const lowPass = ctx.createBiquadFilter();
 	lowPass.type = 'lowpass';
-	lowPass.frequency.setValueAtTime(preset.lowPass, ctx.currentTime);
+	// LowPass usa valor multiplicado para não cortar as frequências binaurais
+	// O slider vai de 30-120, multiplicamos por 10 para ter 300-1200Hz de corte
+	const lowPassFrequency = (preset.lowPass || 80) * 10;
+	lowPass.frequency.setValueAtTime(lowPassFrequency, ctx.currentTime);
 	const analyser = ctx.createAnalyser();
 	analyser.fftSize = 512;
 	const binauralGain = ctx.createGain();
-	binauralGain.gain.value = state.mixRatio;
+	// Usa diretamente o valor do preset, não o state.mixRatio que pode estar desatualizado
+	const binauralVolume = (preset.binauralVolume || 50) / 100;
+	binauralGain.gain.value = binauralVolume;
+	
+	console.log('[buildBinauralChain] Frequências: L=' + preset.baseHz + 'Hz, R=' + (preset.baseHz + preset.diffHz) + 'Hz, diff=' + preset.diffHz + 'Hz');
+	console.log('[buildBinauralChain] binauralVolume:', binauralVolume);
+	console.log('[buildBinauralChain] lowPass:', lowPassFrequency + 'Hz (slider: ' + preset.lowPass + ')');
+	
 	leftOsc.connect(leftGain).connect(merger, 0, 0);
 	rightOsc.connect(rightGain).connect(merger, 0, 1);
 	merger.connect(lowPass);
@@ -2170,6 +2227,10 @@ function buildBinauralChain(preset) {
 	binauralGain.connect(state.masterGain);
 	leftOsc.start();
 	rightOsc.start();
+	
+	console.log('[buildBinauralChain] Osciladores iniciados e conectados ao masterGain');
+	console.log('[buildBinauralChain] Ganhos - leftGain:', leftGain.gain.value, 'rightGain:', rightGain.gain.value, 'binauralGain:', binauralGain.gain.value, 'masterGain:', state.masterGain.gain.value);
+	console.log('[buildBinauralChain] Enhancer ativo:', state.enhancer?.enabled, 'conectado:', state.enhancer?.connected);
 	
 	// Guarda referências para o monitor de áudio poder conectar
 	state.binauralChain = { 
@@ -2224,8 +2285,10 @@ function updateBinauralFrequenciesRealtime() {
 function updateLowPassRealtime() {
 	if (!state.binauralChain?.lowPass || !state.audioCtx) return;
 	
-	// O valor do slider já é em Hz (30-120)
-	const frequency = parseFloat(ui.lowPass?.value) || 80;
+	// O valor do slider vai de 30-120, multiplicamos por 10 para ter 300-1200Hz de corte
+	// Isso evita cortar as frequências binaurais (que vão de ~40-100Hz)
+	const sliderValue = parseFloat(ui.lowPass?.value) || 80;
+	const frequency = sliderValue * 10;
 	
 	state.binauralChain.lowPass.frequency.setTargetAtTime(frequency, state.audioCtx.currentTime, 0.05);
 }
@@ -2236,7 +2299,7 @@ function updateLowPassRealtime() {
 function updateBinauralVolumeRealtime() {
 	if (!state.binauralChain?.leftGain || !state.binauralChain?.rightGain || !state.audioCtx) return;
 	
-	const volumePercent = parseFloat(ui.binauralVolume?.value) || 70;
+	const volumePercent = parseFloat(ui.binauralVolume?.value) || 50;
 	const gain = (volumePercent / 100) * 0.5; // Max 0.5 para evitar distorção
 	
 	state.binauralChain.leftGain.gain.setTargetAtTime(gain, state.audioCtx.currentTime, 0.05);
@@ -2381,14 +2444,18 @@ async function playAllSelectedTracks() {
 			const howl = new Howl({
 				src: [objectUrl],
 				format: [format],
+				html5: false, // IMPORTANTE: Usar Web Audio API para suportar efeitos 8D, pan e filtros
 				loop: true,
 				volume: volumePerTrack,
+				stereo: state.currentPan, // Aplica pan inicial
 				onplay: () => {
 					console.log('Howler reproduzindo', trackId, 'formato:', format, 'volume:', volumePerTrack.toFixed(2));
 					// Salva nome da faixa em reprodução
 					state.currentPlayingName = trackName;
 					if (state.audio8D.enabled) {
 						console.log('Audio 8D: Ativo na sessão');
+						// Re-inicia a animação 8D para incluir esta faixa
+						startAudio8DAnimation();
 					}
 				},
 				onloaderror: (id, err) => {
@@ -2548,10 +2615,30 @@ function updateTimerDisplay() {
 	const seconds = String(state.remainingSeconds % 60).padStart(2, '0');
 	const timeStr = `${minutes}:${seconds}`;
 	
-	// Atualizar timer principal
+	// Atualizar timer principal (legacy)
 	if (ui.timerDisplay) {
 		ui.timerDisplay.textContent = timeStr;
 	}
+	
+	// Atualizar timer na track atual da playlist
+	if (typeof PlaylistManager !== 'undefined' && typeof PlayerController !== 'undefined') {
+		const currentTrackId = PlayerController.getCurrentTrackId();
+		if (currentTrackId) {
+			PlaylistManager.updateTrackTimer(currentTrackId, state.remainingSeconds);
+		}
+	}
+}
+
+/**
+ * Atualiza a barra de progresso do timer
+ * @param {number} current - Valor atual (segundos decorridos)
+ * @param {number} total - Valor total (duração total em segundos)
+ */
+function updateTimerProgress(current, total) {
+	if (!ui.timerProgress) return;
+	
+	const progress = total > 0 ? (current / total) * 100 : 0;
+	ui.timerProgress.style.width = `${progress}%`;
 }
 
 function playBeep() {
@@ -2875,10 +2962,6 @@ function computeLowEnergyPercent(data, sampleRate) {
 	return totalEnergy === 0 ? 0 : (lowEnergy / totalEnergy) * 100;
 }
 
-// Preview state tracking
-let currentPreview = null;
-let currentPreviewId = null;
-
 function renderMusicList() {
 	PlaylistManager.render();
 }
@@ -2967,11 +3050,6 @@ async function handleFavoriteToggle(trackId, button, li) {
 }
 
 async function removeTrack(trackId) {
-	// Stop preview if playing this track
-	if (currentPreviewId === trackId) {
-		stopPreview();
-	}
-	
 	await stores.music.removeItem(trackId);
 	state.musicMeta = state.musicMeta.filter((track) => track.id !== trackId);
 	
@@ -3045,241 +3123,6 @@ async function exportTrackToFile(trackId) {
 	}, null, 2));
 	
 	showToast(`Arquivo exportado: ${filename}`, 'success');
-}
-
-async function togglePreview(trackId, button, li) {
-	// If same track is playing, stop it
-	if (currentPreviewId === trackId && currentPreview) {
-		stopPreview();
-		return;
-	}
-	
-	// Stop any existing preview
-	stopPreview();
-	
-	// Verifica se é vídeo do YouTube (padrão ou do usuário)
-	if (trackId.startsWith('yt-') || trackId.startsWith('user-youtube-')) {
-		let youtubeId, soundName;
-		
-		if (trackId.startsWith('yt-')) {
-			// Vídeo do catálogo padrão
-			const soundId = trackId.replace('yt-', '');
-			const catalog = state.defaultSoundsCatalog;
-			const sound = catalog?.sounds?.find(s => s.id === soundId);
-			
-			if (!sound || !sound.youtubeId) {
-				showToast('Vídeo não encontrado', 'error');
-				return;
-			}
-			youtubeId = sound.youtubeId;
-			soundName = sound.name;
-		} else {
-			// Vídeo adicionado pelo usuário
-			const userVideos = await stores.data.getItem('userYoutubeVideos') || [];
-			const userVideo = userVideos.find(v => v.id === trackId);
-			
-			if (!userVideo || !userVideo.youtube) {
-				showToast('Vídeo não encontrado', 'error');
-				return;
-			}
-			youtubeId = userVideo.youtube;
-			soundName = userVideo.name;
-		}
-		
-		// Verifica se existe versão offline
-		const offlineKey = `yt-offline-${youtubeId}`;
-		const offlineBlob = await stores.music.getItem(offlineKey);
-		
-		currentPreviewId = trackId;
-		
-		// Update UI
-		button.classList.add('playing');
-		button.innerHTML = '<i class="fa-solid fa-stop"></i><span>Stop</span>';
-		button.title = 'Parar';
-		li.classList.add('playing');
-		
-		if (offlineBlob) {
-			// USA VERSÃO OFFLINE para preview
-			const audioSource = URL.createObjectURL(offlineBlob);
-			const format = getAudioFormat(offlineBlob.type || 'audio/mpeg');
-			
-			currentPreview = new Howl({
-				src: [audioSource],
-				format: [format],
-				volume: 0.5,
-				onend: () => {
-					stopPreview();
-					URL.revokeObjectURL(audioSource);
-				},
-				onstop: () => {
-					URL.revokeObjectURL(audioSource);
-				}
-			});
-			currentPreview.play();
-		} else {
-			// Usa streaming do YouTube
-			if (!navigator.onLine) {
-				showToast('⚠️ Requer conexão com a internet', 'warning');
-				stopPreview();
-				return;
-			}
-			
-			const success = await playYoutubeAudio(youtubeId, { volume: 70, loop: false });
-			
-			if (success) {
-				currentPreview = {
-					isYoutube: true,
-					youtubeId: youtubeId,
-					stop: () => stopYoutubeAudio(),
-					unload: () => stopYoutubeAudio()
-				};
-			} else {
-				stopPreview();
-			}
-		}
-		return;
-	}
-	
-	// Verifica se é som padrão (gerado)
-	if (trackId.startsWith('default-')) {
-		const soundId = trackId.replace('default-', '');
-		const catalog = state.defaultSoundsCatalog;
-		const sound = catalog?.sounds?.find(s => s.id === soundId);
-		
-		if (!sound) {
-			showToast('Som não encontrado', 'error');
-			return;
-		}
-		
-		// Som gerado via Web Audio API
-		if (!sound.generatorType) {
-			showToast('Tipo de som não encontrado', 'error');
-			return;
-		}
-		
-		currentPreviewId = trackId;
-		
-		// Update UI
-		button.classList.add('playing');
-		button.innerHTML = '<i class="fa-solid fa-stop"></i><span>Stop</span>';
-		button.title = 'Parar';
-		li.classList.add('playing');
-		
-		try {
-			// Usa o gerador de sons terapêuticos para preview
-			await therapeuticGenerator.play(sound.generatorType, {
-				volume: 0.4
-			});
-			
-			// Armazena referência para poder parar
-			currentPreview = {
-				isGenerated: true,
-				soundType: sound.generatorType,
-				stop: () => therapeuticGenerator.stopAll(),
-				unload: () => {} // Não precisa de unload para sons gerados
-			};
-			
-			// Auto-stop after 10 seconds
-			setTimeout(() => {
-				if (currentPreviewId === trackId) {
-					stopPreview();
-				}
-			}, 10000);
-		} catch (err) {
-			console.error('Preview: erro ao gerar som:', err);
-			showToast('Erro ao gerar preview do som.', 'error');
-			stopPreview();
-		}
-	} else {
-		// Música local
-		const blob = await stores.music.getItem(trackId);
-		if (!blob) return;
-		
-		const audioSource = URL.createObjectURL(blob);
-		
-		// Detectar formato do áudio a partir do MIME type do blob
-		const mimeToFormat = {
-			'audio/mpeg': 'mp3',
-			'audio/mp3': 'mp3',
-			'audio/wav': 'wav',
-			'audio/wave': 'wav',
-			'audio/ogg': 'ogg',
-			'audio/webm': 'webm',
-			'audio/aac': 'aac',
-			'audio/mp4': 'm4a',
-			'audio/x-m4a': 'm4a',
-			'audio/flac': 'flac'
-		};
-		const format = mimeToFormat[blob.type] || 'mp3';
-		
-		currentPreviewId = trackId;
-		
-		// Update UI
-		button.classList.add('playing');
-		button.innerHTML = '<i class="fa-solid fa-stop"></i><span>Stop</span>';
-		button.title = 'Parar';
-		li.classList.add('playing');
-		
-		currentPreview = new Howl({
-			src: [audioSource],
-			format: [format],
-			volume: 0.4,
-			stereo: state.currentPan,
-			onend: () => {
-				stopPreview();
-				URL.revokeObjectURL(audioSource);
-			},
-			onstop: () => {
-				URL.revokeObjectURL(audioSource);
-			},
-			onloaderror: (id, err) => {
-				console.error('Preview: erro ao carregar:', err, 'formato:', format);
-				showToast('Erro ao carregar preview.', 'error');
-				stopPreview();
-			}
-		});
-		
-		currentPreview.play();
-		
-		// Auto-stop after 10 seconds
-		setTimeout(() => {
-			if (currentPreviewId === trackId) {
-				stopPreview();
-			}
-		}, 10000);
-	}
-}
-
-function stopPreview() {
-	if (currentPreview) {
-		currentPreview.stop();
-		currentPreview.unload();
-		currentPreview = null;
-	}
-	
-	if (currentPreviewId) {
-		// Update UI for the stopped track
-		const li = ui.playlistSelect.querySelector(`[data-id="${currentPreviewId}"]`);
-		if (li) {
-			li.classList.remove('playing');
-			const btn = li.querySelector('.btn-preview');
-			if (btn) {
-				btn.classList.remove('playing');
-				btn.innerHTML = '<i class="fa-solid fa-headphones"></i><span>Preview</span>';
-				btn.title = 'Preview';
-			}
-		}
-		currentPreviewId = null;
-	}
-}
-
-// Legacy function kept for compatibility
-async function previewTrack(trackId) {
-	const li = ui.playlistSelect.querySelector(`[data-id="${trackId}"]`);
-	const button = li?.querySelector('.btn-preview');
-	if (li && button) {
-		togglePreview(trackId, button, li);
-	}
 }
 
 function logSession(preset) {
@@ -6037,6 +5880,7 @@ function initEnhancer() {
 			try {
 				// Desconecta masterGain do destination
 				Howler.masterGain.disconnect();
+				console.log('[Enhancer] masterGain desconectado, reconectando através do EQ...');
 				
 				// Conecta a cadeia de efeitos
 				Howler.masterGain.connect(state.enhancer.nodes.lowShelf);
